@@ -189,6 +189,9 @@ model Enrollment {
   status            EnrollmentStatus @default(ACTIVE)
   startDate         DateTime         @default(now()) @db.Date
   endDate           DateTime?        @db.Date
+  /// Standing online-class link (e.g. a Google Meet link) used for every lesson of this enrollment.
+  /// Never shown in the UI: students and teachers reach it through /class/[id]/go, which records attendance.
+  meetingUrl        String?
   /// Optional per-enrollment overrides (KES cents).
   teacherHourlyRate Int?
   createdAt         DateTime         @default(now())

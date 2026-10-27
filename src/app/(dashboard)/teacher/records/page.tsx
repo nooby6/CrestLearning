@@ -13,7 +13,7 @@ export const metadata = { title: "Lesson records" };
 
 export default async function TeacherRecordsPage() {
   const me = await requireRole("teacher");
-  const include = { enrollment: { include: { subject: true, student: { include: { user: true } } } } } as const;
+  const include = { enrollment: { include: { subject: true, student: { include: { user: true } } } }, attendances: true } as const;
 
   const [pending, recent] = await Promise.all([
     prisma.sessionInstance.findMany({ where: pendingRecordsWhere(me.id), include, orderBy: { startsAt: "asc" } }),
@@ -59,7 +59,12 @@ export default async function TeacherRecordsPage() {
                 </Link>
               }
             >
-              <LessonRecordForm sessionId={s.id} existing={null} />
+              <LessonRecordForm
+                sessionId={s.id}
+                existing={null}
+                studentName={s.enrollment.student.user.firstName}
+                studentAttendance={s.attendances.find((a) => a.userId === s.enrollment.studentId)?.status ?? null}
+              />
             </Card>
           ))}
         </div>

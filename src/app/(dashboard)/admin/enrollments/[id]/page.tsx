@@ -9,7 +9,8 @@ import { dateKey, formatTime, hoursLabel, weekdayIso } from "@/lib/schedule";
 import { Avatar, Badge, Card, DefinitionList, EmptyState } from "@/components/ui/primitives";
 import { SessionRow } from "@/components/schedule/SessionRow";
 import { SessionActions } from "@/components/schedule/SessionActions";
-import { SlotManager, StatusControls } from "./EnrollmentControls";
+import { MeetingLinkEditor, SlotManager, StatusControls } from "./EnrollmentControls";
+import { providerOf } from "@/lib/meeting";
 
 export default async function EnrollmentPage({ params }: { params: { id: string } }) {
   await requireRole("admin");
@@ -156,6 +157,9 @@ export default async function EnrollmentPage({ params }: { params: { id: string 
         </div>
 
         <div className="space-y-6">
+          <Card title="Online lesson link" description={e.meetingUrl ? undefined : "Required before lessons can be joined online."}>
+            <MeetingLinkEditor enrollmentId={e.id} url={e.meetingUrl} provider={providerOf(e.meetingUrl)} />
+          </Card>
           <Card title="Weekly times" description={weekly ? `${hoursLabel(weekly)} a week · Nairobi time` : undefined}>
             <SlotManager enrollmentId={e.id} active={e.status === "ACTIVE"} slots={slots} />
           </Card>

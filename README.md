@@ -14,7 +14,7 @@ Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
 |---|---|---|
 | **1. Auth, roles, families** | Clerk sign-in, 4 roles, role-guarded portals, admin people management, parent ↔ student links (many-to-many, primary contact) | ✅ Built |
 | **2. Enrollments & schedule** | Enrollments with weekly times, sessions generated 6 weeks ahead, clash detection, move/cancel a single session, teacher load, timetables for every role | ✅ Built |
-| **3. Online classes, attendance, lesson records, weekly reports** | Embedded Jitsi classroom; attendance captured from joins (present / late / absent), manual corrections; mandatory lesson record after every lesson (blocks sign-out); weekly teacher reports read by parents for every linked student | ✅ Built |
+| **3. Online lessons, attendance, lesson records, weekly reports** | Google Meet link per enrollment behind a Join button; attendance captured from joins (present / late / absent), manual corrections; mandatory lesson record after every lesson (blocks sign-out); weekly teacher reports read by parents for every linked student | ✅ Built |
 | 4. Resources | Uploads scoped to an enrollment, or to a subject and level | Schema ready |
 | 5. Finance & announcements | Fee plans, invoices, M-Pesa / Flutterwave, teacher payouts from held sessions, targeted announcements | Schema ready |
 
@@ -30,20 +30,25 @@ The **full schema for all five modules** is in `prisma/schema.prisma` and the in
 
 ## Deploying on Vercel
 
-Everything deploys from **`main`**.
+Everything deploys from **`main`**. The build never needs secrets to succeed: with nothing configured the site deploys and shows a setup checklist.
 
-1. Import the repo in Vercel (framework: Next.js — detected automatically).
-2. Add a Postgres database (Vercel Postgres / Neon / Supabase) and set **Environment Variables**:
+1. **Import** the repo in Vercel (framework: Next.js, detected automatically). Leave build settings at their defaults — `vercel.json` runs `npm run vercel-build`.
+2. **Database:** Vercel → your project → **Storage → Create Database → Neon (Postgres)** → connect it to the project. This adds `DATABASE_URL` and `DATABASE_URL_UNPOOLED` automatically. (Supabase or any Postgres also works: set `DATABASE_URL`, and `DIRECT_URL` for the unpooled connection.)
+3. **Clerk** (sign-in): create an application at clerk.com, then in the Clerk dashboard:
+   - **User & authentication → Email** on, and **Username** on (students may not have email).
+   - **Restrictions → Sign-up mode: Restricted** — accounts are created by the office only.
+4. **Environment variables** (Vercel → Settings → Environment Variables):
    | Name | Value |
    |---|---|
-   | `DATABASE_URL` | your Postgres connection string (use the *pooled* URL on Neon/Supabase) |
-   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | from Clerk (use a **production** instance for the live site) |
-   | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
-   | `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | `/` |
-   | `CRON_SECRET` | any long random string |
-   | `JAAS_APP_ID`, `JAAS_API_KEY_ID`, `JAAS_PRIVATE_KEY` | from your [JaaS](https://jaas.8x8.vc) account — needed for full-length online classes (see below) |
-3. Deploy. `vercel.json` runs `npm run vercel-build`, which applies database migrations (`prisma migrate deploy`) before `next build`, and registers a daily cron (04:00 Nairobi) that keeps sessions generated six weeks ahead.
-4. First time only, from your machine with the production `DATABASE_URL` and `CLERK_SECRET_KEY`: `npm run db:seed` (subjects and levels — skip the demo families by deleting them afterwards, or trim `prisma/seed.ts`), then `npm run bootstrap:admin -- …` to create your admin.
+   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Clerk dashboard → API keys |
+   | `ADMIN_SETUP_TOKEN` | any long secret — used once to create the first administrator |
+   | `CRON_SECRET` | any long random string (daily housekeeping job) |
+5. **Redeploy** (Deployments → ⋯ → Redeploy). Database tables are created during the build.
+6. Open **`https://<your-site>/setup`**. The checklist shows what is still missing; once everything is ticked, create the first administrator with the setup token. The setup page switches itself off as soon as an administrator exists. Sign in at `/sign-in`, then add teachers, parents and students from **People**.
+
+**If a build fails**, open the deployment's *Building* log. The build prints a boxed message for database problems (wrong URL, unreachable database, or a pooled URL without an unpooled one).
+
+**Demo data** (`npm run db:seed`) is for local development; don't run it against the live database.
 
 ## Getting started
 
@@ -53,21 +58,15 @@ docker compose up -d db           # or use your own Postgres
 npm install
 npx prisma migrate deploy         # creates all tables
 npm run db:seed                   # subjects, curriculum levels, demo families
-npm run bootstrap:admin -- --username you.name --first You --last Name --password "Summit-Maple-482"
+npm run bootstrap:admin -- --username you.name --first You --last Name --password "Summit-Maple-482"   # or use /setup
 npm run dev
 ```
 
 Open http://localhost:3000 and sign in with the admin you just created.
 
-### Clerk setup (one time, in the Clerk dashboard)
+### Clerk setup
 
-1. **User & authentication → Username**: enable, and allow sign-in with username. Email optional.
-2. **Restrictions → Sign-up mode: Restricted** — accounts are created by the Crest office only.
-3. **Sessions → Customize session token**, add:
-   ```json
-   { "metadata": "{{user.public_metadata}}" }
-   ```
-   The middleware reads `sessionClaims.metadata.role` to route each person to their portal.
+See step 3 of *Deploying on Vercel*. No session-token customisation is needed: roles are read from the database on every request.
 
 ### Preview without Clerk (local only)
 
@@ -92,15 +91,21 @@ Set `DEV_AUTH_USER_ID=seed_admin` (or `seed_parent_wanjiru`, `seed_teacher_achie
 
 ## How Module 3 works
 
-**Online classes.** Each session has its own private room. Students see *Join class* on their home page; it opens 10 minutes before the start (15 for teachers) and stays open 30 minutes after the end. The class page embeds Jitsi with Crest branding around it.
+**Online lessons (Google Meet).** Each enrollment has one standing **Google Meet link**, set by the office on the enrollment page (or when creating the enrollment). Create it once in Google Calendar as a recurring event, or at meet.google.com → *New meeting → Create a meeting for later*, and paste it in. Zoom and Teams links are accepted too.
 
-*Video provider:* set the three `JAAS_*` variables to use **JaaS** (Jitsi as a Service by 8x8). Each join gets a short-lived signed token and the teacher is the room's moderator. `JAAS_API_KEY_ID` is the full key ID shown in the JaaS console (`vpaas-magic-cookie-…/…`); `JAAS_PRIVATE_KEY` is the matching private key (PEM — `\n` line breaks are fine in Vercel). Alternatively set `JITSI_DOMAIN` to a self-hosted Jitsi server. Without either, the public meet.jit.si server is used, which **limits embedded calls to a few minutes** — fine for a demo only; teachers see a warning.
+The link is **never shown** on any page. Students and the teacher press **Join lesson**, which goes to `/class/<id>/go`. That address checks who is asking (only that lesson's student and teacher), checks the lesson is open (10 minutes before the start, 15 for teachers, until 30 minutes after the end), records the join, and only then redirects to Meet in a new tab. The Crest tab becomes a lesson page; for teachers it holds the lesson record. Parents, other students and other teachers are turned away. Once someone is inside Meet the address bar does show the link, so in Google Meet's host controls keep **Host management** on and **Quick access** off, so that anyone outside the invite list has to be admitted by the teacher.
 
-**Attendance.** Joining the call records the person as *Present*, or *Late* if more than 10 minutes after the start. The page sends a heartbeat every 30 seconds to measure time in class, and records leaving (including closing the tab). Fifteen minutes after a lesson ends it is closed off: *Held* if the teacher attended, *Not held* otherwise, and anyone who never joined is marked *Absent*. Teachers can correct a student's attendance; the office can correct anyone's. Corrections are labelled as manual.
+Lessons can run as long as needed (Meet allows up to 24 hours on Google Workspace; personal Google accounts are limited to 60 minutes for three or more people, while one-to-one calls run up to 24 hours).
 
-**Lesson records (mandatory).** After every lesson the teacher records the topics covered, plus any homework and due date. The form is available during the class and appears automatically when the teacher leaves. Until every held lesson has a record, the teacher portal only shows the *Lesson records* page and **sign-out is refused**. (Closing the browser can't be prevented, so the lock is applied at their next visit, and the office sees outstanding records on the overview.)
+*Optional:* an embedded classroom (JaaS or self-hosted Jitsi, via `JAAS_*` or `JITSI_DOMAIN`) is still supported for enrollments without a Meet link.
+
+**Attendance.** Pressing *Join lesson* records the person as *Present*, or *Late* if more than 10 minutes after the start. Google Meet doesn't report back who stayed, so the teacher **confirms the student's attendance in every lesson record** (pre-filled from the join, changeable). With the embedded classroom, time in class is also measured. Fifteen minutes after a lesson ends it is closed off: *Held* if the teacher attended, *Not held* otherwise, and anyone who never joined is marked *Absent*. Teachers can correct a student's attendance; the office can correct anyone's. Corrections are labelled as manual.
+
+**Lesson records (mandatory).** After every lesson the teacher confirms the student's attendance and records the topics covered, plus any homework and due date. The form is on the lesson page during the class. Until every held lesson has a record, the teacher portal only shows the *Lesson records* page and **sign-out is refused**. (Closing the browser can't be prevented, so the lock is applied at their next visit, and the office sees outstanding records on the overview.)
 
 **Weekly reports.** Once a week, per student and subject, the teacher writes a short progress report (required), strengths, a focus for next week, and an effort rating — due by Sunday; overdue reports are flagged on the teacher's Today page and in the office view. Parents open *Weekly reports* and see **every linked student** on one page (or filter to one), each subject's report alongside that week's lessons, topics covered, homework and attendance. Reports print cleanly or save as PDF.
+
+**Privacy.** Teachers never see parents' names or contact details; anything involving a parent goes through the office.
 
 **Students and parents** see lessons, not hours: lessons left today and this week, today's lessons with times and teachers, and the weekly lesson pattern. Students also have a *Homework* page fed from lesson records.
 

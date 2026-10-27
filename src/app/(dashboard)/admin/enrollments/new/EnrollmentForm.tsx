@@ -38,6 +38,7 @@ export function EnrollmentForm({
   const [curriculum, setCurriculum] = useState(initial?.curriculum ?? "");
   const [levelId, setLevelId] = useState<string>(initial?.levelId ? String(initial.levelId) : "");
   const [slots, setSlots] = useState<SlotDraft[]>([emptySlot()]);
+  const [meetingUrl, setMeetingUrl] = useState("");
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -65,6 +66,7 @@ export function EnrollmentForm({
         curriculum: (curriculum || undefined) as "CAMBRIDGE" | undefined,
         levelId: levelId ? Number(levelId) : undefined,
         slots,
+        meetingUrl,
         force,
       });
       if (!res.ok) {
@@ -235,6 +237,25 @@ export function EnrollmentForm({
         )}
         {slots.length === 0 && <p className="text-xs text-navy-400">No weekly time — you can add one later. No sessions will be created yet.</p>}
         {conflicts.length > 0 && <ConflictList conflicts={conflicts} />}
+      </section>
+
+      <section className="card space-y-2 p-5 sm:p-6">
+        <h2 className="font-display text-sm font-semibold text-navy-900">Online lesson link</h2>
+        <input
+          className="input"
+          placeholder="https://meet.google.com/abc-defg-hij"
+          value={meetingUrl}
+          onChange={(e) => setMeetingUrl(e.target.value)}
+          aria-label="Google Meet link"
+        />
+        {errors.meetingUrl ? (
+          <p className="text-xs text-rose-600">{errors.meetingUrl}</p>
+        ) : (
+          <p className="text-xs text-navy-400">
+            Optional now, required before the first lesson. One Google Meet link is used for every lesson; students and the teacher reach it through
+            Join, which records attendance.
+          </p>
+        )}
       </section>
 
       <div className="flex items-center justify-end gap-3 border-t border-line pt-6">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardX, GraduationCap, HeartHandshake, Link2Off, Presentation, UserPlus, UsersRound, type LucideIcon } from "lucide-react";
+import { ArrowRight, ClipboardX, GraduationCap, HeartHandshake, Link2Off, Presentation, UserPlus, UsersRound, VideoOff, type LucideIcon } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { finaliseEndedSessions } from "@/lib/attendance";
 import { requireRole } from "@/lib/auth";
@@ -13,7 +13,7 @@ export default async function AdminOverview() {
   const me = await requireRole("admin");
 
   await finaliseEndedSessions();
-  const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent, unrecorded] = await Promise.all([
+  const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
     prisma.teacher.count({ where: { user: { active: true } } }),
@@ -35,6 +35,11 @@ export default async function AdminOverview() {
       where: { status: "HELD", progressNote: null },
       select: { enrollment: { select: { teacher: { select: { user: true } } } } },
     }),
+    prisma.enrollment.findMany({
+      where: { status: "ACTIVE", meetingUrl: null, slots: { some: { active: true } } },
+      include: { student: { include: { user: true } }, subject: true, teacher: { include: { user: true } } },
+      take: 8,
+    }),
   ]);
   const unrecordedByTeacher = [...unrecorded.reduce((m, s) => {
     const u = s.enrollment.teacher.user;
@@ -43,7 +48,7 @@ export default async function AdminOverview() {
     return m.set(u.id, cur);
   }, new Map<string, { user: (typeof unrecorded)[number]["enrollment"]["teacher"]["user"]; count: number }>()).values()];
 
-  const attentionCount = orphanStudents.length + childlessParents.length + unrecordedByTeacher.length;
+  const attentionCount = orphanStudents.length + childlessParents.length + unrecordedByTeacher.length + noLink.length;
 
   return (
     <>
@@ -74,7 +79,7 @@ export default async function AdminOverview() {
               {attentionCount > 0 && <Badge tone="amber">{attentionCount}</Badge>}
             </span>
           }
-          description="Unlinked accounts and outstanding lesson records."
+          description="Unlinked accounts, missing lesson links and outstanding lesson records."
           bodyClassName="p-0"
         >
           {attentionCount === 0 ? (
@@ -92,6 +97,16 @@ export default async function AdminOverview() {
                   person={s.user}
                   meta={[curriculumLabel(s.curriculum), s.level?.name].filter(Boolean).join(" · ")}
                   issue="No parent linked"
+                />
+              ))}
+              {noLink.map((e) => (
+                <AttentionRow
+                  key={`link-${e.id}`}
+                  href={`/admin/enrollments/${e.id}`}
+                  person={e.student.user}
+                  meta={`${e.subject.name} · ${fullName(e.teacher.user)}`}
+                  issue="No lesson link"
+                  icon={VideoOff}
                 />
               ))}
               {unrecordedByTeacher.map(({ user, count }) => (

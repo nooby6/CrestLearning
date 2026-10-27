@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import clsx from "clsx";
 import { toast } from "react-toastify";
 import { Check, Loader2 } from "lucide-react";
 import { saveLessonRecord } from "@/lib/actions/lessons";
+import { ATTENDANCE_LABEL } from "@/lib/classroom";
+
+type Att = keyof typeof ATTENDANCE_LABEL;
 
 export type ExistingRecord = { topicsCovered: string; homework: string | null; homeworkDue: string | null } | null;
 
 /**
  * The mandatory record a teacher completes after every lesson:
- * topics covered (required) and any homework set.
+ * the student's attendance (confirmed), topics covered, and any homework set.
  */
 export function LessonRecordForm({
   sessionId,
@@ -17,27 +21,39 @@ export function LessonRecordForm({
   onSaved,
   compact = false,
   submitLabel,
+  studentName,
+  studentAttendance,
 }: {
   sessionId: number;
   existing: ExistingRecord;
   onSaved?: () => void;
   compact?: boolean;
   submitLabel?: string;
+  studentName?: string;
+  /** Attendance captured automatically (from the Join button), used as the starting value. */
+  studentAttendance?: Att | null;
 }) {
   const [topics, setTopics] = useState(existing?.topicsCovered ?? "");
   const [homework, setHomework] = useState(existing?.homework ?? "");
   const [due, setDue] = useState(existing?.homeworkDue ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [attendance, setAttendance] = useState<Att | null>(studentAttendance ?? null);
+  const [attError, setAttError] = useState(false);
   const [saved, setSaved] = useState(!!existing);
   const [pending, start] = useTransition();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!attendance) {
+      setAttError(true);
+      return;
+    }
     start(async () => {
-      const r = await saveLessonRecord(sessionId, { topicsCovered: topics, homework, homeworkDue: due });
+      const r = await saveLessonRecord(sessionId, { topicsCovered: topics, homework, homeworkDue: due, studentAttendance: attendance });
       if (!r.ok) {
-        setError(r.fieldErrors?.topicsCovered ?? r.error);
+        if (r.fieldErrors?.studentAttendance) setAttError(true);
+        else setError(r.fieldErrors?.topicsCovered ?? r.error);
         return;
       }
       setSaved(true);
@@ -48,6 +64,34 @@ export function LessonRecordForm({
 
   return (
     <form onSubmit={submit} className="space-y-3">
+      <fieldset>
+        <legend className="label">
+          {studentName ? `${studentName}’s attendance` : "Student attendance"} <span className="text-rose-600">*</span>
+          {studentAttendance && <span className="ml-1 font-normal text-navy-300">· joined via Crest</span>}
+        </legend>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup">
+          {(Object.keys(ATTENDANCE_LABEL) as Att[]).map((a) => (
+            <button
+              key={a}
+              type="button"
+              role="radio"
+              aria-checked={attendance === a}
+              onClick={() => {
+                setAttendance(a);
+                setAttError(false);
+                setSaved(false);
+              }}
+              className={clsx(
+                "rounded-full border px-3 py-1 text-xs font-medium transition",
+                attendance === a ? "border-navy-800 bg-navy-800 text-white" : "border-line bg-white text-navy-600 hover:border-navy-200",
+              )}
+            >
+              {ATTENDANCE_LABEL[a]}
+            </button>
+          ))}
+        </div>
+        {attError && <p className="mt-1 text-xs text-rose-600">Confirm the student’s attendance.</p>}
+      </fieldset>
       <div>
         <label className="label" htmlFor={`topics-${sessionId}`}>
           Topics covered <span className="text-rose-600">*</span>

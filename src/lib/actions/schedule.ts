@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { assertRole } from "@/lib/auth";
 import { clearFutureSessions, findSlotConflicts, generateForSlot, type Conflict } from "@/lib/sessions";
 import { TZ, dateKey, isHHMM, meetingRoomName, zonedToUtc } from "@/lib/schedule";
+import { parseMeetingLink } from "@/lib/meeting";
 
 type Result<T = undefined> =
   | { ok: true; data?: T; message?: string }
@@ -28,6 +29,7 @@ const EnrollmentInput = z.object({
   levelId: z.number().int().optional(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   slots: z.array(SlotInput).max(7),
+  meetingUrl: z.string().trim().optional(),
   force: z.boolean().default(false),
 });
 export type EnrollmentInputT = z.input<typeof EnrollmentInput>;
@@ -77,6 +79,10 @@ export async function createEnrollment(input: EnrollmentInputT): Promise<Result<
     return { ok: false, error: "This student already has this subject with this teacher." };
   }
   if (internalClashes(d.slots)) return { ok: false, error: "Two of the weekly slots overlap each other." };
+  const link = d.meetingUrl ? parseMeetingLink(d.meetingUrl) : null;
+  if (d.meetingUrl && !link) {
+    return { ok: false, error: "That doesn’t look like a Google Meet link.", fieldErrors: { meetingUrl: "Paste a link like https://meet.google.com/abc-defg-hij" } };
+  }
 
   if (!d.force) {
     const conflicts = (
@@ -88,6 +94,7 @@ export async function createEnrollment(input: EnrollmentInputT): Promise<Result<
   const startDate = new Date(d.startDate ?? dateKey(new Date()));
   const enrollment = await prisma.$transaction(async (tx) => {
     const data = {
+      ...(link && { meetingUrl: link.url }),
       curriculum: d.curriculum ?? student.curriculum,
       levelId: d.levelId ?? student.levelId,
       status: "ACTIVE" as const,
@@ -243,4 +250,16 @@ export async function cancelSession(sessionId: number, reason: string): Promise<
   });
   refresh(s.enrollmentId);
   return { ok: true, message: "Session cancelled" };
+}
+
+/** Set or clear the standing online-class link (e.g. Google Meet) for an enrollment. */
+export async function setMeetingLink(enrollmentId: number, raw: string | null): Promise<Result> {
+  await assertRole("admin");
+  const link = raw ? parseMeetingLink(raw) : null;
+  if (raw && !link) return { ok: false, error: "Paste a Google Meet link like https://meet.google.com/abc-defg-hij" };
+  const e = await prisma.enrollment.findUnique({ where: { id: enrollmentId } });
+  if (!e) return { ok: false, error: "Enrollment not found." };
+  await prisma.enrollment.update({ where: { id: enrollmentId }, data: { meetingUrl: link?.url ?? null } });
+  refresh(enrollmentId);
+  return { ok: true, message: link ? `${link.provider} link saved` : "Link removed" };
 }

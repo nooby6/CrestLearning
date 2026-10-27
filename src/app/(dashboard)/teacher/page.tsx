@@ -7,6 +7,7 @@ import { addDaysKey, dateKey, formatTime, hoursLabel, keyToUtcStart, mondayOf } 
 import { Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
 import { SessionRow } from "@/components/schedule/SessionRow";
 import { JoinButton } from "@/components/class/JoinButton";
+import { sessionLink } from "@/lib/meeting";
 
 export const metadata = { title: "Today" };
 
@@ -143,6 +144,7 @@ export default async function TeacherHome() {
                         who="teacher"
                         size="sm"
                         tone="navy"
+                        external={!!sessionLink(s)}
                       />
                     ) : undefined
                   }

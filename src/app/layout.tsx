@@ -24,7 +24,26 @@ export const metadata: Metadata = {
   description: "Crest Learning — Cambridge, Edexcel, CBE and IB tuition in Nairobi. Learn. Grow. Excel.",
 };
 
+// Everything is per-user; never pre-render at build time (also keeps the build independent of Clerk keys).
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const page = (
+    <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
+      <body className="font-sans">
+        {children}
+        <ToastContainer
+          position="bottom-right"
+          theme="light"
+          hideProgressBar
+          closeButton={false}
+          toastClassName="!rounded-lg !border !border-line !shadow-lift !text-sm !text-navy-900 !font-sans"
+        />
+      </body>
+    </html>
+  );
+  // Without Clerk keys the middleware sends every request to /setup, which needs no Clerk.
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) return page;
   return (
     <ClerkProvider
       appearance={{
@@ -36,18 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         },
       }}
     >
-      <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
-        <body className="font-sans">
-          {children}
-          <ToastContainer
-            position="bottom-right"
-            theme="light"
-            hideProgressBar
-            closeButton={false}
-            toastClassName="!rounded-lg !border !border-line !shadow-lift !text-sm !text-navy-900 !font-sans"
-          />
-        </body>
-      </html>
+      {page}
     </ClerkProvider>
   );
 }

@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { Video } from "lucide-react";
 import { joinState, joinWindow, untilLabel, type Participant } from "@/lib/classroom";
 
-/** Live-updating join control: disabled with a countdown until the room opens. */
+/**
+ * Live-updating join control: disabled with a countdown until the lesson opens.
+ * With a Meet link (`external`), it opens the meeting in a new tab via /class/[id]/go
+ * (which records attendance) and turns this tab into the lesson companion page.
+ */
 export function JoinButton({
   sessionId,
   startsAt,
@@ -15,6 +20,7 @@ export function JoinButton({
   who,
   size = "md",
   tone = "gold",
+  external = false,
 }: {
   sessionId: number;
   startsAt: string;
@@ -23,7 +29,9 @@ export function JoinButton({
   who: Participant;
   size?: "sm" | "md";
   tone?: "gold" | "navy";
+  external?: boolean;
 }) {
+  const router = useRouter();
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     setNow(Date.now());
@@ -47,18 +55,41 @@ export function JoinButton({
 
   if (state === "open") {
     const live = now! >= +s.startsAt;
-    return (
-      <Link href={`/class/${sessionId}`} className={cls}>
+    const body = (
+      <>
         <Video className="h-4 w-4" />
-        {live ? "Join class" : "Join early"}
-        {live && <span className="relative ml-0.5 flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" /></span>}
+        {live ? "Join lesson" : "Join early"}
+        {live && (
+          <span className="relative ml-0.5 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
+          </span>
+        )}
+      </>
+    );
+    if (external) {
+      return (
+        <a
+          href={`/class/${sessionId}/go`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cls}
+          onClick={() => setTimeout(() => router.push(`/class/${sessionId}`), 50)}
+        >
+          {body}
+        </a>
+      );
+    }
+    return (
+      <Link href={`/class/${sessionId}`} className={cls} prefetch={false}>
+        {body}
       </Link>
     );
   }
   return (
     <span className={cls} aria-disabled title="The class opens shortly before it starts">
       <Video className="h-4 w-4" />
-      {now === null ? "Join class" : `Opens ${untilLabel(joinWindow(s, who).opensAt, now)}`}
+      {now === null ? "Join lesson" : `Opens ${untilLabel(joinWindow(s, who).opensAt, now)}`}
     </span>
   );
 }

@@ -1,7 +1,7 @@
-import { Phone, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
-import { formatDate, fullName, prettyPhone } from "@/lib/format";
+import { formatDate, fullName } from "@/lib/format";
 import { curriculumLabel } from "@/lib/roles";
 import { formatSlot, formatTime, weekdayIso } from "@/lib/schedule";
 import { Avatar, Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
@@ -22,7 +22,6 @@ export default async function TeacherStudents() {
         include: {
           user: true,
           level: true,
-          guardians: { where: { isPrimary: true }, include: { parent: { include: { user: true } } } },
         },
       },
     },
@@ -38,7 +37,7 @@ export default async function TeacherStudents() {
       <PageHeader
         eyebrow="Teacher portal"
         title="My students"
-        description={`${byStudent.size} ${byStudent.size === 1 ? "student" : "students"} · ${enrollments.length} subjects`}
+        description={`${byStudent.size} ${byStudent.size === 1 ? "student" : "students"} · ${enrollments.length} subjects. For anything involving a parent, please contact the Crest Learning office.`}
       />
       {byStudent.size === 0 ? (
         <EmptyState icon={Users} title="No students yet">
@@ -48,7 +47,6 @@ export default async function TeacherStudents() {
         <div className="grid gap-4 md:grid-cols-2">
           {[...byStudent.values()].map((list) => {
             const s = list[0].student;
-            const guardian = s.guardians[0]?.parent.user;
             return (
               <article key={s.id} className="card overflow-hidden">
                 <header className="flex items-center gap-3 border-b border-line px-5 py-4">
@@ -85,16 +83,6 @@ export default async function TeacherStudents() {
                     </li>
                   ))}
                 </ul>
-                {guardian && (
-                  <footer className="flex items-center justify-between border-t border-line bg-ivory/60 px-5 py-2.5 text-xs text-navy-500">
-                    <span>Parent: {fullName(guardian)}</span>
-                    {guardian.phone && (
-                      <a href={`tel:${guardian.phone}`} className="flex items-center gap-1 tabular-nums hover:text-navy-800">
-                        <Phone className="h-3.5 w-3.5 text-gold-500" /> {prettyPhone(guardian.phone)}
-                      </a>
-                    )}
-                  </footer>
-                )}
               </article>
             );
           })}

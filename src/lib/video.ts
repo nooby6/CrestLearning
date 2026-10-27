@@ -7,7 +7,8 @@ import { createSign } from "node:crypto";
  *   Production → JaaS (Jitsi as a Service, 8x8.vc). Set JAAS_APP_ID, JAAS_API_KEY_ID, JAAS_PRIVATE_KEY.
  *                Each join gets a short-lived signed token; the teacher is the moderator.
  *   Self-hosted → set JITSI_DOMAIN to your own Jitsi Meet server.
- *   Otherwise   → public meet.jit.si, which caps embedded calls at a few minutes. Fine for a demo only.
+ * Lessons normally use a Google Meet link set on the enrollment (see src/lib/meeting.ts);
+ * this embedded room is only used for enrollments without one, and only when configured.
  */
 export type RoomConfig = {
   provider: "jaas" | "jitsi";
@@ -59,7 +60,7 @@ export function roomConfig(
   meetingRoom: string,
   user: { id: string; name: string; email?: string | null; avatar?: string | null },
   moderator: boolean,
-): RoomConfig {
+): RoomConfig | null {
   const { JAAS_APP_ID, JAAS_API_KEY_ID, JAAS_PRIVATE_KEY, JITSI_DOMAIN } = process.env;
 
   if (JAAS_APP_ID && JAAS_API_KEY_ID && JAAS_PRIVATE_KEY) {
@@ -72,12 +73,13 @@ export function roomConfig(
       demoLimited: false,
     };
   }
-  const domain = JITSI_DOMAIN || "meet.jit.si";
+  if (!JITSI_DOMAIN) return null;
+  const domain = JITSI_DOMAIN;
   return {
     provider: "jitsi",
     domain,
     scriptSrc: `https://${domain}/external_api.js`,
     roomName: meetingRoom,
-    demoLimited: domain === "meet.jit.si",
+    demoLimited: false,
   };
 }

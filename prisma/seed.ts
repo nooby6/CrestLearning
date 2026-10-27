@@ -175,6 +175,8 @@ async function main() {
         curriculum: sp.curriculum,
         levelId: levelByKey[levelKey(sp.curriculum, sp.level)].id,
         startDate: new Date(addDaysKey(weekStart, -21)),
+        // Demo Google Meet links (one enrollment left without, to show the office alert).
+        meetingUrl: studentId === "seed_student_aarav" ? null : `https://meet.google.com/${demoMeetCode(teacherId + studentId + code)}`,
       },
     });
     if (await prisma.sessionSlot.count({ where: { enrollmentId: enrollment.id } })) continue;
@@ -207,6 +209,14 @@ async function main() {
   console.log(
     `Seeded: ${counts[0]} subjects, ${counts[1]} levels, ${counts[2]} users, ${counts[3]} enrollments, ${counts[4]} sessions.`,
   );
+}
+
+/** Stable fake Meet code (abc-defg-hij) for demo data. */
+function demoMeetCode(seed: string) {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const letters = Array.from({ length: 10 }, (_, i) => String.fromCharCode(97 + ((h >>> (i * 3)) + i * 7) % 26)).join("");
+  return `${letters.slice(0, 3)}-${letters.slice(3, 7)}-${letters.slice(7, 10)}`;
 }
 
 // Realistic lesson records per subject, cycled through.

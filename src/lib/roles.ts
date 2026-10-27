@@ -18,14 +18,6 @@ export const ROLE_LABEL: Record<RoleSlug, string> = {
   parent: "Parent",
 };
 
-/** Route prefixes → roles allowed. Checked in middleware; re-checked server-side. */
-export const ROUTE_ACCESS: { pattern: string; roles: RoleSlug[] }[] = [
-  { pattern: "/admin(.*)", roles: ["admin"] },
-  { pattern: "/teacher(.*)", roles: ["teacher"] },
-  { pattern: "/student(.*)", roles: ["student"] },
-  { pattern: "/parent(.*)", roles: ["parent"] },
-];
-
 export const CURRICULA = [
   { value: "CAMBRIDGE", label: "Cambridge" },
   { value: "EDEXCEL", label: "Edexcel" },

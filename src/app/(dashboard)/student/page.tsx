@@ -9,6 +9,7 @@ import { lessonSummary } from "@/lib/lesson-summary";
 import { Card, ComingNext, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { JoinButton } from "@/components/class/JoinButton";
 import { LessonOverview } from "@/components/class/LessonOverview";
+import { sessionLink } from "@/lib/meeting";
 
 export const metadata = { title: "Home" };
 
@@ -64,7 +65,7 @@ export default async function StudentHome() {
                 {dayLabel(next.startsAt)} · {formatTimeRange(next.startsAt, next.endsAt)} · with {fullName(next.enrollment.teacher.user)}
               </p>
               <div className="mt-5">
-                <JoinButton sessionId={next.id} startsAt={next.startsAt.toISOString()} endsAt={next.endsAt.toISOString()} status={next.status} who="student" />
+                <JoinButton sessionId={next.id} startsAt={next.startsAt.toISOString()} endsAt={next.endsAt.toISOString()} status={next.status} who="student" external={!!sessionLink(next)} />
               </div>
             </section>
           ) : (

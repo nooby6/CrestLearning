@@ -37,7 +37,8 @@ export type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>
 /** Use at the top of every role page and server action. */
 export async function requireRole(...allowed: RoleSlug[]): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/sign-in");
+  // Signed in with Clerk but no Crest profile yet → explain, rather than loop back to sign-in.
+  if (!user) redirect((await resolveUserId()) ? "/pending" : "/sign-in");
   if (!user.active) redirect("/pending?reason=inactive");
   const slug = toSlug(user.role);
   if (allowed.length && !allowed.includes(slug)) redirect(`/${slug}`);

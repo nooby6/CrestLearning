@@ -1,10 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { databaseUrl } from "./env";
 
 // Rust-free Prisma client over node-postgres (engineType = "client" in schema.prisma).
 const createClient = () =>
   new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+    adapter: new PrismaPg({ connectionString: databaseUrl() }),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 

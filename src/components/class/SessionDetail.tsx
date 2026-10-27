@@ -12,6 +12,7 @@ import { SessionActions } from "@/components/schedule/SessionActions";
 import { AttendanceEditor, type AttendanceRow } from "./AttendanceEditor";
 import { JoinButton } from "./JoinButton";
 import { LessonRecordForm } from "./LessonRecordForm";
+import { sessionLink } from "@/lib/meeting";
 
 const mins = (sec: number) => (sec < 60 ? "under a minute" : `${Math.round(sec / 60)} min`);
 
@@ -77,7 +78,7 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
         <div className="flex items-center gap-3">
           <StatusBadge status={s.status} startsAt={s.startsAt} endsAt={s.endsAt} />
           {isTeacher && (
-            <JoinButton sessionId={s.id} startsAt={s.startsAt.toISOString()} endsAt={s.endsAt.toISOString()} status={s.status} who="teacher" />
+            <JoinButton sessionId={s.id} startsAt={s.startsAt.toISOString()} endsAt={s.endsAt.toISOString()} status={s.status} who="teacher" external={!!sessionLink(s)} />
           )}
           {s.status === "SCHEDULED" && !started && (
             <SessionActions
@@ -108,6 +109,8 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
                 <>
                   <LessonRecordForm
                     sessionId={s.id}
+                    studentName={e.student.user.firstName}
+                    studentAttendance={s.attendances.find((a) => a.userId === e.studentId)?.status ?? null}
                     existing={
                       s.progressNote
                         ? {

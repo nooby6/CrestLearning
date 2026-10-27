@@ -6,6 +6,7 @@ import type { LessonSummary } from "@/lib/lesson-summary";
 import { tintFor } from "@/components/schedule/WeekGrid";
 import { StatusBadge } from "@/components/schedule/SessionRow";
 import { JoinButton } from "./JoinButton";
+import { sessionLink } from "@/lib/meeting";
 
 /** Today's lessons with times and teachers; lessons left today and this week; the weekly pattern. */
 export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "student" | "parent" }) {
@@ -31,7 +32,7 @@ export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "stude
                   <p className="truncate text-xs text-navy-400">with {fullName(x.enrollment.teacher.user)}</p>
                 </div>
                 {viewer === "student" && x.status === "SCHEDULED" ? (
-                  <JoinButton sessionId={x.id} startsAt={x.startsAt.toISOString()} endsAt={x.endsAt.toISOString()} status={x.status} who="student" size="sm" />
+                  <JoinButton sessionId={x.id} startsAt={x.startsAt.toISOString()} endsAt={x.endsAt.toISOString()} status={x.status} who="student" size="sm" external={!!sessionLink(x)} />
                 ) : null}
                 {(viewer === "parent" || x.status !== "SCHEDULED") && <StatusBadge status={x.status} startsAt={x.startsAt} endsAt={x.endsAt} />}
               </li>

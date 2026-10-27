@@ -18,7 +18,7 @@ async function loadSessionFor(sessionId: number) {
   const me = await assertRole("teacher", "admin");
   const s = await prisma.sessionInstance.findUnique({
     where: { id: sessionId },
-    include: { enrollment: true, progressNote: true },
+    include: { enrollment: true, progressNote: true, attendances: true },
   });
   if (!s || (me.role === "TEACHER" && s.enrollment.teacherId !== me.id)) throw new Error("Session not found.");
   return { me, s };
@@ -33,6 +33,8 @@ const RecordInput = z.object({
     .optional()
     .or(z.literal("")),
   comment: z.string().trim().max(1000).optional(),
+  /** The teacher confirms the student's attendance with every record. */
+  studentAttendance: z.enum(["PRESENT", "LATE", "ABSENT", "EXCUSED"], { required_error: "Confirm the student’s attendance" }),
 });
 export type RecordInputT = z.input<typeof RecordInput>;
 
@@ -55,7 +57,7 @@ export async function saveLessonRecord(sessionId: number, input: RecordInputT): 
   if (!p.success) {
     return {
       ok: false,
-      error: "Please describe what was covered.",
+      error: p.error.issues[0]?.path[0] === "studentAttendance" ? "Confirm the student’s attendance." : "Please describe what was covered.",
       fieldErrors: Object.fromEntries(p.error.issues.map((i) => [i.path.join("."), i.message])),
     };
   }
@@ -67,7 +69,22 @@ export async function saveLessonRecord(sessionId: number, input: RecordInputT): 
     comment: d.comment || null,
   };
 
+  const studentId = s.enrollment.studentId;
+  const auto = s.attendances.find((a) => a.userId === studentId);
+  // Keep the automatic record when the teacher agrees with it; otherwise store the teacher's correction.
+  const studentAttendance =
+    auto && auto.status === d.studentAttendance
+      ? []
+      : [
+          prisma.attendance.upsert({
+            where: { sessionId_userId: { sessionId, userId: studentId } },
+            create: { sessionId, userId: studentId, role: "STUDENT" as const, status: d.studentAttendance, source: "MANUAL" as const, overriddenById: me.id },
+            update: { status: d.studentAttendance, source: "MANUAL", overriddenById: me.id },
+          }),
+        ];
+
   await prisma.$transaction([
+    ...studentAttendance,
     prisma.progressNote.upsert({
       where: { sessionId },
       create: { sessionId, authorId: me.id, ...data },
