@@ -5,8 +5,9 @@
  * `npm run bootstrap:admin` to create your real admin sign-in.
  */
 import "dotenv/config";
-import { PrismaClient, type Curriculum, type GuardianRelationship, type Role } from "@prisma/client";
+import { PrismaClient, type Curriculum, type GuardianRelationship, type Role, type Weekday } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { addDaysKey, dateKey, meetingRoomName, mondayOf, occurrences } from "../src/lib/schedule";
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
@@ -85,14 +86,15 @@ const links: [string, string, GuardianRelationship, boolean][] = [
   // seed_student_imani and seed_parent_brian are intentionally unlinked → "Needs attention".
 ];
 
-const enrollments: [string, string, string][] = [
-  ["seed_teacher_achieng", "seed_student_amani", "MATH"],
-  ["seed_teacher_kamau", "seed_student_amani", "CHEM"],
-  ["seed_teacher_wambui", "seed_student_amani", "ENG"],
-  ["seed_teacher_kamau", "seed_student_zawadi", "ISCI"],
-  ["seed_teacher_wambui", "seed_student_zawadi", "KIS"],
-  ["seed_teacher_achieng", "seed_student_yusuf", "PHY"],
-  ["seed_teacher_wambui", "seed_student_aarav", "ENG"],
+type Slot = [Weekday, string, number]; // day, HH:mm (Nairobi), minutes
+const enrollments: [string, string, string, Slot[]][] = [
+  ["seed_teacher_achieng", "seed_student_amani", "MATH", [["MONDAY", "10:00", 90], ["THURSDAY", "10:00", 60]]],
+  ["seed_teacher_kamau", "seed_student_amani", "CHEM", [["TUESDAY", "11:00", 60]]],
+  ["seed_teacher_wambui", "seed_student_amani", "ENG", [["WEDNESDAY", "14:00", 60]]],
+  ["seed_teacher_kamau", "seed_student_zawadi", "ISCI", [["MONDAY", "16:00", 60], ["WEDNESDAY", "16:00", 60]]],
+  ["seed_teacher_wambui", "seed_student_zawadi", "KIS", [["FRIDAY", "15:00", 45]]],
+  ["seed_teacher_achieng", "seed_student_yusuf", "PHY", [["TUESDAY", "16:30", 90], ["SATURDAY", "09:00", 90]]],
+  ["seed_teacher_wambui", "seed_student_aarav", "ENG", [["THURSDAY", "16:30", 60]]],
 ];
 
 async function main() {
@@ -157,10 +159,13 @@ async function main() {
     });
   }
 
-  for (const [teacherId, studentId, code] of enrollments) {
+  // Sessions from this week's Monday to six weeks ahead (so the current week is populated).
+  const weekStart = mondayOf(dateKey(new Date()));
+  const horizon = addDaysKey(weekStart, 6 * 7);
+  for (const [teacherId, studentId, code, slots] of enrollments) {
     const sp = studentProfiles[studentId];
     const subjectId = subjectByCode[code];
-    await prisma.enrollment.upsert({
+    const enrollment = await prisma.enrollment.upsert({
       where: { teacherId_studentId_subjectId: { teacherId, studentId, subjectId } },
       update: {},
       create: {
@@ -169,12 +174,36 @@ async function main() {
         subjectId,
         curriculum: sp.curriculum,
         levelId: levelByKey[levelKey(sp.curriculum, sp.level)].id,
+        startDate: new Date(addDaysKey(weekStart, -21)),
       },
     });
+    if (await prisma.sessionSlot.count({ where: { enrollmentId: enrollment.id } })) continue;
+    for (const [weekday, startTime, durationMinutes] of slots) {
+      const slot = await prisma.sessionSlot.create({
+        data: { enrollmentId: enrollment.id, weekday, startTime, durationMinutes, validFrom: new Date(addDaysKey(weekStart, -21)) },
+      });
+      await prisma.sessionInstance.createMany({
+        data: occurrences(slot, weekStart, horizon).map((o) => ({
+          enrollmentId: enrollment.id,
+          slotId: slot.id,
+          ...o,
+          meetingRoom: meetingRoomName(code),
+        })),
+        skipDuplicates: true,
+      });
+    }
   }
 
-  const counts = await Promise.all([prisma.subject.count(), prisma.level.count(), prisma.user.count(), prisma.enrollment.count()]);
-  console.log(`Seeded: ${counts[0]} subjects, ${counts[1]} levels, ${counts[2]} users, ${counts[3]} enrollments.`);
+  const counts = await Promise.all([
+    prisma.subject.count(),
+    prisma.level.count(),
+    prisma.user.count(),
+    prisma.enrollment.count(),
+    prisma.sessionInstance.count(),
+  ]);
+  console.log(
+    `Seeded: ${counts[0]} subjects, ${counts[1]} levels, ${counts[2]} users, ${counts[3]} enrollments, ${counts[4]} sessions.`,
+  );
 }
 
 main()

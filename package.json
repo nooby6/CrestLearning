@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "ts-node --transpile-only --compiler-options {\\\"module\\\":\\\"CommonJS\\\",\\\"moduleResolution\\\":\\\"node\\\"} tests/schedule.test.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "bootstrap:admin": "ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/bootstrap-admin.ts"
+    "bootstrap:admin": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\",\\\"moduleResolution\\\":\\\"node\\\"} scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "@clerk/backend": "^2.33.8",

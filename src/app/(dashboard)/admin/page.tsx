@@ -50,7 +50,7 @@ export default async function AdminOverview() {
         <StatCard label="Students" value={students} icon={GraduationCap} href="/admin/people?role=student" />
         <StatCard label="Parents" value={parents} icon={HeartHandshake} href="/admin/people?role=parent" />
         <StatCard label="Teachers" value={teachers} icon={Presentation} href="/admin/people?role=teacher" />
-        <StatCard label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} />
+        <StatCard label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} href="/admin/enrollments" />
       </div>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-3">
@@ -120,8 +120,8 @@ export default async function AdminOverview() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <ComingNext module="Module 2 · Schedule">
-          Enroll students with teachers per subject and set weekly slots that generate sessions.
+        <ComingNext module="Module 4 · Notes & reports">
+          Teachers log topics and homework after each session; parents get weekly and monthly reports.
         </ComingNext>
         <ComingNext module="Module 3 · Classes">
           One-tap “Join class” with attendance captured automatically from the video room.

@@ -13,7 +13,7 @@ Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
 | Module | Scope | State |
 |---|---|---|
 | **1. Auth, roles, families** | Clerk sign-in, 4 roles, role-guarded portals, admin people management, parent ↔ student links (many-to-many, primary contact) | ✅ Built |
-| 2. Enrollments & schedule | Enrollments, weekly slots, session generation, timetables | Schema ready |
+| **2. Enrollments & schedule** | Enrollments with weekly times, sessions generated 6 weeks ahead, clash detection, move/cancel a single session, teacher load, timetables for every role | ✅ Built |
 | 3. Join class & attendance | Jitsi/Daily embed, join/leave events → automatic attendance, manual override | Schema ready |
 | 4. Notes, reports, resources | Progress notes, weekly/monthly parent reports, scoped resources | Schema ready |
 | 5. Finance & announcements | Fee plans, invoices, M-Pesa / Flutterwave, teacher payouts from held sessions, targeted announcements | Schema ready |
@@ -27,6 +27,22 @@ The **full schema for all five modules** is in `prisma/schema.prisma` and the in
 - **Prisma + Postgres**, Rust-free client (`engineType = "client"` + `@prisma/adapter-pg`)
 - **Tailwind** with the Crest theme: navy `#0A1D4F` and gold `#C69A3A` from the logo, Montserrat for display type, Inter for text, ivory canvas; fonts self-hosted
 - **zod**, **lucide-react**, **react-toastify**
+
+## Deploying on Vercel
+
+Everything deploys from **`main`**.
+
+1. Import the repo in Vercel (framework: Next.js — detected automatically).
+2. Add a Postgres database (Vercel Postgres / Neon / Supabase) and set **Environment Variables**:
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | your Postgres connection string (use the *pooled* URL on Neon/Supabase) |
+   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | from Clerk (use a **production** instance for the live site) |
+   | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
+   | `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | `/` |
+   | `CRON_SECRET` | any long random string |
+3. Deploy. `vercel.json` runs `npm run vercel-build`, which applies database migrations (`prisma migrate deploy`) before `next build`, and registers a daily cron (04:00 Nairobi) that keeps sessions generated six weeks ahead.
+4. First time only, from your machine with the production `DATABASE_URL` and `CLERK_SECRET_KEY`: `npm run db:seed` (subjects and levels — skip the demo families by deleting them afterwards, or trim `prisma/seed.ts`), then `npm run bootstrap:admin -- …` to create your admin.
 
 ## Getting started
 
@@ -64,6 +80,15 @@ Set `DEV_AUTH_USER_ID=seed_admin` (or `seed_parent_wanjiru`, `seed_teacher_achie
 - **Access**: pausing an account bans it in Clerk (signs them out everywhere) and flags it inactive here; reactivating reverses both. Admins can reset passwords.
 - **Parent portal** shows only children reached through the link table. Placeholders for attendance, homework, notes and invoices sit where those features will land, so the layout won't shift.
 
+## How Module 2 works
+
+- **Enrollment** (`/admin/enrollments/new`): pick a student, a subject, and a teacher who teaches it — each teacher card shows their booked hours against capacity, including the lesson you're adding. Add one or more weekly times (day, start, length; the end time is shown). Saving creates the next six weeks of sessions immediately.
+- **Clashes**: a new weekly time is checked against every active weekly time of both the teacher and the student. Clashes are listed by name and time; you can change the time or *Save anyway*.
+- **One-off changes**: on an enrollment, *Move* or *Cancel* a single session. The weekly time is untouched; a moved session is linked to the one it replaced (kept as *Moved* for history). Teachers can do the same for their own sessions from *Today*.
+- **Pause / End**: pausing removes upcoming sessions until you resume; ending stops the weekly times from today. Past sessions — and anything with attendance or notes — are never deleted.
+- **Timetables**: admin week view with teacher/student filters and a teacher-load panel; teacher *Today*, *My students* (with each student's primary parent contact) and *Timetable*; student next-class card and timetable; parent timetable across all their children. On phones the week grid becomes a day-by-day agenda.
+- **Time**: everything is shown in Nairobi time; sessions are stored in UTC. The scheduling maths is in `src/lib/schedule.ts` and covered by `npm test`.
+
 ## Project layout
 
 ```
@@ -73,6 +98,10 @@ scripts/bootstrap-admin.ts      first real admin, in Clerk + DB
 src/middleware.ts               sign-in + role routing
 src/lib/auth.ts                 getCurrentUser / requireRole / assertRole
 src/lib/actions/people.ts       create person, link/unlink, primary, pause, reset password
+src/lib/actions/schedule.ts     enrollments, weekly times, move/cancel sessions
+src/lib/schedule.ts             time-zone + recurrence maths (pure, tested)
+src/lib/sessions.ts             session generation, clash checks, teacher load
+src/app/api/cron/…              daily session generation (Vercel Cron)
 src/app/(dashboard)/…           admin, teacher, student, parent portals
 src/components/                 brand, shell (sidebar/topbar), ui primitives
 ```

@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { BookOpenCheck, CalendarCheck2, HeartHandshake, MessageSquareText, Receipt } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
-import { fullName, greeting } from "@/lib/format";
+import { formatDate, fullName, greeting } from "@/lib/format";
+import { formatTime } from "@/lib/schedule";
 import { curriculumLabel } from "@/lib/roles";
 import { Avatar, Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
 
@@ -20,7 +22,15 @@ export default async function ParentHome() {
           level: true,
           enrollments: {
             where: { status: "ACTIVE" },
-            include: { subject: true, teacher: { include: { user: true } } },
+            include: {
+              subject: true,
+              teacher: { include: { user: true } },
+              sessions: {
+                where: { status: "SCHEDULED", endsAt: { gt: new Date() } },
+                orderBy: { startsAt: "asc" },
+                take: 1,
+              },
+            },
             orderBy: { subject: { name: "asc" } },
           },
         },
@@ -51,7 +61,7 @@ export default async function ParentHome() {
       ) : (
         <div className="grid gap-6 xl:grid-cols-2">
           {links.map(({ student: s, isPrimary }) => (
-            <article key={s.id} className="card overflow-hidden">
+            <article key={s.id} className="card flex flex-col overflow-hidden">
               <header className="flex items-center gap-4 border-b border-line bg-gradient-to-r from-navy-50/70 to-white px-5 py-4">
                 <Avatar person={s.user} size="lg" />
                 <div className="min-w-0 flex-1">
@@ -73,16 +83,33 @@ export default async function ParentHome() {
                 )}
               </header>
 
-              <div className="px-5 py-4">
-                <p className="eyebrow mb-3">Subjects</p>
+              <div className="flex-1 px-5 py-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="eyebrow">Subjects</p>
+                  <Link href="/parent/timetable" className="text-xs font-medium text-navy-500 hover:text-navy-800">
+                    Timetable →
+                  </Link>
+                </div>
                 {s.enrollments.length === 0 ? (
                   <p className="text-sm text-navy-400">Subjects and teachers will appear once lessons are scheduled.</p>
                 ) : (
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {s.enrollments.map((e) => (
-                      <li key={e.id} className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-navy-900">{e.subject.name}</span>
-                        <span className="text-navy-500">with {fullName(e.teacher.user)}</span>
+                      <li key={e.id} className="flex items-start justify-between gap-3 text-sm">
+                        <span>
+                          <span className="block font-medium text-navy-900">{e.subject.name}</span>
+                          <span className="block text-xs text-navy-400">with {fullName(e.teacher.user)}</span>
+                        </span>
+                        <span className="text-right text-xs tabular-nums text-navy-500">
+                          {e.sessions[0] ? (
+                            <>
+                              <span className="block text-[10px] uppercase tracking-wider text-navy-300">Next</span>
+                              {formatDate(e.sessions[0].startsAt, { weekday: "short", year: undefined })} · {formatTime(e.sessions[0].startsAt)}
+                            </>
+                          ) : (
+                            "Not scheduled"
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>

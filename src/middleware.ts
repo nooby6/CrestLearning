@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ROUTE_ACCESS, isRoleSlug } from "@/lib/roles";
 
-const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/webhooks(.*)"]);
+const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/webhooks(.*)", "/api/cron(.*)"]);
 const isPending = createRouteMatcher(["/pending(.*)"]);
 
 const guards = ROUTE_ACCESS.map(({ pattern, roles }) => ({

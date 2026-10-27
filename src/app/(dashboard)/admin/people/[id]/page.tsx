@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Mail, Phone } from "lucide-react";
+import { CalendarPlus, ChevronLeft, Mail, Phone } from "lucide-react";
+import { formatSlot } from "@/lib/schedule";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { ageFrom, formatDate, formatMoney, fullName, prettyPhone } from "@/lib/format";
 import { curriculumLabel, toSlug } from "@/lib/roles";
-import { Avatar, Badge, Card, ComingNext, DefinitionList, RoleBadge } from "@/components/ui/primitives";
+import { Avatar, Badge, Card, DefinitionList, RoleBadge } from "@/components/ui/primitives";
 import { FamilyLinks } from "./FamilyLinks";
 import { AccountPanel } from "./AccountPanel";
 
@@ -19,7 +20,10 @@ export default async function PersonPage({ params }: { params: { id: string } })
         include: {
           level: true,
           guardians: { include: { parent: { include: { user: true } } }, orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }] },
-          enrollments: { include: { subject: true, teacher: { include: { user: true } } }, where: { status: "ACTIVE" } },
+          enrollments: {
+            include: { subject: true, teacher: { include: { user: true } }, slots: { where: { active: true } } },
+            where: { status: "ACTIVE" },
+          },
         },
       },
       parent: {
@@ -161,22 +165,32 @@ export default async function PersonPage({ params }: { params: { id: string } })
                   ]}
                 />
               </Card>
-              {u.student.enrollments.length === 0 ? (
-                <ComingNext module="Module 2 · Enrollments">
-                  Once scheduling is live you’ll assign {u.firstName} a teacher per subject here.
-                </ComingNext>
-              ) : (
-                <Card title="Subjects">
+              <Card
+                title="Subjects"
+                action={
+                  <Link href={`/admin/enrollments/new?student=${u.id}`} className="btn-ghost px-3 py-1.5 text-xs">
+                    <CalendarPlus className="h-3.5 w-3.5" /> Enroll
+                  </Link>
+                }
+                bodyClassName="px-5 py-1"
+              >
+                {u.student.enrollments.length === 0 ? (
+                  <p className="py-4 text-sm text-navy-400">Not enrolled in any subject yet.</p>
+                ) : (
                   <ul className="divide-y divide-line">
                     {u.student.enrollments.map((e) => (
-                      <li key={e.id} className="flex justify-between py-2 text-sm">
-                        <span className="font-medium">{e.subject.name}</span>
-                        <span className="text-navy-500">{fullName(e.teacher.user)}</span>
+                      <li key={e.id}>
+                        <Link href={`/admin/enrollments/${e.id}`} className="flex items-center justify-between py-3 text-sm hover:text-navy-700">
+                          <span className="font-medium">{e.subject.name}</span>
+                          <span className="text-navy-500">
+                            {fullName(e.teacher.user)} · {e.slots.map((s) => formatSlot(s)).join(", ") || "no weekly time"}
+                          </span>
+                        </Link>
                       </li>
                     ))}
                   </ul>
-                </Card>
-              )}
+                )}
+              </Card>
             </>
           )}
 

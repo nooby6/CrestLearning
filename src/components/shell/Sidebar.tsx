@@ -12,6 +12,7 @@ import {
   ClipboardList,
   FileText,
   Home,
+  Link2,
   Megaphone,
   Menu,
   Receipt,
@@ -35,6 +36,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   file: FileText,
   receipt: Receipt,
   chart: BarChart3,
+  link: Link2,
 };
 
 function NavList({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
