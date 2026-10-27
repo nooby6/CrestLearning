@@ -39,12 +39,14 @@ const ICONS: Record<IconName, LucideIcon> = {
   link: Link2,
 };
 
-function NavList({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
+function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?: () => void; badges?: Record<string, number> }) {
   const pathname = usePathname();
   // Most specific match wins, so "/admin" isn't active on "/admin/people".
+  const matches = (p: string) => pathname === p || pathname.startsWith(p + "/");
   const active = items
-    .filter((i) => !i.soon && (pathname === i.href || pathname.startsWith(i.href + "/")))
-    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+    .filter((i) => !i.soon)
+    .flatMap((i) => [i.href, ...(i.also ?? [])].filter(matches).map((m) => ({ href: i.href, len: m.length })))
+    .sort((a, b) => b.len - a.len)[0]?.href;
 
   return (
     <ul className="space-y-0.5">
@@ -82,7 +84,12 @@ function NavList({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => v
             >
               {isActive && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r bg-gold-500" />}
               <Icon className={clsx("h-[18px] w-[18px]", isActive && "text-gold-400")} strokeWidth={1.75} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {badges?.[item.href] ? (
+                <span className="min-w-[20px] rounded-full bg-rose-500 px-1.5 text-center text-[11px] font-semibold tabular-nums text-white">
+                  {badges[item.href]}
+                </span>
+              ) : null}
             </Link>
           </li>
         );
@@ -91,7 +98,7 @@ function NavList({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => v
   );
 }
 
-function Panel({ items, roleLabel, onNavigate }: { items: NavItem[]; roleLabel: string; onNavigate?: () => void }) {
+function Panel({ items, roleLabel, onNavigate, badges }: { items: NavItem[]; roleLabel: string; onNavigate?: () => void; badges?: Record<string, number> }) {
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 pb-6 pt-6">
@@ -103,7 +110,7 @@ function Panel({ items, roleLabel, onNavigate }: { items: NavItem[]; roleLabel: 
         {roleLabel}
       </p>
       <nav className="flex-1 px-3">
-        <NavList items={items} onNavigate={onNavigate} />
+        <NavList items={items} onNavigate={onNavigate} badges={badges} />
       </nav>
       <div className="px-6 pb-6">
         <div className="mb-3 h-px bg-gradient-to-r from-gold-500/60 to-transparent" />
@@ -115,7 +122,7 @@ function Panel({ items, roleLabel, onNavigate }: { items: NavItem[]; roleLabel: 
   );
 }
 
-export function Sidebar({ items, roleLabel }: { items: NavItem[]; roleLabel: string }) {
+export function Sidebar({ items, roleLabel, badges }: { items: NavItem[]; roleLabel: string; badges?: Record<string, number> }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   useEffect(() => setOpen(false), [pathname]);
@@ -123,15 +130,15 @@ export function Sidebar({ items, roleLabel }: { items: NavItem[]; roleLabel: str
   return (
     <>
       {/* Desktop */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 bg-navy-800 lg:block">
-        <Panel items={items} roleLabel={roleLabel} />
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 bg-navy-800 lg:block print:hidden">
+        <Panel items={items} roleLabel={roleLabel} badges={badges} />
       </aside>
 
       {/* Mobile trigger (rendered in the topbar slot) */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-navy-800 text-white shadow-lift lg:hidden"
+        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-navy-800 text-white shadow-lift lg:hidden print:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
@@ -150,7 +157,7 @@ export function Sidebar({ items, roleLabel }: { items: NavItem[]; roleLabel: str
             >
               <X className="h-5 w-5" />
             </button>
-            <Panel items={items} roleLabel={roleLabel} onNavigate={() => setOpen(false)} />
+            <Panel items={items} roleLabel={roleLabel} badges={badges} onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       )}

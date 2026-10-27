@@ -26,7 +26,7 @@ export default async function AdminSchedulePage({ searchParams }: { searchParams
   };
 
   const [sessions, teachers, students, load] = await Promise.all([
-    weekSessions(weekKey, where, "admin", (s) => `/admin/enrollments/${s.enrollmentId}`),
+    weekSessions(weekKey, where, "admin", (s) => `/admin/sessions/${s.id}`),
     prisma.teacher.findMany({ where: { user: { active: true } }, include: { user: true }, orderBy: { user: { firstName: "asc" } } }),
     prisma.student.findMany({ where: { user: { active: true } }, include: { user: true }, orderBy: { user: { firstName: "asc" } } }),
     weeklyLoadByTeacher(),
@@ -40,7 +40,7 @@ export default async function AdminSchedulePage({ searchParams }: { searchParams
       <PageHeader
         eyebrow="Scheduling"
         title="Schedule"
-        description={`${scheduled.length} sessions · ${hoursLabel(minutes)} of teaching this week. Click a session to open its enrollment.`}
+        description={`${scheduled.length} sessions · ${hoursLabel(minutes)} of teaching this week. Select a session for attendance and the lesson record.`}
         actions={
           <Link href="/admin/enrollments/new" className="btn-primary">
             <CalendarPlus className="h-4 w-4" /> New enrollment

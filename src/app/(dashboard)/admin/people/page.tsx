@@ -77,7 +77,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
       <PageHeader
         eyebrow="Administration"
         title="People"
-        description="Every login at Crest. Open someone to link parents and children, reset a password or pause access."
+        description="All accounts at Crest Learning. Open a profile to link parents and students, reset a password or suspend access."
         actions={
           <Link href={`/admin/people/new${roleFilter !== "all" ? `?role=${roleFilter}` : ""}`} className="btn-primary">
             <UserPlus className="h-4 w-4" /> Add person
@@ -172,7 +172,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
                       {u.email && <span className="block truncate text-xs text-navy-400">{u.email}</span>}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      {u.active ? <Badge tone="green">Active</Badge> : <Badge tone="slate">Paused</Badge>}
+                      {u.active ? <Badge tone="green">Active</Badge> : <Badge tone="slate">Suspended</Badge>}
                     </td>
                   </tr>
                 ))}
@@ -230,7 +230,7 @@ function Details({ u }: { u: Row }) {
       <span className="block truncate">
         {[curriculumLabel(u.student.curriculum), u.student.level?.name].filter((x) => x && x !== "—").join(" · ") || "No level set"}
         <span className="block truncate text-xs text-navy-400">
-          {g.length ? `Guardian: ${g.map((x) => x.parent.user.firstName).join(", ")}` : <span className="text-amber-600">No guardian linked</span>}
+          {g.length ? `Parent: ${g.map((x) => fullName(x.parent.user)).join(", ")}` : <span className="text-amber-600">No parent linked</span>}
         </span>
       </span>
     );
@@ -239,11 +239,11 @@ function Details({ u }: { u: Row }) {
     const c = u.parent.children;
     return c.length ? (
       <span className="block truncate">
-        {c.length} {c.length === 1 ? "child" : "children"}
+        {c.length} {c.length === 1 ? "student" : "students"}
         <span className="block truncate text-xs text-navy-400">{c.map((x) => x.student.user.firstName).join(", ")}</span>
       </span>
     ) : (
-      <span className="text-amber-600">No children linked</span>
+      <span className="text-amber-600">No students linked</span>
     );
   }
   if (u.teacher) {

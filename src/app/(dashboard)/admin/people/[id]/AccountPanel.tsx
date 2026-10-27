@@ -96,7 +96,7 @@ export function AccountPanel({
           disabled={pending}
           className={active ? "btn-danger w-full" : "btn-ghost w-full"}
           onClick={() => {
-            if (active && !confirm("Pause this account? They'll be signed out and can't sign in until reactivated."))
+            if (active && !confirm("Suspend this account? The person is signed out and cannot sign in until the account is reactivated."))
               return;
             startTransition(async () => {
               const res = await setActive(userId, !active);
@@ -106,7 +106,7 @@ export function AccountPanel({
           }}
         >
           {active ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
-          {active ? "Pause access" : "Reactivate"}
+          {active ? "Suspend access" : "Reactivate"}
         </button>
       )}
     </div>

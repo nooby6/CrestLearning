@@ -13,3 +13,21 @@ assert(slotsOverlap({weekday:"MONDAY",startTime:"16:00",durationMinutes:60},{wee
 assert(!slotsOverlap({weekday:"MONDAY",startTime:"16:00",durationMinutes:60},{weekday:"MONDAY",startTime:"17:00",durationMinutes:30}));
 assert.equal(partsInZone(new Date("2026-10-27T21:00:00Z")).iso, 3);
 console.log("schedule tests passed");
+
+// Classroom rules
+import { joinState, isLate, untilLabel } from "../src/lib/classroom";
+{
+  const start = new Date("2026-10-27T13:00:00Z"), end = new Date("2026-10-27T14:00:00Z");
+  const s = { startsAt: start, endsAt: end, status: "SCHEDULED" };
+  const at = (iso: string) => new Date(iso).getTime();
+  assert.equal(joinState(s, "student", at("2026-10-27T12:49:00Z")), "upcoming"); // 11 min early
+  assert.equal(joinState(s, "student", at("2026-10-27T12:50:00Z")), "open"); // 10 min early
+  assert.equal(joinState(s, "teacher", at("2026-10-27T12:45:00Z")), "open"); // teachers 15 min early
+  assert.equal(joinState(s, "student", at("2026-10-27T14:30:00Z")), "open"); // overrun allowance
+  assert.equal(joinState(s, "student", at("2026-10-27T14:31:00Z")), "closed");
+  assert.equal(joinState({ ...s, status: "CANCELLED" }, "student", at("2026-10-27T13:05:00Z")), "closed");
+  assert(!isLate(start, new Date("2026-10-27T13:10:00Z")));
+  assert(isLate(start, new Date("2026-10-27T13:10:01Z")));
+  assert.equal(untilLabel(new Date(at("2026-10-27T13:00:00Z")), at("2026-10-27T11:40:00Z")), "in 1 h 20 min");
+  console.log("classroom tests passed");
+}

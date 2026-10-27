@@ -9,7 +9,7 @@ export const metadata = { title: "Timetable" };
 export default async function TeacherTimetable({ searchParams }: { searchParams: { week?: string } }) {
   const me = await requireRole("teacher");
   const weekKey = resolveWeek(searchParams.week);
-  const sessions = await weekSessions(weekKey, { teacherId: me.id }, "teacher");
+  const sessions = await weekSessions(weekKey, { teacherId: me.id }, "teacher", (s) => `/teacher/sessions/${s.id}`);
   const live = sessions.filter((s) => s.status === "SCHEDULED" || s.status === "HELD");
   const mins = live.reduce((a, s) => a + (+s.endsAt - +s.startsAt) / 60000, 0);
 

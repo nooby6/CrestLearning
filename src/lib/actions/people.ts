@@ -226,7 +226,7 @@ export async function setActive(userId: string, active: boolean): Promise<Action
   await prisma.user.update({ where: { id: userId }, data: { active } });
   revalidatePath(`/admin/people/${userId}`);
   revalidatePath("/admin/people");
-  return { ok: true, message: active ? "Account reactivated." : "Account deactivated and signed out." };
+  return { ok: true, message: active ? "Account reactivated." : "Account suspended and signed out." };
 }
 
 export async function resetPassword(userId: string, password: string): Promise<ActionResult> {

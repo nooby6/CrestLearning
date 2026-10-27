@@ -91,7 +91,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
               <h1 className="font-display text-xl font-semibold text-navy-900">{fullName(u)}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-navy-400">
                 <RoleBadge role={slug} />
-                {!u.active && <Badge tone="slate">Paused</Badge>}
+                {!u.active && <Badge tone="slate">Suspended</Badge>}
                 <span>@{u.username}</span>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {u.parent && (
-            <Card title="Children" description="What this parent can see in their portal.">
+            <Card title="Linked students" description="The students this parent can follow in their portal.">
               <FamilyLinks
                 mode="children"
                 selfId={u.id}
@@ -134,7 +134,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
 
           {u.student && (
             <>
-              <Card title="Guardians" description="Receive reports and invoices. One is the primary contact.">
+              <Card title="Parents & guardians" description="They receive weekly reports and invoices. One is the primary contact.">
                 <FamilyLinks
                   mode="guardians"
                   selfId={u.id}

@@ -183,7 +183,8 @@ async function main() {
         data: { enrollmentId: enrollment.id, weekday, startTime, durationMinutes, validFrom: new Date(addDaysKey(weekStart, -21)) },
       });
       await prisma.sessionInstance.createMany({
-        data: occurrences(slot, weekStart, horizon).map((o) => ({
+        // From last week, so there is history for attendance and reports.
+        data: occurrences(slot, addDaysKey(weekStart, -7), horizon).map((o) => ({
           enrollmentId: enrollment.id,
           slotId: slot.id,
           ...o,
@@ -193,6 +194,8 @@ async function main() {
       });
     }
   }
+
+  await seedHistory(weekStart);
 
   const counts = await Promise.all([
     prisma.subject.count(),
@@ -204,6 +207,109 @@ async function main() {
   console.log(
     `Seeded: ${counts[0]} subjects, ${counts[1]} levels, ${counts[2]} users, ${counts[3]} enrollments, ${counts[4]} sessions.`,
   );
+}
+
+// Realistic lesson records per subject, cycled through.
+const TOPICS: Record<string, { topics: string; homework?: string }[]> = {
+  MATH: [
+    { topics: "Simultaneous equations by elimination and substitution; worked examples and two exam-style questions.", homework: "Exercise 7C, questions 1–12" },
+    { topics: "Quadratic equations: factorising, completing the square, and choosing a method.", homework: "Past paper Q4 and Q9 (May 2023)" },
+    { topics: "Revision of indices and surds; error analysis on last week's quiz." },
+  ],
+  CHEM: [
+    { topics: "Rates of reaction: collision theory, effect of temperature and concentration.", homework: "Write up the rates practical with a labelled graph" },
+    { topics: "Ionic bonding and dot-and-cross diagrams for common compounds." },
+  ],
+  ENG: [
+    { topics: "Comparative essay planning: identifying themes across two poems; thesis statements.", homework: "Draft introduction and first body paragraph" },
+    { topics: "Close reading of an unseen extract — language and structure analysis." },
+  ],
+  ISCI: [
+    { topics: "Mixtures and separation: filtration, evaporation and chromatography, with a home experiment.", homework: "Complete the chromatography worksheet" },
+    { topics: "The digestive system: organs and their functions; labelled diagram practice." },
+  ],
+  KIS: [
+    { topics: "Insha: kuandika barua rasmi — muundo na lugha inayofaa.", homework: "Andika barua rasmi kwa mwalimu mkuu" },
+    { topics: "Ngeli za nomino (A-WA, KI-VI) na upatanisho wa kisarufi." },
+  ],
+  PHY: [
+    { topics: "Kinematics: displacement–time and velocity–time graphs; gradients and areas.", homework: "Worksheet 2, questions 1–8" },
+    { topics: "Newton's laws and free-body diagrams; resolving forces on a slope." },
+  ],
+};
+
+const REPORTS: Record<string, string> = {
+  MATH: "A productive week. Amani is now confident with elimination and is choosing methods more deliberately. Accuracy with negative numbers still needs care under time pressure.",
+  CHEM: "Good engagement in the rates practical. Explanations using collision theory are improving; the next step is linking them clearly to graph shapes.",
+  ENG: "Thoughtful contributions in discussion and a well-structured plan. Quotations should be embedded more smoothly rather than added at the end of sentences.",
+  ISCI: "Zawadi enjoyed the separation experiment and recorded results carefully. She should practise using scientific vocabulary in written answers.",
+  KIS: "Muundo wa barua umeeleweka vizuri. Anahitaji kuongeza msamiati rasmi na kuzingatia alama za uakifishaji.",
+  PHY: "Yusuf handles graph questions well and works quickly. Free-body diagrams need more practice so that every force is labelled with its direction.",
+};
+
+/** Mark past sessions held, with attendance, lesson records and last week's reports. */
+async function seedHistory(weekStart: string) {
+  const now = Date.now();
+  const past = await prisma.sessionInstance.findMany({
+    where: { endsAt: { lt: new Date(now - 20 * 60_000) }, status: "SCHEDULED" },
+    include: { enrollment: { include: { subject: true } } },
+    orderBy: { startsAt: "asc" },
+  });
+  // Leave the teacher's most recent lesson unrecorded to demonstrate the mandatory lesson record.
+  const unrecorded = [...past].reverse().find((s) => s.enrollment.teacherId === "seed_teacher_achieng")?.id;
+
+  for (const [i, s] of past.entries()) {
+    const e = s.enrollment;
+    const studentStatus = i % 9 === 4 ? "LATE" : i % 11 === 7 ? "ABSENT" : "PRESENT";
+    const minutes = (+s.endsAt - +s.startsAt) / 60_000;
+    await prisma.attendance.createMany({
+      data: [
+        { sessionId: s.id, userId: e.teacherId, role: "TEACHER", status: "PRESENT", firstJoinedAt: new Date(+s.startsAt - 4 * 60_000), secondsPresent: (minutes + 3) * 60 },
+        {
+          sessionId: s.id,
+          userId: e.studentId,
+          role: "STUDENT",
+          status: studentStatus,
+          firstJoinedAt: studentStatus === "ABSENT" ? null : new Date(+s.startsAt + (studentStatus === "LATE" ? 14 : 1) * 60_000),
+          secondsPresent: studentStatus === "ABSENT" ? 0 : (minutes - (studentStatus === "LATE" ? 14 : 2)) * 60,
+        },
+      ],
+      skipDuplicates: true,
+    });
+    await prisma.sessionInstance.update({ where: { id: s.id }, data: { status: "HELD" } });
+    if (s.id === unrecorded) continue;
+    const options = TOPICS[e.subject.code] ?? [{ topics: "Lesson objectives covered as planned." }];
+    const t = options[i % options.length];
+    await prisma.progressNote.upsert({
+      where: { sessionId: s.id },
+      update: {},
+      create: {
+        sessionId: s.id,
+        authorId: e.teacherId,
+        topicsCovered: t.topics,
+        homework: t.homework,
+        homeworkDue: t.homework ? new Date(addDaysKey(dateKey(s.startsAt), 4)) : null,
+      },
+    });
+  }
+
+  const lastWeek = new Date(addDaysKey(weekStart, -7));
+  const enrollments = await prisma.enrollment.findMany({ include: { subject: true } });
+  for (const e of enrollments) {
+    if (!REPORTS[e.subject.code] || e.id % 4 === 3) continue; // one or two left unwritten
+    await prisma.weeklyReport.upsert({
+      where: { enrollmentId_weekStart: { enrollmentId: e.id, weekStart: lastWeek } },
+      update: {},
+      create: {
+        enrollmentId: e.id,
+        weekStart: lastWeek,
+        authorId: e.teacherId,
+        summary: REPORTS[e.subject.code],
+        nextSteps: "Short daily practice on the topics above; we will review them at the start of next week.",
+        effort: 3 + (e.id % 3),
+      },
+    });
+  }
 }
 
 main()

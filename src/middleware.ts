@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { ROUTE_ACCESS, isRoleSlug } from "@/lib/roles";
 
 const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/webhooks(.*)", "/api/cron(.*)"]);
@@ -14,8 +14,15 @@ const guards = ROUTE_ACCESS.map(({ pattern, roles }) => ({
 const devBypass =
   process.env.NODE_ENV === "development" && !!process.env.DEV_AUTH_USER_ID;
 
+/** Pass the path to server components (layouts can't read it otherwise). */
+const next = (req: NextRequest) => {
+  const headers = new Headers(req.headers);
+  headers.set("x-pathname", req.nextUrl.pathname);
+  return NextResponse.next({ request: { headers } });
+};
+
 const withClerk = clerkMiddleware(async (auth, req) => {
-  if (isPublic(req)) return NextResponse.next();
+  if (isPublic(req)) return next(req);
 
   const { userId, sessionClaims, redirectToSignIn } = await auth();
   if (!userId) return redirectToSignIn({ returnBackUrl: req.url });
@@ -24,7 +31,7 @@ const withClerk = clerkMiddleware(async (auth, req) => {
 
   // Signed in, but an admin hasn't assigned a role yet.
   if (!isRoleSlug(role)) {
-    return isPending(req) ? NextResponse.next() : NextResponse.redirect(new URL("/pending", req.url));
+    return isPending(req) ? next(req) : NextResponse.redirect(new URL("/pending", req.url));
   }
 
   for (const { match, roles } of guards) {
@@ -32,10 +39,10 @@ const withClerk = clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL(`/${role}`, req.url));
     }
   }
-  return NextResponse.next();
+  return next(req);
 });
 
-export default devBypass ? () => NextResponse.next() : withClerk;
+export default devBypass ? next : withClerk;
 
 export const config = {
   matcher: [

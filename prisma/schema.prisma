@@ -59,9 +59,10 @@ model User {
   parent  Parent?
 
   attendances           Attendance[]
-  attendanceOverrides   Attendance[]             @relation("AttendanceOverriddenBy")
+  attendanceOverrides   Attendance[]            @relation("AttendanceOverriddenBy")
   joinEvents            SessionJoinEvent[]
   progressNotes         ProgressNote[]
+  weeklyReports         WeeklyReport[]
   uploadedResources     Resource[]
   announcementsAuthored Announcement[]
   announcementTargets   AnnouncementRecipient[]
@@ -87,14 +88,14 @@ model Student {
 }
 
 model Teacher {
-  id String @id
-  user User @relation(fields: [id], references: [id], onDelete: Cascade)
-  bio  String?
+  id                  String  @id
+  user                User    @relation(fields: [id], references: [id], onDelete: Cascade)
+  bio                 String?
   /// Default payout rate per hour of teaching, KES cents. Enrollment can override.
-  hourlyRate Int @default(0)
-  currency   String @default("KES")
+  hourlyRate          Int     @default(0)
+  currency            String  @default("KES")
   /// Weekly hours the teacher is available — drives the utilization view.
-  weeklyCapacityHours Int @default(20)
+  weeklyCapacityHours Int     @default(20)
 
   subjects    TeacherSubject[]
   enrollments Enrollment[]
@@ -102,8 +103,8 @@ model Teacher {
 }
 
 model Parent {
-  id         String @id
-  user       User   @relation(fields: [id], references: [id], onDelete: Cascade)
+  id         String  @id
+  user       User    @relation(fields: [id], references: [id], onDelete: Cascade)
   occupation String?
   address    String?
 
@@ -179,29 +180,30 @@ enum EnrollmentStatus {
 
 /// "Teacher A teaches Student B Maths" — the core teaching relationship.
 model Enrollment {
-  id         Int              @id @default(autoincrement())
-  teacherId  String
-  studentId  String
-  subjectId  Int
-  curriculum Curriculum?
-  levelId    Int?
-  status     EnrollmentStatus @default(ACTIVE)
-  startDate  DateTime         @default(now()) @db.Date
-  endDate    DateTime?        @db.Date
+  id                Int              @id @default(autoincrement())
+  teacherId         String
+  studentId         String
+  subjectId         Int
+  curriculum        Curriculum?
+  levelId           Int?
+  status            EnrollmentStatus @default(ACTIVE)
+  startDate         DateTime         @default(now()) @db.Date
+  endDate           DateTime?        @db.Date
   /// Optional per-enrollment overrides (KES cents).
   teacherHourlyRate Int?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   teacher Teacher @relation(fields: [teacherId], references: [id])
   student Student @relation(fields: [studentId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
   level   Level?  @relation(fields: [levelId], references: [id])
 
-  slots     SessionSlot[]
-  sessions  SessionInstance[]
-  resources Resource[]
-  invoiceLines InvoiceLine[]
+  slots         SessionSlot[]
+  sessions      SessionInstance[]
+  resources     Resource[]
+  invoiceLines  InvoiceLine[]
+  weeklyReports WeeklyReport[]
 
   @@unique([teacherId, studentId, subjectId])
   @@index([studentId, status])
@@ -246,21 +248,21 @@ enum SessionStatus {
 }
 
 model SessionInstance {
-  id           Int           @id @default(autoincrement())
-  enrollmentId Int
-  slotId       Int? // null for one-off / make-up sessions
-  startsAt     DateTime
-  endsAt       DateTime
-  status       SessionStatus @default(SCHEDULED)
+  id                Int           @id @default(autoincrement())
+  enrollmentId      Int
+  slotId            Int? // null for one-off / make-up sessions
+  startsAt          DateTime
+  endsAt            DateTime
+  status            SessionStatus @default(SCHEDULED)
   /// Video room name (e.g. Jitsi room) — unguessable, generated per session.
-  meetingRoom  String        @unique
+  meetingRoom       String        @unique
   /// Optional override: physical room or external link.
-  location     String?
+  location          String?
   /// When this session replaces a rescheduled one.
-  rescheduledFromId Int?     @unique
-  cancelReason String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  rescheduledFromId Int?          @unique
+  cancelReason      String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   enrollment      Enrollment         @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   slot            SessionSlot?       @relation(fields: [slotId], references: [id], onDelete: SetNull)
@@ -296,19 +298,21 @@ enum AttendanceSource {
 
 /// One record per session per participant (student and teacher).
 model Attendance {
-  id              Int              @id @default(autoincrement())
-  sessionId       Int
-  userId          String
-  role            Role // STUDENT or TEACHER at time of session
-  status          AttendanceStatus
-  source          AttendanceSource @default(AUTO)
-  firstJoinedAt   DateTime?
-  lastLeftAt      DateTime?
-  secondsPresent  Int              @default(0)
-  overriddenById  String?
-  overrideReason  String?
-  updatedAt       DateTime         @updatedAt
-  createdAt       DateTime         @default(now())
+  id             Int              @id @default(autoincrement())
+  sessionId      Int
+  userId         String
+  role           Role // STUDENT or TEACHER at time of session
+  status         AttendanceStatus
+  source         AttendanceSource @default(AUTO)
+  firstJoinedAt  DateTime?
+  lastLeftAt     DateTime?
+  secondsPresent Int              @default(0)
+  /// Last presence heartbeat from the class page — used to accumulate secondsPresent.
+  lastSeenAt     DateTime?
+  overriddenById String?
+  overrideReason String?
+  updatedAt      DateTime         @updatedAt
+  createdAt      DateTime         @default(now())
 
   session      SessionInstance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user         User            @relation(fields: [userId], references: [id])
@@ -356,6 +360,29 @@ model ProgressNote {
 
   session SessionInstance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   author  User            @relation(fields: [authorId], references: [id])
+}
+
+/// The teacher's weekly written report for one enrollment (one subject for one student).
+/// Topics and attendance for the week are pulled from lesson records automatically.
+model WeeklyReport {
+  id           Int      @id @default(autoincrement())
+  enrollmentId Int
+  /// Monday of the reported week (Nairobi), as a date.
+  weekStart    DateTime @db.Date
+  authorId     String
+  summary      String
+  strengths    String?
+  nextSteps    String?
+  /// 1–5 effort/engagement over the week.
+  effort       Int?
+  submittedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  author     User       @relation(fields: [authorId], references: [id])
+
+  @@unique([enrollmentId, weekStart])
+  @@index([weekStart])
 }
 
 enum ReportPeriod {
@@ -472,10 +499,10 @@ model Invoice {
 }
 
 model InvoiceLine {
-  id           Int     @id @default(autoincrement())
+  id           Int    @id @default(autoincrement())
   invoiceId    Int
   description  String
-  quantity     Int     @default(1)
+  quantity     Int    @default(1)
   unitAmount   Int
   amount       Int
   enrollmentId Int?

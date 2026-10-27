@@ -6,7 +6,7 @@ import { formatDate, fullName, greeting } from "@/lib/format";
 import { addDaysKey, dateKey, formatTime, hoursLabel, keyToUtcStart, mondayOf } from "@/lib/schedule";
 import { Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
 import { SessionRow } from "@/components/schedule/SessionRow";
-import { SessionActions } from "@/components/schedule/SessionActions";
+import { JoinButton } from "@/components/class/JoinButton";
 
 export const metadata = { title: "Today" };
 
@@ -19,9 +19,13 @@ export default async function TeacherHome() {
   const dayEnd = keyToUtcStart(addDaysKey(todayKey, 1));
   const weekKey = mondayOf(todayKey);
 
-  const sessionInclude = { enrollment: { include: { subject: true, student: { include: { user: true } }, level: true } } } as const;
+  const sessionInclude = {
+    enrollment: { include: { subject: true, student: { include: { user: true } }, level: true } },
+    progressNote: { select: { id: true } },
+  } as const;
 
-  const [t, today, upcoming, weekMinutes] = await Promise.all([
+  const lastWeek = addDaysKey(weekKey, -7);
+  const [t, today, upcoming, weekMinutes, reportsMissing] = await Promise.all([
     prisma.teacher.findUnique({
       where: { id: me.id },
       include: {
@@ -48,6 +52,14 @@ export default async function TeacherHome() {
       },
       select: { startsAt: true, endsAt: true },
     }),
+    // Last week's reports are due by Sunday — flag any still missing.
+    prisma.enrollment.count({
+      where: {
+        teacherId: me.id,
+        sessions: { some: { status: "HELD", startsAt: { gte: keyToUtcStart(lastWeek), lt: keyToUtcStart(weekKey) } } },
+        weeklyReports: { none: { weekStart: new Date(lastWeek) } },
+      },
+    }),
   ]);
 
   const weekMins = weekMinutes.reduce((a, s) => a + (+s.endsAt - +s.startsAt) / 60000, 0);
@@ -68,6 +80,21 @@ export default async function TeacherHome() {
             : "No sessions today."
         }
       />
+
+      {reportsMissing > 0 && (
+        <Link
+          href={`/teacher/reports?week=${lastWeek}`}
+          className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900 hover:bg-amber-100/60"
+        >
+          <span>
+            <span className="font-semibold">
+              {reportsMissing} weekly {reportsMissing === 1 ? "report" : "reports"} overdue
+            </span>{" "}
+            for last week. Parents are waiting for them.
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0" />
+        </Link>
+      )}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <StatCard
@@ -95,17 +122,27 @@ export default async function TeacherHome() {
                   key={s.id}
                   startsAt={s.startsAt}
                   endsAt={s.endsAt}
+                  href={`/teacher/sessions/${s.id}`}
                   title={`${s.enrollment.subject.name} · ${fullName(s.enrollment.student.user)}`}
-                  subtitle={s.status === "CANCELLED" ? s.cancelReason ?? "Cancelled" : s.enrollment.level?.name}
+                  subtitle={
+                    s.status === "CANCELLED"
+                      ? s.cancelReason ?? "Cancelled"
+                      : s.progressNote
+                        ? "Lesson record complete"
+                        : s.enrollment.level?.name
+                  }
                   colorKey={s.enrollment.subject.code}
                   status={s.status}
                   action={
-                    s.status === "SCHEDULED" && +s.startsAt > Date.now() ? (
-                      <SessionActions
+                    s.status === "SCHEDULED" ? (
+                      <JoinButton
                         sessionId={s.id}
-                        defaultDate={dateKey(s.startsAt)}
-                        defaultTime={formatTime(s.startsAt)}
-                        durationMinutes={(+s.endsAt - +s.startsAt) / 60000}
+                        startsAt={s.startsAt.toISOString()}
+                        endsAt={s.endsAt.toISOString()}
+                        status={s.status}
+                        who="teacher"
+                        size="sm"
+                        tone="navy"
                       />
                     ) : undefined
                   }
@@ -151,8 +188,8 @@ export default async function TeacherHome() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <ComingNext module="Module 3 · Join & attendance">Join from here and attendance records itself; correct it in one tap.</ComingNext>
-        <ComingNext module="Module 4 · Notes">After each session: topics covered, homework and a short comment for parents.</ComingNext>
+        <ComingNext module="Module 4 · Resources">Upload notes and worksheets for a student, or for every student at a subject and level.</ComingNext>
+        <ComingNext module="Module 5 · Payouts">Monthly payout statements calculated from the lessons you have held.</ComingNext>
       </div>
     </>
   );

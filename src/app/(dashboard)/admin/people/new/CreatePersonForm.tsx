@@ -25,10 +25,10 @@ import { PersonPicker, type PickerOption } from "@/components/ui/PersonPicker";
 type RoleValue = "STUDENT" | "PARENT" | "TEACHER" | "ADMIN";
 
 const ROLE_CARDS: { value: RoleValue; label: string; hint: string; icon: LucideIcon }[] = [
-  { value: "STUDENT", label: "Student", hint: "Joins classes, sees resources", icon: GraduationCap },
-  { value: "PARENT", label: "Parent", hint: "Follows children, pays fees", icon: HeartHandshake },
-  { value: "TEACHER", label: "Teacher", hint: "Teaches their own students", icon: Presentation },
-  { value: "ADMIN", label: "Admin", hint: "Runs the centre", icon: ShieldCheck },
+  { value: "STUDENT", label: "Student", hint: "Attends lessons, sees homework", icon: GraduationCap },
+  { value: "PARENT", label: "Parent", hint: "Follows students, pays fees", icon: HeartHandshake },
+  { value: "TEACHER", label: "Teacher", hint: "Teaches assigned students", icon: Presentation },
+  { value: "ADMIN", label: "Admin", hint: "Manages the centre", icon: ShieldCheck },
 ];
 
 type Level = { id: number; curriculum: string; name: string };
@@ -243,13 +243,13 @@ export function CreatePersonForm({
             </Field>
           </div>
           <div className="mt-4">
-            <Field label="Guardians" optional hint="The first one you add becomes the primary contact for invoices and reports.">
+            <Field label="Parents / guardians" optional hint="The first one added becomes the primary contact for invoices and reports.">
               <PersonPicker
                 options={parents}
                 value={f.guardianIds}
                 onChange={(v) => set("guardianIds", v)}
                 placeholder="Search parents…"
-                emptyText="No parent with that name — add the parent first, or link later."
+                emptyText="No parent with that name. Add the parent first, or link them later."
               />
             </Field>
           </div>
@@ -257,7 +257,7 @@ export function CreatePersonForm({
       )}
 
       {role === "PARENT" && (
-        <Section title="Family">
+        <Section title="Students">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Occupation" optional>
               <input className="input" value={f.occupation} onChange={(e) => set("occupation", e.target.value)} />
@@ -267,7 +267,7 @@ export function CreatePersonForm({
             </Field>
           </div>
           <div className="mt-4">
-            <Field label="Children" optional hint="You can link more children, or change these, from the parent's profile.">
+            <Field label="Linked students" optional hint="More students can be linked later from the parent’s profile.">
               <PersonPicker
                 options={students}
                 value={f.childIds}

@@ -14,8 +14,8 @@ Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
 |---|---|---|
 | **1. Auth, roles, families** | Clerk sign-in, 4 roles, role-guarded portals, admin people management, parent ↔ student links (many-to-many, primary contact) | ✅ Built |
 | **2. Enrollments & schedule** | Enrollments with weekly times, sessions generated 6 weeks ahead, clash detection, move/cancel a single session, teacher load, timetables for every role | ✅ Built |
-| 3. Join class & attendance | Jitsi/Daily embed, join/leave events → automatic attendance, manual override | Schema ready |
-| 4. Notes, reports, resources | Progress notes, weekly/monthly parent reports, scoped resources | Schema ready |
+| **3. Online classes, attendance, lesson records, weekly reports** | Embedded Jitsi classroom; attendance captured from joins (present / late / absent), manual corrections; mandatory lesson record after every lesson (blocks sign-out); weekly teacher reports read by parents for every linked student | ✅ Built |
+| 4. Resources | Uploads scoped to an enrollment, or to a subject and level | Schema ready |
 | 5. Finance & announcements | Fee plans, invoices, M-Pesa / Flutterwave, teacher payouts from held sessions, targeted announcements | Schema ready |
 
 The **full schema for all five modules** is in `prisma/schema.prisma` and the initial migration, so later modules add code, not structural migrations.
@@ -41,6 +41,7 @@ Everything deploys from **`main`**.
    | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
    | `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | `/` |
    | `CRON_SECRET` | any long random string |
+   | `JAAS_APP_ID`, `JAAS_API_KEY_ID`, `JAAS_PRIVATE_KEY` | from your [JaaS](https://jaas.8x8.vc) account — needed for full-length online classes (see below) |
 3. Deploy. `vercel.json` runs `npm run vercel-build`, which applies database migrations (`prisma migrate deploy`) before `next build`, and registers a daily cron (04:00 Nairobi) that keeps sessions generated six weeks ahead.
 4. First time only, from your machine with the production `DATABASE_URL` and `CLERK_SECRET_KEY`: `npm run db:seed` (subjects and levels — skip the demo families by deleting them afterwards, or trim `prisma/seed.ts`), then `npm run bootstrap:admin -- …` to create your admin.
 
@@ -89,6 +90,20 @@ Set `DEV_AUTH_USER_ID=seed_admin` (or `seed_parent_wanjiru`, `seed_teacher_achie
 - **Timetables**: admin week view with teacher/student filters and a teacher-load panel; teacher *Today*, *My students* (with each student's primary parent contact) and *Timetable*; student next-class card and timetable; parent timetable across all their children. On phones the week grid becomes a day-by-day agenda.
 - **Time**: everything is shown in Nairobi time; sessions are stored in UTC. The scheduling maths is in `src/lib/schedule.ts` and covered by `npm test`.
 
+## How Module 3 works
+
+**Online classes.** Each session has its own private room. Students see *Join class* on their home page; it opens 10 minutes before the start (15 for teachers) and stays open 30 minutes after the end. The class page embeds Jitsi with Crest branding around it.
+
+*Video provider:* set the three `JAAS_*` variables to use **JaaS** (Jitsi as a Service by 8x8). Each join gets a short-lived signed token and the teacher is the room's moderator. `JAAS_API_KEY_ID` is the full key ID shown in the JaaS console (`vpaas-magic-cookie-…/…`); `JAAS_PRIVATE_KEY` is the matching private key (PEM — `\n` line breaks are fine in Vercel). Alternatively set `JITSI_DOMAIN` to a self-hosted Jitsi server. Without either, the public meet.jit.si server is used, which **limits embedded calls to a few minutes** — fine for a demo only; teachers see a warning.
+
+**Attendance.** Joining the call records the person as *Present*, or *Late* if more than 10 minutes after the start. The page sends a heartbeat every 30 seconds to measure time in class, and records leaving (including closing the tab). Fifteen minutes after a lesson ends it is closed off: *Held* if the teacher attended, *Not held* otherwise, and anyone who never joined is marked *Absent*. Teachers can correct a student's attendance; the office can correct anyone's. Corrections are labelled as manual.
+
+**Lesson records (mandatory).** After every lesson the teacher records the topics covered, plus any homework and due date. The form is available during the class and appears automatically when the teacher leaves. Until every held lesson has a record, the teacher portal only shows the *Lesson records* page and **sign-out is refused**. (Closing the browser can't be prevented, so the lock is applied at their next visit, and the office sees outstanding records on the overview.)
+
+**Weekly reports.** Once a week, per student and subject, the teacher writes a short progress report (required), strengths, a focus for next week, and an effort rating — due by Sunday; overdue reports are flagged on the teacher's Today page and in the office view. Parents open *Weekly reports* and see **every linked student** on one page (or filter to one), each subject's report alongside that week's lessons, topics covered, homework and attendance. Reports print cleanly or save as PDF.
+
+**Students and parents** see lessons, not hours: lessons left today and this week, today's lessons with times and teachers, and the weekly lesson pattern. Students also have a *Homework* page fed from lesson records.
+
 ## Project layout
 
 ```
@@ -101,7 +116,13 @@ src/lib/actions/people.ts       create person, link/unlink, primary, pause, rese
 src/lib/actions/schedule.ts     enrollments, weekly times, move/cancel sessions
 src/lib/schedule.ts             time-zone + recurrence maths (pure, tested)
 src/lib/sessions.ts             session generation, clash checks, teacher load
-src/app/api/cron/…              daily session generation (Vercel Cron)
+src/app/api/cron/…              daily: close off ended sessions, generate upcoming ones
+src/app/class/[id]              the online classroom
+src/app/api/class/[id]/presence join / heartbeat / leave → attendance
+src/lib/classroom.ts            join windows, lateness (pure, tested)
+src/lib/attendance.ts           presence, finalisation, outstanding records
+src/lib/video.ts                JaaS / Jitsi room config and signed tokens
+src/lib/actions/lessons.ts      lesson records, attendance corrections, weekly reports
 src/app/(dashboard)/…           admin, teacher, student, parent portals
 src/components/                 brand, shell (sidebar/topbar), ui primitives
 ```

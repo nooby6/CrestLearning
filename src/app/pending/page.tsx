@@ -15,12 +15,12 @@ export default function PendingPage({ searchParams }: { searchParams: { reason?:
           <Icon className="h-6 w-6" strokeWidth={1.75} />
         </span>
         <h1 className="font-display text-lg font-semibold text-navy-900">
-          {inactive ? "This account is paused" : "Your account is being set up"}
+          {inactive ? "This account is suspended" : "Your account is being set up"}
         </h1>
         <p className="mt-2 text-sm text-navy-500">
           {inactive
-            ? "Access has been turned off by the Crest office. Please get in touch with them if you think this is a mistake."
-            : "You're signed in, but the Crest office hasn't finished linking your account yet. Please check back shortly or contact the office."}
+            ? "Access to this account has been suspended by the Crest Learning office. Please contact the office if you believe this is an error."
+            : "You are signed in, but the Crest Learning office has not yet completed your account set-up. Please try again shortly or contact the office."}
         </p>
         <SignOutButton redirectUrl="/sign-in">
           <button className="btn-ghost mt-6">Sign out</button>

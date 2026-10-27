@@ -39,7 +39,7 @@ export default async function NewPersonPage({ searchParams }: { searchParams: { 
       <PageHeader
         eyebrow="Administration"
         title="Add a person"
-        description="Creates their sign-in and profile together. Parents and children can be linked now or later."
+        description="Creates the sign-in and profile together. Parents and students can be linked now or later."
       />
       <CreatePersonForm
         initialRole={initial}
@@ -49,7 +49,7 @@ export default async function NewPersonPage({ searchParams }: { searchParams: { 
           id: p.id,
           firstName: p.user.firstName,
           lastName: p.user.lastName,
-          meta: `${p._count.children} ${p._count.children === 1 ? "child" : "children"} linked${p.user.phone ? ` · ${p.user.phone}` : ""}`,
+          meta: `${p._count.children} ${p._count.children === 1 ? "student" : "students"} linked${p.user.phone ? ` · ${p.user.phone}` : ""}`,
         }))}
         students={students.map((s) => ({
           id: s.id,

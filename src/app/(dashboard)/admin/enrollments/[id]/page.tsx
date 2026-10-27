@@ -105,6 +105,7 @@ export default async function EnrollmentPage({ params }: { params: { id: string 
                 {e.sessions.map((s) => (
                   <SessionRow
                     key={s.id}
+                    href={`/admin/sessions/${s.id}`}
                     startsAt={s.startsAt}
                     endsAt={s.endsAt}
                     title={formatDate(s.startsAt, { weekday: "long", month: "long", year: undefined })}
@@ -141,6 +142,7 @@ export default async function EnrollmentPage({ params }: { params: { id: string 
                 {recent.map((s) => (
                   <SessionRow
                     key={s.id}
+                    href={`/admin/sessions/${s.id}`}
                     startsAt={s.startsAt}
                     endsAt={s.endsAt}
                     title={formatDate(s.startsAt, { weekday: "long", month: "long", year: undefined })}

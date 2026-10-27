@@ -57,14 +57,14 @@ export function FamilyLinks({
   };
 
   const available = candidates.filter((c) => !links.some((l) => l.otherId === c.id));
-  const noun = mode === "children" ? "child" : "guardian";
+  const noun = mode === "children" ? "student" : "parent or guardian";
 
   return (
     <div>
       {links.length === 0 && !adding ? (
         <EmptyState
           icon={HeartHandshake}
-          title={mode === "children" ? "No children linked yet" : "No guardian linked yet"}
+          title={mode === "children" ? "No students linked yet" : "No parent or guardian linked yet"}
           action={
             <button className="btn-gold" onClick={() => setAdding(true)}>
               <Link2 className="h-4 w-4" /> Link a {noun}
@@ -72,8 +72,8 @@ export function FamilyLinks({
           }
         >
           {mode === "children"
-            ? "Link this parent to their children so they can see attendance, reports and invoices."
-            : "A guardian receives reports and invoices for this student."}
+            ? "Link this parent to their students so they can see lessons, attendance, reports and invoices."
+            : "A parent or guardian receives weekly reports and invoices for this student."}
         </EmptyState>
       ) : (
         <ul className="divide-y divide-line">
@@ -90,7 +90,7 @@ export function FamilyLinks({
                 <p className="truncate text-xs text-navy-400">
                   {mode === "guardians"
                     ? [relationshipLabel(l.relationship), l.meta].filter(Boolean).join(" · ")
-                    : [l.meta, `linked as ${relationshipLabel(l.relationship).toLowerCase()}`].filter(Boolean).join(" · ")}
+                    : [l.meta, `Relationship: ${relationshipLabel(l.relationship)}`].filter(Boolean).join(" · ")}
                 </p>
               </div>
               {l.isPrimary ? (
@@ -114,7 +114,7 @@ export function FamilyLinks({
                 type="button"
                 disabled={pending}
                 onClick={() => {
-                  if (!confirm(`Remove the link between these two accounts? Neither account is deleted.`)) return;
+                  if (!confirm(`Remove this link? Both accounts are kept; the parent will no longer see this student.`)) return;
                   const { parentId, studentId } = ids(l.otherId);
                   run(`u-${l.otherId}`, () => unlinkGuardian(parentId, studentId));
                 }}

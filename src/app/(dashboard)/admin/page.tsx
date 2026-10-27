@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, GraduationCap, HeartHandshake, Link2Off, Presentation, UserPlus, UsersRound } from "lucide-react";
+import { ArrowRight, ClipboardX, GraduationCap, HeartHandshake, Link2Off, Presentation, UserPlus, UsersRound, type LucideIcon } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { finaliseEndedSessions } from "@/lib/attendance";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName, greeting } from "@/lib/format";
 import { ROLE_LABEL, curriculumLabel, toSlug } from "@/lib/roles";
@@ -11,7 +12,8 @@ export const metadata = { title: "Overview" };
 export default async function AdminOverview() {
   const me = await requireRole("admin");
 
-  const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent] = await Promise.all([
+  await finaliseEndedSessions();
+  const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent, unrecorded] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
     prisma.teacher.count({ where: { user: { active: true } } }),
@@ -29,16 +31,26 @@ export default async function AdminOverview() {
       orderBy: { user: { createdAt: "desc" } },
     }),
     prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, where: { role: { not: "ADMIN" } } }),
+    prisma.sessionInstance.findMany({
+      where: { status: "HELD", progressNote: null },
+      select: { enrollment: { select: { teacher: { select: { user: true } } } } },
+    }),
   ]);
+  const unrecordedByTeacher = [...unrecorded.reduce((m, s) => {
+    const u = s.enrollment.teacher.user;
+    const cur = m.get(u.id) ?? { user: u, count: 0 };
+    cur.count++;
+    return m.set(u.id, cur);
+  }, new Map<string, { user: (typeof unrecorded)[number]["enrollment"]["teacher"]["user"]; count: number }>()).values()];
 
-  const attentionCount = orphanStudents.length + childlessParents.length;
+  const attentionCount = orphanStudents.length + childlessParents.length + unrecordedByTeacher.length;
 
   return (
     <>
       <PageHeader
         eyebrow="Administration"
         title={`${greeting()}, ${me.firstName}`}
-        description="Who's at Crest, and anything that needs setting up."
+        description="Summary of accounts, enrollments and items requiring attention."
         actions={
           <Link href="/admin/people/new" className="btn-primary">
             <UserPlus className="h-4 w-4" /> Add person
@@ -62,13 +74,13 @@ export default async function AdminOverview() {
               {attentionCount > 0 && <Badge tone="amber">{attentionCount}</Badge>}
             </span>
           }
-          description="Every student should have a guardian, and every parent at least one child."
+          description="Unlinked accounts and outstanding lesson records."
           bodyClassName="p-0"
         >
           {attentionCount === 0 ? (
             <div className="p-5">
-              <EmptyState icon={HeartHandshake} title="All families are linked">
-                Every active student has a guardian and every parent has a child linked.
+              <EmptyState icon={HeartHandshake} title="Nothing needs attention">
+                All accounts are linked and every held lesson has a record.
               </EmptyState>
             </div>
           ) : (
@@ -79,7 +91,17 @@ export default async function AdminOverview() {
                   href={`/admin/people/${s.id}`}
                   person={s.user}
                   meta={[curriculumLabel(s.curriculum), s.level?.name].filter(Boolean).join(" · ")}
-                  issue="Student has no guardian"
+                  issue="No parent linked"
+                />
+              ))}
+              {unrecordedByTeacher.map(({ user, count }) => (
+                <AttentionRow
+                  key={`rec-${user.id}`}
+                  href="/admin/attendance"
+                  person={user}
+                  meta="Teacher"
+                  issue={`${count} lesson ${count === 1 ? "record" : "records"} outstanding`}
+                  icon={ClipboardX}
                 />
               ))}
               {childlessParents.map((p) => (
@@ -88,7 +110,7 @@ export default async function AdminOverview() {
                   href={`/admin/people/${p.id}`}
                   person={p.user}
                   meta="Parent"
-                  issue="No children linked"
+                  issue="No students linked"
                 />
               ))}
             </ul>
@@ -120,11 +142,11 @@ export default async function AdminOverview() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <ComingNext module="Module 4 · Notes & reports">
-          Teachers log topics and homework after each session; parents get weekly and monthly reports.
+        <ComingNext module="Module 4 · Resources">
+          Upload materials for one student, or for every student at a subject and level.
         </ComingNext>
-        <ComingNext module="Module 3 · Classes">
-          One-tap “Join class” with attendance captured automatically from the video room.
+        <ComingNext module="Module 5 · Announcements">
+          Notices to everyone, to teachers only, or to selected parents.
         </ComingNext>
         <ComingNext module="Module 5 · Finance">
           Fee plans, invoices, M-Pesa and Flutterwave payments, and payouts from sessions held.
@@ -139,11 +161,13 @@ function AttentionRow({
   person,
   meta,
   issue,
+  icon: Icon = Link2Off,
 }: {
   href: string;
   person: { id: string; firstName: string; lastName: string; avatarUrl: string | null };
   meta: string;
   issue: string;
+  icon?: LucideIcon;
 }) {
   return (
     <li>
@@ -154,7 +178,7 @@ function AttentionRow({
           <p className="truncate text-xs text-navy-400">{meta || "—"}</p>
         </div>
         <Badge tone="amber">
-          <Link2Off className="h-3 w-3" /> {issue}
+          <Icon className="h-3 w-3" /> {issue}
         </Badge>
         <ArrowRight className="h-4 w-4 text-navy-200 transition group-hover:translate-x-0.5 group-hover:text-gold-500" />
       </Link>
