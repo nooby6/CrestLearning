@@ -4,7 +4,7 @@
 
 Student-centred by design: there are no "classes". Every teaching relationship is an **enrollment** — *Teacher A teaches Student B Mathematics* — with its own weekly slots, sessions, attendance, notes and billing.
 
-Built on the [LaserHub2.0](https://github.com/nooby6/LaserHub2.0) stack (Next.js App Router, Clerk, Prisma/Postgres, Tailwind), with a new data model and the Crest brand.
+Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
 
 ---
 
@@ -20,21 +20,13 @@ Built on the [LaserHub2.0](https://github.com/nooby6/LaserHub2.0) stack (Next.js
 
 The **full schema for all five modules** is in `prisma/schema.prisma` and the initial migration, so later modules add code, not structural migrations.
 
-## What was reused from LaserHub2.0, and what changed
+## Stack
 
-**Kept:** Next.js 14 App Router, Clerk (role in `publicMetadata`, enforced in middleware), Prisma + Postgres, Tailwind, zod, react-toastify.
-
-**Replaced:**
-- *Data model* — LaserHub is class-centric (Class → Lesson → Student, one parent per student). Crest uses `Enrollment` (teacher × student × subject) and a `ParentStudent` link table so a parent can follow several children and a child can have several guardians.
-- *Theme* — Crest navy `#0A1D4F` and gold `#C69A3A` sampled from the logo, Montserrat for display type (matching the wordmark's geometric caps), Inter for text, ivory canvas. Fonts are self-hosted.
-- *Icons* — lucide-react instead of PNG icons.
-
-**Fixed along the way:**
-- `src/lib/utils.ts` called `auth()` at module load — breaks under Clerk v6 (async). Auth is now resolved per request in `src/lib/auth.ts`.
-- Authorization now reads our **database** row (role + active flag), not just the JWT claim; every page and server action re-checks.
-- Duplicate Tailwind colour keys; missing `/logo.png`; invalid `docker-compose.yml` env syntax.
-- Next.js bumped to **14.2.35** (14.2.25 has a published security advisory).
-- Prisma runs **Rust-free** (`engineType = "client"` + `@prisma/adapter-pg`) — smaller deploys, no native query engine binary.
+- **Next.js 14.2.35** App Router, server actions
+- **Clerk** for sign-in; role kept in `publicMetadata` and enforced in middleware, then re-checked against the database row (role + active flag) on every page and action
+- **Prisma + Postgres**, Rust-free client (`engineType = "client"` + `@prisma/adapter-pg`)
+- **Tailwind** with the Crest theme: navy `#0A1D4F` and gold `#C69A3A` from the logo, Montserrat for display type, Inter for text, ivory canvas; fonts self-hosted
+- **zod**, **lucide-react**, **react-toastify**
 
 ## Getting started
 
