@@ -1,24 +1,50 @@
-import Announcements from "@/components/Announcements";
-import BigCalendarContainer from "@/components/BigCalendarContainer";
-import { auth } from "@clerk/nextjs/server";
+import { CalendarClock } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { requireRole } from "@/lib/auth";
+import { greeting } from "@/lib/format";
+import { Badge, Card, ComingNext, EmptyState, PageHeader } from "@/components/ui/primitives";
 
-const TeacherPage = async () => {
-  const { userId } = await auth();
+export const metadata = { title: "Today" };
+
+export default async function TeacherHome() {
+  const me = await requireRole("teacher");
+  const t = await prisma.teacher.findUnique({
+    where: { id: me.id },
+    include: {
+      subjects: { include: { subject: true } },
+      _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+    },
+  });
+
   return (
-    <div className="flex-1 p-4 flex gap-4 flex-col xl:flex-row">
-      {/* LEFT */}
-      <div className="w-full xl:w-2/3">
-        <div className="h-full bg-white p-4 rounded-md">
-          <h1 className="text-xl font-semibold">Schedule</h1>
-          <BigCalendarContainer type="teacherId" id={userId!} />
-        </div>
+    <>
+      <PageHeader
+        eyebrow="Teacher portal"
+        title={`${greeting()}, ${me.firstName}`}
+        description={`${t?._count.enrollments ?? 0} active students · ${t?.weeklyCapacityHours ?? 0} hrs/week available`}
+      />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card title="Today’s sessions" className="lg:col-span-2">
+          <EmptyState icon={CalendarClock} title="Nothing scheduled today">
+            Your sessions, with join links and attendance, will be listed here.
+          </EmptyState>
+        </Card>
+        <Card title="Subjects you teach">
+          {t?.subjects.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {t.subjects.map((s) => (
+                <Badge key={s.subjectId}>{s.subject.name}</Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-navy-400">The office hasn’t assigned subjects yet.</p>
+          )}
+        </Card>
       </div>
-      {/* RIGHT */}
-      <div className="w-full xl:w-1/3 flex flex-col gap-8">
-        <Announcements />
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <ComingNext module="Module 3 · Attendance">Join from here and attendance records itself; correct it in one tap.</ComingNext>
+        <ComingNext module="Module 4 · Notes">After each session: topics covered, homework and a short comment for parents.</ComingNext>
       </div>
-    </div>
+    </>
   );
-};
-
-export default TeacherPage;
+}

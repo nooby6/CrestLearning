@@ -1,24 +1,31 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgress_db
+  db:
+    image: postgres:16
+    container_name: crest_db
     environment:
-      - POSTGRES_USER: laserhub
-      - POSTGRES_PASSWORD: laser1234
-      - POSTGRES_DB: school
+      POSTGRES_USER: crest
+      POSTGRES_PASSWORD: crest
+      POSTGRES_DB: crest
     ports:
       - "5432:5432"
     volumes:
-      - postgress_data:/var/lib/postgresql/data
-    
+      - crest_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crest"]
+      interval: 5s
+      retries: 10
 
   app:
-    container_name: LaserApp
+    build: .
+    container_name: crest_app
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
-      - DATABASE_URL="postgresql://laserhub:laser1234@localhost:5432/school"
+      DATABASE_URL: postgresql://crest:crest@db:5432/crest?schema=public
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
+
+volumes:
+  crest_pg:

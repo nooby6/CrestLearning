@@ -1,32 +1,45 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { routeAccessMap } from './lib/settings';
-import { NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { ROUTE_ACCESS, isRoleSlug } from "@/lib/roles";
 
-const matchers = Object.keys(routeAccessMap).map(route=>({
-  matcher:createRouteMatcher([route]),
-  allowedRoles: routeAccessMap[route]
-}))
+const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/webhooks(.*)"]);
+const isPending = createRouteMatcher(["/pending(.*)"]);
 
-console.log(matchers)
+const guards = ROUTE_ACCESS.map(({ pattern, roles }) => ({
+  match: createRouteMatcher([pattern]),
+  roles,
+}));
 
-export default clerkMiddleware(async (auth, req) => {
-  // if (isProtectedRoute(req) auth().protect())
+// Local preview without Clerk (see src/lib/auth.ts). Never true in production builds.
+const devBypass =
+  process.env.NODE_ENV === "development" && !!process.env.DEV_AUTH_USER_ID;
 
-  const { sessionClaims } = await auth();
+const withClerk = clerkMiddleware(async (auth, req) => {
+  if (isPublic(req)) return NextResponse.next();
 
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const { userId, sessionClaims, redirectToSignIn } = await auth();
+  if (!userId) return redirectToSignIn({ returnBackUrl: req.url });
 
-  for (const { matcher, allowedRoles } of matchers) {
-    if (matcher(req) && !allowedRoles.includes(role!)) {
+  const role = sessionClaims?.metadata?.role;
+
+  // Signed in, but an admin hasn't assigned a role yet.
+  if (!isRoleSlug(role)) {
+    return isPending(req) ? NextResponse.next() : NextResponse.redirect(new URL("/pending", req.url));
+  }
+
+  for (const { match, roles } of guards) {
+    if (match(req) && !roles.includes(role)) {
       return NextResponse.redirect(new URL(`/${role}`, req.url));
     }
   }
+  return NextResponse.next();
 });
+
+export default devBypass ? () => NextResponse.next() : withClerk;
+
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
-}
+};

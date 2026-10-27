@@ -1,30 +1,19 @@
-import Menu from "@/components/Menu";
-import Navbar from "@/components/Navbar";
-import Image from "next/image";
-import Link from "next/link";
+import { Sidebar } from "@/components/shell/Sidebar";
+import { Topbar } from "@/components/shell/Topbar";
+import { NAV } from "@/components/shell/nav";
+import { requireRole } from "@/lib/auth";
+import { ROLE_LABEL, toSlug } from "@/lib/roles";
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await requireRole();
+  const slug = toSlug(user.role);
+
   return (
-    <div className="h-screen flex">
-      {/* LEFT */}
-      <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] p-4">
-        <Link
-          href="/"
-          className="flex items-center justify-center lg:justify-start gap-2"
-        >
-          <Image src="/logo.png" alt="logo" width={32} height={32} />
-          <span className="hidden lg:block font-bold">Laser Hub</span>
-        </Link>
-        <Menu />
-      </div>
-      {/* RIGHT */}
-      <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] bg-[#F7F8FA] overflow-scroll flex flex-col">
-        <Navbar />
-        {children}
+    <div className="flex min-h-screen">
+      <Sidebar items={NAV[slug]} roleLabel={`${ROLE_LABEL[slug]} portal`} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar user={user} />
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

@@ -1,27 +1,51 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+// Self-hosted (no runtime call to Google Fonts). Montserrat matches the logo's geometric caps.
+const inter = localFont({
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  variable: "--font-inter",
+  weight: "100 900",
+  display: "swap",
+});
+const montserrat = localFont({
+  src: "../../node_modules/@fontsource-variable/montserrat/files/montserrat-latin-wght-normal.woff2",
+  variable: "--font-montserrat",
+  weight: "100 900",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Laser Hub School Management Dashboard",
-  description: "Laser Hub School Management System",
+  title: { default: "Crest Learning", template: "%s · Crest Learning" },
+  description: "Crest Learning — Cambridge, Edexcel, CBE and IB tuition in Nairobi. Learn. Grow. Excel.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          {children} <ToastContainer position="bottom-right" theme="dark" />
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#0A1D4F",
+          colorText: "#06143A",
+          fontFamily: "var(--font-inter)",
+          borderRadius: "0.5rem",
+        },
+      }}
+    >
+      <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
+        <body className="font-sans">
+          {children}
+          <ToastContainer
+            position="bottom-right"
+            theme="light"
+            hideProgressBar
+            closeButton={false}
+            toastClassName="!rounded-lg !border !border-line !shadow-lift !text-sm !text-navy-900 !font-sans"
+          />
         </body>
       </html>
     </ClerkProvider>

@@ -1,215 +1,185 @@
-import { Day, PrismaClient, UserSex } from "@prisma/client";
-const prisma = new PrismaClient();
+/**
+ * Seed: catalogue (subjects, curriculum levels) + a small demo family set.
+ * Safe to re-run (upserts). Demo users have ids prefixed "seed_" and no Clerk
+ * login — use DEV_AUTH_USER_ID locally to view the app as one of them, and
+ * `npm run bootstrap:admin` to create your real admin sign-in.
+ */
+import "dotenv/config";
+import { PrismaClient, type Curriculum, type GuardianRelationship, type Role } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
+
+const SUBJECTS: [string, string][] = [
+  ["Mathematics", "MATH"],
+  ["English", "ENG"],
+  ["Kiswahili", "KIS"],
+  ["Physics", "PHY"],
+  ["Chemistry", "CHEM"],
+  ["Biology", "BIO"],
+  ["Integrated Science", "ISCI"],
+  ["Computer Science", "CS"],
+  ["Business Studies", "BUS"],
+  ["Economics", "ECON"],
+  ["Geography", "GEO"],
+  ["History", "HIST"],
+  ["French", "FRE"],
+];
+
+const LEVELS: Record<Curriculum, string[]> = {
+  CAMBRIDGE: [
+    "Primary Stage 4", "Primary Stage 5", "Primary Stage 6",
+    "Lower Secondary Stage 7", "Lower Secondary Stage 8", "Lower Secondary Stage 9",
+    "IGCSE Year 10", "IGCSE Year 11", "AS Level", "A Level",
+  ],
+  EDEXCEL: [
+    "iPrimary", "iLowerSecondary",
+    "International GCSE Year 10", "International GCSE Year 11",
+    "International AS Level", "International A Level",
+  ],
+  CBE: [
+    "Grade 4", "Grade 5", "Grade 6",
+    "Grade 7 (Junior School)", "Grade 8 (Junior School)", "Grade 9 (Junior School)",
+    "Grade 10 (Senior School)", "Grade 11 (Senior School)", "Grade 12 (Senior School)",
+  ],
+  IB: ["PYP", "MYP 1", "MYP 2", "MYP 3", "MYP 4", "MYP 5", "DP1", "DP2"],
+};
+
+type Person = { id: string; role: Role; first: string; last: string; phone?: string; email?: string };
+
+const people: Person[] = [
+  { id: "seed_admin", role: "ADMIN", first: "Faith", last: "Njeri", email: "office@crestlearning.example" },
+  { id: "seed_teacher_achieng", role: "TEACHER", first: "Achieng", last: "Otieno", phone: "+254711000101" },
+  { id: "seed_teacher_kamau", role: "TEACHER", first: "David", last: "Kamau", phone: "+254711000102" },
+  { id: "seed_teacher_wambui", role: "TEACHER", first: "Grace", last: "Wambui", phone: "+254711000103" },
+  { id: "seed_parent_wanjiru", role: "PARENT", first: "Wanjiru", last: "Mwangi", phone: "+254722000201" },
+  { id: "seed_parent_ahmed", role: "PARENT", first: "Ahmed", last: "Hassan", phone: "+254722000202" },
+  { id: "seed_parent_priya", role: "PARENT", first: "Priya", last: "Shah", phone: "+254722000203" },
+  { id: "seed_parent_brian", role: "PARENT", first: "Brian", last: "Kiprop", phone: "+254722000204" },
+  { id: "seed_student_amani", role: "STUDENT", first: "Amani", last: "Mwangi" },
+  { id: "seed_student_zawadi", role: "STUDENT", first: "Zawadi", last: "Mwangi" },
+  { id: "seed_student_yusuf", role: "STUDENT", first: "Yusuf", last: "Hassan" },
+  { id: "seed_student_aarav", role: "STUDENT", first: "Aarav", last: "Shah" },
+  { id: "seed_student_imani", role: "STUDENT", first: "Imani", last: "Odhiambo" },
+];
+
+const studentProfiles: Record<string, { curriculum: Curriculum; level: string; dob: string; school?: string }> = {
+  seed_student_amani: { curriculum: "CAMBRIDGE", level: "IGCSE Year 10", dob: "2011-03-14", school: "Homeschooled" },
+  seed_student_zawadi: { curriculum: "CBE", level: "Grade 7 (Junior School)", dob: "2013-08-02" },
+  seed_student_yusuf: { curriculum: "EDEXCEL", level: "International AS Level", dob: "2009-11-21" },
+  seed_student_aarav: { curriculum: "IB", level: "DP1", dob: "2009-05-09" },
+  seed_student_imani: { curriculum: "CAMBRIDGE", level: "Lower Secondary Stage 8", dob: "2012-12-01" },
+};
+
+const teacherProfiles: Record<string, { subjects: string[]; rateKes: number; capacity: number; bio: string }> = {
+  seed_teacher_achieng: { subjects: ["MATH", "PHY"], rateKes: 1800, capacity: 24, bio: "IGCSE & A Level Maths, 9 years." },
+  seed_teacher_kamau: { subjects: ["CHEM", "BIO", "ISCI"], rateKes: 1600, capacity: 20, bio: "Sciences across Cambridge and CBE." },
+  seed_teacher_wambui: { subjects: ["ENG", "KIS"], rateKes: 1400, capacity: 18, bio: "Languages; IB English A specialist." },
+};
+
+const links: [string, string, GuardianRelationship, boolean][] = [
+  ["seed_parent_wanjiru", "seed_student_amani", "MOTHER", true],
+  ["seed_parent_wanjiru", "seed_student_zawadi", "MOTHER", true],
+  ["seed_parent_ahmed", "seed_student_yusuf", "FATHER", true],
+  ["seed_parent_priya", "seed_student_aarav", "MOTHER", true],
+  // seed_student_imani and seed_parent_brian are intentionally unlinked → "Needs attention".
+];
+
+const enrollments: [string, string, string][] = [
+  ["seed_teacher_achieng", "seed_student_amani", "MATH"],
+  ["seed_teacher_kamau", "seed_student_amani", "CHEM"],
+  ["seed_teacher_wambui", "seed_student_amani", "ENG"],
+  ["seed_teacher_kamau", "seed_student_zawadi", "ISCI"],
+  ["seed_teacher_wambui", "seed_student_zawadi", "KIS"],
+  ["seed_teacher_achieng", "seed_student_yusuf", "PHY"],
+  ["seed_teacher_wambui", "seed_student_aarav", "ENG"],
+];
 
 async function main() {
-    // Seed data for the Admin table
-    await prisma.admin.create({
-        data: {
-            id: "admin1",
-            username: "admin1",
-        },
+  for (const [name, code] of SUBJECTS) {
+    await prisma.subject.upsert({ where: { code }, update: { name }, create: { name, code } });
+  }
+  for (const [curriculum, names] of Object.entries(LEVELS) as [Curriculum, string[]][]) {
+    for (const [i, name] of names.entries()) {
+      await prisma.level.upsert({
+        where: { curriculum_name: { curriculum, name } },
+        update: { sortOrder: i },
+        create: { curriculum, name, sortOrder: i },
+      });
+    }
+  }
+
+  const subjectByCode = Object.fromEntries((await prisma.subject.findMany()).map((s) => [s.code, s.id]));
+  const levelKey = (c: string, n: string) => `${c}:${n}`;
+  const levelByKey = Object.fromEntries((await prisma.level.findMany()).map((l) => [levelKey(l.curriculum, l.name), l]));
+
+  for (const p of people) {
+    const username = `${p.first}.${p.last}`.toLowerCase();
+    await prisma.user.upsert({
+      where: { id: p.id },
+      update: {},
+      create: { id: p.id, role: p.role, username, firstName: p.first, lastName: p.last, phone: p.phone, email: p.email },
     });
-    await prisma.admin.create({
-        data: {
-            id: "admin2",
-            username: "admin2",
+
+    if (p.role === "STUDENT") {
+      const sp = studentProfiles[p.id];
+      const level = levelByKey[levelKey(sp.curriculum, sp.level)];
+      await prisma.student.upsert({
+        where: { id: p.id },
+        update: {},
+        create: { id: p.id, curriculum: sp.curriculum, levelId: level.id, dateOfBirth: new Date(sp.dob), school: sp.school },
+      });
+    }
+    if (p.role === "PARENT") {
+      await prisma.parent.upsert({ where: { id: p.id }, update: {}, create: { id: p.id, address: "Nairobi" } });
+    }
+    if (p.role === "TEACHER") {
+      const tp = teacherProfiles[p.id];
+      await prisma.teacher.upsert({
+        where: { id: p.id },
+        update: {},
+        create: {
+          id: p.id,
+          bio: tp.bio,
+          hourlyRate: tp.rateKes * 100,
+          weeklyCapacityHours: tp.capacity,
+          subjects: { create: tp.subjects.map((c) => ({ subjectId: subjectByCode[c] })) },
         },
+      });
+    }
+  }
+
+  for (const [parentId, studentId, relationship, isPrimary] of links) {
+    await prisma.parentStudent.upsert({
+      where: { parentId_studentId: { parentId, studentId } },
+      update: {},
+      create: { parentId, studentId, relationship, isPrimary },
     });
+  }
 
-    // Seed data for the Grade table (levels 1 to 6)
-    for (let i = 1; i <= 6; i++) {
-        await prisma.grade.create({
-            data: {
-                level: i,
-            },
-        });
-    }
+  for (const [teacherId, studentId, code] of enrollments) {
+    const sp = studentProfiles[studentId];
+    const subjectId = subjectByCode[code];
+    await prisma.enrollment.upsert({
+      where: { teacherId_studentId_subjectId: { teacherId, studentId, subjectId } },
+      update: {},
+      create: {
+        teacherId,
+        studentId,
+        subjectId,
+        curriculum: sp.curriculum,
+        levelId: levelByKey[levelKey(sp.curriculum, sp.level)].id,
+      },
+    });
+  }
 
-    // Seed data for the Class table (classes 1A to 6A with random capacities)
-    for (let i = 1; i <= 6; i++) {
-        await prisma.class.create({
-            data: {
-                name: `${i}A`, // Class name
-                gradeId: i, // Associated grade
-                capacity: Math.floor(Math.random() * (20 - 15 + 1)) + 15, // Random capacity between 15 and 20
-            },
-        });
-    }
-
-    // Seed data for the Subject table
-    const subjectData = [
-        { name: "Mathematics" },
-        { name: "Science" },
-        { name: "English" },
-        { name: "History" },
-        { name: "Geography" },
-        { name: "Physics" },
-        { name: "Chemistry" },
-        { name: "Biology" },
-        { name: "Computer Science" },
-        { name: "Art" },
-    ];
-
-    for (const subject of subjectData) {
-        await prisma.subject.create({ data: subject });
-    }
-
-    // Seed data for the Teacher table
-    for (let i = 1; i <= 15; i++) {
-        await prisma.teacher.create({
-            data: {
-                id: `teacher${i}`, // Unique ID for the teacher
-                username: `teacher${i}`,
-                name: `TName${i}`,
-                surname: `TSurname${i}`,
-                email: `teacher${i}@example.com`,
-                phone: `123-456-789${i}`,
-                address: `Address${i}`,
-                bloodType: "A+",
-                sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE, // Alternating genders
-                subjects: { connect: [{ id: (i % 10) + 1 }] }, // Assigning a subject
-                classes: { connect: [{ id: (i % 6) + 1 }] }, // Assigning a class
-                birthday: new Date(new Date().setFullYear(new Date().getFullYear() - 30)), // 30 years old
-            },
-        });
-    }
-
-    // Seed data for the Lesson table
-    for (let i = 1; i <= 30; i++) {
-        await prisma.lesson.create({
-            data: {
-                name: `Lesson${i}`, // Lesson name
-                day: Day[
-                    Object.keys(Day)[
-                        Math.floor(Math.random() * Object.keys(Day).length)
-                    ] as keyof typeof Day
-                ], // Random day of the week
-                startTime: new Date(new Date().setHours(new Date().getHours() + 1)), // Start time
-                endTime: new Date(new Date().setHours(new Date().getHours() + 3)), // End time
-                subjectId: (i % 10) + 1, // Associated subject
-                classId: (i % 6) + 1, // Associated class
-                teacherId: `teacher${(i % 15) + 1}`, // Associated teacher
-            },
-        });
-    }
-
-    // Seed data for the Parent table
-    for (let i = 1; i <= 25; i++) {
-        await prisma.parent.create({
-            data: {
-                id: `parentId${i}`,
-                username: `parentId${i}`,
-                name: `PName ${i}`,
-                surname: `PSurname ${i}`,
-                email: `parent${i}@example.com`,
-                phone: `123-456-789${i}`,
-                address: `Address${i}`,
-            },
-        });
-    }
-
-    // Seed data for the Student table
-    for (let i = 1; i <= 50; i++) {
-        await prisma.student.create({
-            data: {
-                id: `student${i}`, // Unique ID for the student
-                username: `student${i}`,
-                name: `SName${i}`,
-                surname: `SSurname ${i}`,
-                email: `student${i}@example.com`,
-                phone: `987-654-321${i}`,
-                address: `Address${i}`,
-                bloodType: "O-",
-                sex: i % 2 === 0 ? UserSex.MALE : UserSex.FEMALE, // Alternating genders
-                parentId: `parentId${Math.ceil(i / 2) % 25 || 25}`, // Assigning a parent
-                gradeId: (i % 6) + 1, // Associated grade
-                classId: (i % 6) + 1, // Associated class
-                birthday: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // 10 years old
-            },
-        });
-    }
-
-    // Seed data for the Exam table
-    for (let i = 1; i <= 10; i++) {
-        await prisma.exam.create({
-            data: {
-                title: `Exam ${i}`, // Exam title
-                startTime: new Date(new Date().setHours(new Date().getHours() + 1)), // Start time
-                endTime: new Date(new Date().setHours(new Date().getHours() + 2)), // End time
-                lessonId: (i % 30) + 1, // Associated lesson
-            },
-        });
-    }
-
-    // Seed data for the Assignment table
-    for (let i = 1; i <= 10; i++) {
-        await prisma.assignment.create({
-            data: {
-                title: `Assignment ${i}`, // Assignment title
-                startDate: new Date(new Date().setHours(new Date().getHours() + 1)), // Start date
-                dueDate: new Date(new Date().setDate(new Date().getDate() + 1)), // Due date
-                lessonId: (i % 30) + 1, // Associated lesson
-            },
-        });
-    }
-
-    // Seed data for the Result table
-    for (let i = 1; i <= 10; i++) {
-        await prisma.result.create({
-            data: {
-                score: 90, // Fixed score
-                studentId: `student${i}`, // Associated student
-                ...(i <= 5 ? { examId: i } : { assignmentId: i - 5 }), // Associated exam or assignment
-            },
-        });
-    }
-
-    // Seed data for the Attendance table
-    for (let i = 1; i <= 10; i++) {
-        await prisma.attendance.create({
-            data: {
-                date: new Date(), // Attendance date
-                present: true, // Marked as present
-                studentId: `student${i}`, // Associated student
-                lessonId: (i % 30) + 1, // Associated lesson
-            },
-        });
-    }
-
-    // Seed data for the Event table
-    for (let i = 1; i <= 5; i++) {
-        await prisma.event.create({
-            data: {
-                title: `Event ${i}`, // Event title
-                description: `Description for Event ${i}`, // Event description
-                startTime: new Date(new Date().setHours(new Date().getHours() + 1)), // Start time
-                endTime: new Date(new Date().setHours(new Date().getHours() + 2)), // End time
-                classId: (i % 5) + 1, // Associated class
-            },
-        });
-    }
-
-    // Seed data for the Announcement table
-    for (let i = 1; i <= 5; i++) {
-        await prisma.announcement.create({
-            data: {
-                title: `Announcement ${i}`, // Announcement title
-                description: `Description for Announcement ${i}`, // Announcement description
-                date: new Date(), // Announcement date
-                classId: (i % 5) + 1, // Associated class
-            },
-        });
-    }
-
-    console.log("Seeding completed successfully.");
+  const counts = await Promise.all([prisma.subject.count(), prisma.level.count(), prisma.user.count(), prisma.enrollment.count()]);
+  console.log(`Seeded: ${counts[0]} subjects, ${counts[1]} levels, ${counts[2]} users, ${counts[3]} enrollments.`);
 }
 
 main()
-    .then(async () => {
-        await prisma.$disconnect(); // Disconnect Prisma client after seeding
-    })
-    .catch(async (e) => {
-        console.error(e); // Log any errors
-        await prisma.$disconnect(); // Ensure Prisma client is disconnected
-        process.exit(1); // Exit with failure code
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

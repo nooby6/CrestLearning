@@ -1,44 +1,58 @@
-import Announcements from "@/components/Announcements";
-import BigCalendarContainer from "@/components/BigCalendarContainer";
-import BigCalendar from "@/components/BigCalender";
-import EventCalendar from "@/components/EventCalender";
+import { Video } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { requireRole } from "@/lib/auth";
+import { fullName, greeting } from "@/lib/format";
+import { curriculumLabel } from "@/lib/roles";
+import { Card, ComingNext, EmptyState, PageHeader } from "@/components/ui/primitives";
 
-const StudentPage = async () => {
-  const { userId } = await auth();
+export const metadata = { title: "Home" };
 
-  const classItem = await prisma.class.findMany({
-    where: {
-      students: { some: { id: userId! } },
+export default async function StudentHome() {
+  const me = await requireRole("student");
+  const s = await prisma.student.findUnique({
+    where: { id: me.id },
+    include: {
+      level: true,
+      enrollments: {
+        where: { status: "ACTIVE" },
+        include: { subject: true, teacher: { include: { user: true } } },
+        orderBy: { subject: { name: "asc" } },
+      },
     },
   });
 
-  // Optional: Debug logs (you can remove this in production)
-  console.log("User ID:", userId);
-  console.log("classItem:", classItem);
-
   return (
-    <div className="p-4 flex gap-4 flex-col xl:flex-row">
-      {/* LEFT */}
-      <div className="w-full xl:w-2/3">
-        <div className="h-full bg-white p-4 rounded-md">
-          <h1 className="text-xl font-semibold">Schedule (4A)</h1>
-          {classItem.length > 0 ? (
-            <BigCalendarContainer type="classId" id={classItem[0].id} />
+    <>
+      <PageHeader
+        eyebrow={[curriculumLabel(s?.curriculum), s?.level?.name].filter((x) => x && x !== "—").join(" · ") || "Student portal"}
+        title={`${greeting()}, ${me.firstName}`}
+        description="Your classes, resources and homework live here."
+      />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card title="Next class" className="lg:col-span-2">
+          <EmptyState icon={Video} title="No classes scheduled yet">
+            When your timetable is set, a “Join class” button will appear here a few minutes before each lesson.
+          </EmptyState>
+        </Card>
+        <Card title="My subjects">
+          {s?.enrollments.length ? (
+            <ul className="space-y-2 text-sm">
+              {s.enrollments.map((e) => (
+                <li key={e.id} className="flex justify-between">
+                  <span className="font-medium">{e.subject.name}</span>
+                  <span className="text-navy-500">{fullName(e.teacher.user)}</span>
+                </li>
+              ))}
+            </ul>
           ) : (
-            <p className="text-red-500">You are not enrolled in any class.</p>
+            <p className="text-sm text-navy-400">Your subjects will show here once you’re enrolled.</p>
           )}
-        </div>
+        </Card>
       </div>
-
-      {/* RIGHT */}
-      <div className="w-full xl:w-1/3 flex flex-col gap-8">
-        <EventCalendar />
-        <Announcements />
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <ComingNext module="Module 2 · Timetable">Your week at a glance, in Nairobi time.</ComingNext>
+        <ComingNext module="Module 4 · Resources & homework">Notes and files from your teachers, only for your subjects and level.</ComingNext>
       </div>
-    </div>
+    </>
   );
-};
-
-export default StudentPage;
+}

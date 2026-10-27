@@ -1,222 +1,600 @@
-/// The `generator` block specifies the Prisma Client generator.
-/// It defines the provider as `prisma-client-js`, which generates a JavaScript/TypeScript client for interacting with the database.
+// Crest Learning — core data model
+// ------------------------------------------------------------
+// Student-centred tuition: every teaching relationship is an
+// Enrollment (teacher × student × subject). Recurring weekly
+// SessionSlots generate dated SessionInstances; attendance, notes,
+// payouts and parent reports all hang off those instances.
+//
+// Conventions
+//   • User.id is the Clerk user id (string). Profiles share it.
+//   • Money is stored as Int in minor units (KES cents) + currency.
+//   • Times are stored in UTC; SessionSlot keeps wall-clock time
+//     plus an IANA timezone (default Africa/Nairobi).
+// ------------------------------------------------------------
+
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  // Rust-free client: queries run through the pg driver adapter (src/lib/prisma.ts).
+  engineType = "client"
 }
 
-/// The `datasource` block specifies the database connection details.
-/// It uses PostgreSQL as the provider and retrieves the connection URL from the `DATABASE_URL` environment variable.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-/// Represents an administrator of the system.
-/// Each admin has a unique `id` and `username`.
-model Admin {
-  id       String @id
-  username String @unique
+// ============================================================
+// 1. USERS, ROLES, PARENT–STUDENT LINKS
+// ============================================================
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
 }
 
-/// Represents a student in the system.
-/// Contains personal details, relationships to parents, classes, grades, and other related entities.
+enum Curriculum {
+  CAMBRIDGE
+  EDEXCEL
+  CBE
+  IB
+}
+
+model User {
+  id        String   @id // Clerk user id
+  role      Role
+  username  String   @unique
+  firstName String
+  lastName  String
+  email     String?  @unique
+  phone     String?  @unique // E.164, e.g. +254712345678 (used for M-Pesa STK push)
+  avatarUrl String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student?
+  teacher Teacher?
+  parent  Parent?
+
+  attendances           Attendance[]
+  attendanceOverrides   Attendance[]             @relation("AttendanceOverriddenBy")
+  joinEvents            SessionJoinEvent[]
+  progressNotes         ProgressNote[]
+  uploadedResources     Resource[]
+  announcementsAuthored Announcement[]
+  announcementTargets   AnnouncementRecipient[]
+
+  @@index([role, active])
+}
+
 model Student {
-  id          String       @id
-  username    String       @unique
-  name        String
-  surname     String
-  email       String?      @unique
-  phone       String?      @unique
-  address     String
-  img         String?
-  bloodType   String
-  sex         UserSex
-  createdAt   DateTime     @default(now())
-  parentId    String
-  parent      Parent       @relation(fields: [parentId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  gradeId     Int
-  grade       Grade        @relation(fields: [gradeId], references: [id])
-  attendances Attendance[]
-  results     Result[]
-  birthday    DateTime
+  id          String      @id
+  user        User        @relation(fields: [id], references: [id], onDelete: Cascade)
+  curriculum  Curriculum?
+  levelId     Int?
+  level       Level?      @relation(fields: [levelId], references: [id])
+  dateOfBirth DateTime?   @db.Date
+  school      String? // current day school, if any
+  notes       String? // admin-only notes
+
+  guardians   ParentStudent[]
+  enrollments Enrollment[]
+  feePlans    FeePlan[]
+  invoices    Invoice[]
+  reports     ParentReport[]
 }
 
-/// Represents a teacher in the system.
-/// Contains personal details and relationships to subjects, lessons, and classes.
 model Teacher {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String?   @unique
-  address   String
-  img       String?
-  bloodType String
-  sex       UserSex
-  createdAt DateTime  @default(now())
-  subjects  Subject[]
-  lessons   Lesson[]
-  classes   Class[]
-  birthday  DateTime
+  id String @id
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
+  bio  String?
+  /// Default payout rate per hour of teaching, KES cents. Enrollment can override.
+  hourlyRate Int @default(0)
+  currency   String @default("KES")
+  /// Weekly hours the teacher is available — drives the utilization view.
+  weeklyCapacityHours Int @default(20)
+
+  subjects    TeacherSubject[]
+  enrollments Enrollment[]
+  payouts     TeacherPayout[]
 }
 
-/// Represents a parent of one or more students.
-/// Contains personal details and a relationship to their children (students).
 model Parent {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String    @unique
-  address   String
-  createdAt DateTime  @default(now())
-  students  Student[]
+  id         String @id
+  user       User   @relation(fields: [id], references: [id], onDelete: Cascade)
+  occupation String?
+  address    String?
+
+  children ParentStudent[]
+  invoices Invoice[] // invoices billed to this parent
 }
 
-/// Represents a grade level in the system.
-/// Contains a unique `level` and relationships to students and classes.
-model Grade {
-  id    Int @id @default(autoincrement())
-  level Int @unique
-
-  students Student[]
-  classess Class[]
+enum GuardianRelationship {
+  MOTHER
+  FATHER
+  GUARDIAN
+  OTHER
 }
 
-/// Represents a class in the system.
-/// Contains details such as name, capacity, and relationships to teachers, students, lessons, and other entities.
-model Class {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  capacity Int
-
-  supervisorId  String?
-  supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
-  lessons       Lesson[]
-  students      Student[]
-  gradeId       Int
-  grade         Grade          @relation(fields: [gradeId], references: [id])
-  events        Event[]
-  announcements Announcement[]
-}
-
-/// Represents a subject taught in the system.
-/// Contains a unique name and relationships to teachers and lessons.
-model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  teachers Teacher[]
-  lessons  Lesson[]
-}
-
-/// Represents a lesson in the system.
-/// Contains details such as name, schedule, and relationships to subjects, classes, teachers, and other entities.
-model Lesson {
-  id        Int      @id @default(autoincrement())
-  name      String
-  day       Day
-  startTime DateTime
-  endTime   DateTime
-
-  subjectId   Int
-  subject     Subject      @relation(fields: [subjectId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  teacherId   String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  exams       Exam[]
-  assignments Assignment[]
-  attendances Attendance[]
-}
-
-/// Represents an exam in the system.
-model Exam {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startTime DateTime
-  endTime   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
-}
-
-/// Represents an assignment in the system.
-model Assignment {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startDate DateTime
-  dueDate   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
-}
-
-/// Represents a result for an exam or assignment.
-model Result {
-  id    Int @id @default(autoincrement())
-  score Int
-
-  examId       Int?
-  exam         Exam?       @relation(fields: [examId], references: [id])
-  assignmentId Int?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
+/// Many-to-many: a parent can have several children, a child can have several guardians.
+model ParentStudent {
+  parentId     String
   studentId    String
-  student      Student     @relation(fields: [studentId], references: [id])
+  relationship GuardianRelationship @default(GUARDIAN)
+  /// Primary contact receives invoices and reports by default.
+  isPrimary    Boolean              @default(false)
+  createdAt    DateTime             @default(now())
+
+  parent  Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([parentId, studentId])
+  @@index([studentId])
 }
 
-/// Represents attendance for a lesson.
-model Attendance {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  present Boolean
+// ============================================================
+// 2. CATALOGUE, ENROLLMENTS, SCHEDULE
+// ============================================================
 
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id])
-  lessonId  Int
-  lesson    Lesson  @relation(fields: [lessonId], references: [id])
+model Subject {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  code String @unique // short code, e.g. MATH, CHEM
+
+  teachers    TeacherSubject[]
+  enrollments Enrollment[]
+  resources   Resource[]
 }
 
-/// Represents an event associated with a class.
-model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  startTime   DateTime
-  endTime     DateTime
+/// Curriculum-specific level, e.g. Cambridge "IGCSE Year 10", CBE "Grade 7", IB "DP1".
+model Level {
+  id         Int        @id @default(autoincrement())
+  curriculum Curriculum
+  name       String
+  sortOrder  Int        @default(0)
 
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+  students    Student[]
+  enrollments Enrollment[]
+  resources   Resource[]
+
+  @@unique([curriculum, name])
 }
 
-/// Represents an announcement associated with a class.
-/// Contains details such as title, description, date, and an optional relationship to a class.
-model Announcement {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime
+model TeacherSubject {
+  teacherId String
+  subjectId Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+  @@id([teacherId, subjectId])
 }
 
-
-enum UserSex {
-  MALE
-  FEMALE
+enum EnrollmentStatus {
+  ACTIVE
+  PAUSED
+  ENDED
 }
 
-enum Day {
+/// "Teacher A teaches Student B Maths" — the core teaching relationship.
+model Enrollment {
+  id         Int              @id @default(autoincrement())
+  teacherId  String
+  studentId  String
+  subjectId  Int
+  curriculum Curriculum?
+  levelId    Int?
+  status     EnrollmentStatus @default(ACTIVE)
+  startDate  DateTime         @default(now()) @db.Date
+  endDate    DateTime?        @db.Date
+  /// Optional per-enrollment overrides (KES cents).
+  teacherHourlyRate Int?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  level   Level?  @relation(fields: [levelId], references: [id])
+
+  slots     SessionSlot[]
+  sessions  SessionInstance[]
+  resources Resource[]
+  invoiceLines InvoiceLine[]
+
+  @@unique([teacherId, studentId, subjectId])
+  @@index([studentId, status])
+  @@index([teacherId, status])
+}
+
+enum Weekday {
   MONDAY
   TUESDAY
   WEDNESDAY
   THURSDAY
   FRIDAY
   SATURDAY
+  SUNDAY
+}
+
+/// A recurring weekly slot. Generates SessionInstances ahead of time.
+model SessionSlot {
+  id              Int       @id @default(autoincrement())
+  enrollmentId    Int
+  weekday         Weekday
+  startTime       String // wall-clock "HH:mm" in `timezone`
+  durationMinutes Int       @default(60)
+  timezone        String    @default("Africa/Nairobi")
+  validFrom       DateTime  @default(now()) @db.Date
+  validUntil      DateTime? @db.Date
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+
+  enrollment Enrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  sessions   SessionInstance[]
+
+  @@index([enrollmentId, active])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  HELD
+  MISSED
+  RESCHEDULED
+  CANCELLED
+}
+
+model SessionInstance {
+  id           Int           @id @default(autoincrement())
+  enrollmentId Int
+  slotId       Int? // null for one-off / make-up sessions
+  startsAt     DateTime
+  endsAt       DateTime
+  status       SessionStatus @default(SCHEDULED)
+  /// Video room name (e.g. Jitsi room) — unguessable, generated per session.
+  meetingRoom  String        @unique
+  /// Optional override: physical room or external link.
+  location     String?
+  /// When this session replaces a rescheduled one.
+  rescheduledFromId Int?     @unique
+  cancelReason String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  enrollment      Enrollment         @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  slot            SessionSlot?       @relation(fields: [slotId], references: [id], onDelete: SetNull)
+  rescheduledFrom SessionInstance?   @relation("Reschedule", fields: [rescheduledFromId], references: [id])
+  rescheduledTo   SessionInstance?   @relation("Reschedule")
+  attendances     Attendance[]
+  joinEvents      SessionJoinEvent[]
+  progressNote    ProgressNote?
+  payoutItem      TeacherPayoutItem?
+
+  /// Idempotent generation: a slot produces at most one instance per start time.
+  @@unique([slotId, startsAt])
+  @@index([startsAt])
+  @@index([enrollmentId, startsAt])
+  @@index([status, startsAt])
+}
+
+// ============================================================
+// 3. ATTENDANCE (auto from video join events, manual override)
+// ============================================================
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  EXCUSED
+}
+
+enum AttendanceSource {
+  AUTO
+  MANUAL
+}
+
+/// One record per session per participant (student and teacher).
+model Attendance {
+  id              Int              @id @default(autoincrement())
+  sessionId       Int
+  userId          String
+  role            Role // STUDENT or TEACHER at time of session
+  status          AttendanceStatus
+  source          AttendanceSource @default(AUTO)
+  firstJoinedAt   DateTime?
+  lastLeftAt      DateTime?
+  secondsPresent  Int              @default(0)
+  overriddenById  String?
+  overrideReason  String?
+  updatedAt       DateTime         @updatedAt
+  createdAt       DateTime         @default(now())
+
+  session      SessionInstance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
+  overriddenBy User?           @relation("AttendanceOverriddenBy", fields: [overriddenById], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([userId, createdAt])
+}
+
+enum JoinEventType {
+  JOIN
+  LEAVE
+}
+
+/// Raw join/leave log from the video provider — the audit trail behind AUTO attendance.
+model SessionJoinEvent {
+  id        Int           @id @default(autoincrement())
+  sessionId Int
+  userId    String
+  type      JoinEventType
+  at        DateTime      @default(now())
+
+  session SessionInstance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User            @relation(fields: [userId], references: [id])
+
+  @@index([sessionId, userId, at])
+}
+
+// ============================================================
+// 4. PROGRESS NOTES, REPORTS, RESOURCES
+// ============================================================
+
+model ProgressNote {
+  id            Int       @id @default(autoincrement())
+  sessionId     Int       @unique
+  authorId      String
+  topicsCovered String
+  homework      String?
+  homeworkDue   DateTime?
+  comment       String?
+  /// 1–5 engagement rating — gives parent reports a simple trend line.
+  engagement    Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  session SessionInstance @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author  User            @relation(fields: [authorId], references: [id])
+}
+
+enum ReportPeriod {
+  WEEKLY
+  MONTHLY
+}
+
+/// Snapshot of a generated parent report (attendance, topics, comments, homework).
+model ParentReport {
+  id          Int          @id @default(autoincrement())
+  studentId   String
+  period      ReportPeriod
+  periodStart DateTime     @db.Date
+  periodEnd   DateTime     @db.Date
+  data        Json
+  generatedAt DateTime     @default(now())
+  sentAt      DateTime?
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, period, periodStart])
+}
+
+/// A resource is scoped EITHER to one enrollment OR to a subject (+ optional level).
+/// Students see: resources on their enrollments + subject/level resources matching them.
+model Resource {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  url          String
+  storageKey   String? // Cloudinary public_id
+  mimeType     String?
+  sizeBytes    Int?
+  uploadedById String
+  enrollmentId Int?
+  subjectId    Int?
+  levelId      Int?
+  createdAt    DateTime @default(now())
+
+  uploadedBy User        @relation(fields: [uploadedById], references: [id])
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  subject    Subject?    @relation(fields: [subjectId], references: [id])
+  level      Level?      @relation(fields: [levelId], references: [id])
+
+  @@index([enrollmentId])
+  @@index([subjectId, levelId])
+}
+
+// ============================================================
+// 5. FINANCE
+// ============================================================
+
+enum BillingCycle {
+  PER_SESSION
+  MONTHLY
+  TERMLY
+}
+
+model FeePlan {
+  id        Int          @id @default(autoincrement())
+  studentId String
+  name      String
+  cycle     BillingCycle
+  /// Amount per cycle (or per session for PER_SESSION), minor units.
+  amount    Int
+  currency  String       @default("KES")
+  active    Boolean      @default(true)
+  startsOn  DateTime     @default(now()) @db.Date
+  endsOn    DateTime?    @db.Date
+  createdAt DateTime     @default(now())
+
+  student  Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([studentId, active])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+model Invoice {
+  id          Int           @id @default(autoincrement())
+  number      String        @unique // CRL-2026-0001
+  studentId   String
+  billToId    String? // parent
+  feePlanId   Int?
+  periodStart DateTime      @db.Date
+  periodEnd   DateTime      @db.Date
+  issuedAt    DateTime?
+  dueDate     DateTime      @db.Date
+  status      InvoiceStatus @default(DRAFT)
+  subtotal    Int
+  discount    Int           @default(0)
+  total       Int
+  amountPaid  Int           @default(0)
+  currency    String        @default("KES")
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  student  Student       @relation(fields: [studentId], references: [id])
+  billTo   Parent?       @relation(fields: [billToId], references: [id])
+  feePlan  FeePlan?      @relation(fields: [feePlanId], references: [id])
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@index([status, dueDate])
+  @@index([studentId])
+}
+
+model InvoiceLine {
+  id           Int     @id @default(autoincrement())
+  invoiceId    Int
+  description  String
+  quantity     Int     @default(1)
+  unitAmount   Int
+  amount       Int
+  enrollmentId Int?
+
+  invoice    Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id])
+}
+
+enum PaymentProvider {
+  MPESA
+  FLUTTERWAVE
+  BANK_TRANSFER
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id          Int             @id @default(autoincrement())
+  invoiceId   Int
+  amount      Int
+  currency    String          @default("KES")
+  provider    PaymentProvider
+  status      PaymentStatus   @default(PENDING)
+  /// M-Pesa CheckoutRequestID / receipt, Flutterwave tx_ref — unique per provider for idempotent webhooks.
+  providerRef String?
+  receipt     String? // e.g. M-Pesa receipt number
+  payerPhone  String?
+  raw         Json?
+  paidAt      DateTime?
+  createdAt   DateTime        @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@unique([provider, providerRef])
+  @@index([invoiceId])
+}
+
+enum PayoutStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+/// Teacher payout for a period, calculated from sessions actually HELD.
+model TeacherPayout {
+  id           Int          @id @default(autoincrement())
+  teacherId    String
+  periodStart  DateTime     @db.Date
+  periodEnd    DateTime     @db.Date
+  sessionsHeld Int
+  minutesHeld  Int
+  amount       Int
+  currency     String       @default("KES")
+  status       PayoutStatus @default(DRAFT)
+  reference    String? // bank / M-Pesa B2C ref
+  paidAt       DateTime?
+  createdAt    DateTime     @default(now())
+
+  teacher Teacher             @relation(fields: [teacherId], references: [id])
+  items   TeacherPayoutItem[]
+
+  @@unique([teacherId, periodStart, periodEnd])
+}
+
+/// Each held session is paid at most once.
+model TeacherPayoutItem {
+  id        Int @id @default(autoincrement())
+  payoutId  Int
+  sessionId Int @unique
+  minutes   Int
+  amount    Int
+
+  payout  TeacherPayout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  session SessionInstance @relation(fields: [sessionId], references: [id])
+}
+
+// ============================================================
+// 6. ANNOUNCEMENTS
+// ============================================================
+
+enum AnnouncementAudience {
+  EVERYONE
+  TEACHERS
+  PARENTS
+  SPECIFIC_PARENTS
+}
+
+model Announcement {
+  id          Int                  @id @default(autoincrement())
+  title       String
+  body        String
+  audience    AnnouncementAudience
+  authorId    String
+  pinned      Boolean              @default(false)
+  publishedAt DateTime             @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime             @default(now())
+
+  author     User                    @relation(fields: [authorId], references: [id])
+  recipients AnnouncementRecipient[]
+
+  @@index([audience, publishedAt])
+}
+
+/// Used when audience = SPECIFIC_PARENTS. Also tracks read receipts.
+model AnnouncementRecipient {
+  announcementId Int
+  userId         String
+  readAt         DateTime?
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, userId])
+  @@index([userId])
 }
