@@ -142,10 +142,15 @@ async function main() {
         curriculum: sp.curriculum,
         levelId: levelByKey[levelKey(sp.curriculum, sp.level)].id,
         startDate: new Date(addDaysKey(weekStart, -21)),
-        // Demo Google Meet links (one enrollment left without, to show the office alert).
-        meetingUrl: studentId === "seed_student_aarav" ? null : `https://meet.google.com/${demoMeetCode(teacherId + studentId + code)}`,
       },
     });
+    // One demo Google Meet link per student (one student left without, to show the office alert).
+    if (studentId !== "seed_student_aarav") {
+      await prisma.student.updateMany({
+        where: { id: studentId, meetingUrl: null },
+        data: { meetingUrl: `https://meet.google.com/${demoMeetCode(studentId)}` },
+      });
+    }
     if (await prisma.sessionSlot.count({ where: { enrollmentId: enrollment.id } })) continue;
     for (const [weekday, startTime, durationMinutes] of slots) {
       const slot = await prisma.sessionSlot.create({

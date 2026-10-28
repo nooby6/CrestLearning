@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   if (!Number.isInteger(id)) return back("/");
   const s = await prisma.sessionInstance.findUnique({
     where: { id },
-    include: { enrollment: { select: { teacherId: true, studentId: true, meetingUrl: true } }, rescheduledTo: { select: { id: true } } },
+    include: { enrollment: { select: { teacherId: true, studentId: true, student: { select: { meetingUrl: true } } } }, rescheduledTo: { select: { id: true } } },
   });
   if (!s) return back("/");
   if (s.status === "RESCHEDULED" && s.rescheduledTo) return back(`/class/${s.rescheduledTo.id}/go`);

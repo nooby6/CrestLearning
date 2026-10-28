@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { toSlug } from "@/lib/roles";
+import { homePath } from "@/lib/roles";
 import { Wordmark } from "@/components/brand/Logo";
 import { PasswordForm } from "./PasswordForm";
 
@@ -19,7 +19,7 @@ export default async function PasswordPage() {
       <Wordmark className="mb-10" />
       <div className="card w-full max-w-sm p-7">
         {!first && (
-          <Link href={`/${toSlug(me.role)}`} className="mb-4 inline-flex items-center gap-1 text-sm text-navy-400 hover:text-navy-700">
+          <Link href={homePath(me)} className="mb-4 inline-flex items-center gap-1 text-sm text-navy-400 hover:text-navy-700">
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
         )}

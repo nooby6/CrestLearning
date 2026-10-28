@@ -76,14 +76,17 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
               onClick={onNavigate}
               aria-current={isActive ? "page" : undefined}
               className={clsx(
-                "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
+                "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200",
                 isActive
-                  ? "bg-white/[0.07] font-medium text-white"
-                  : "text-navy-200 hover:bg-white/[0.04] hover:text-white",
+                  ? "bg-gradient-to-r from-gold-500/[0.18] via-white/[0.06] to-transparent font-medium text-white"
+                  : "text-navy-200 hover:bg-white/[0.05] hover:text-white",
               )}
             >
               {isActive && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r bg-gold-500" />}
-              <Icon className={clsx("h-[18px] w-[18px]", isActive && "text-gold-400")} strokeWidth={1.75} />
+              <Icon
+                className={clsx("h-[18px] w-[18px] transition-transform duration-200 group-hover:translate-x-0.5", isActive && "text-gold-400")}
+                strokeWidth={1.75}
+              />
               <span className="flex-1">{item.label}</span>
               {badges?.[item.href] ? (
                 <span className="min-w-[20px] rounded-full bg-rose-500 px-1.5 text-center text-[11px] font-semibold tabular-nums text-white">
@@ -130,7 +133,7 @@ export function Sidebar({ items, roleLabel, badges }: { items: NavItem[]; roleLa
   return (
     <>
       {/* Desktop */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 bg-navy-800 lg:block print:hidden">
+      <aside className="sidebar-bg sticky top-0 hidden h-screen w-64 shrink-0 lg:block print:hidden">
         <Panel items={items} roleLabel={roleLabel} badges={badges} />
       </aside>
 
@@ -147,8 +150,8 @@ export function Sidebar({ items, roleLabel, badges }: { items: NavItem[]; roleLa
       {/* Mobile drawer */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-navy-950/50 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-navy-800 shadow-2xl">
+          <div className="fade-in absolute inset-0 bg-navy-950/50 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+          <aside className="sidebar-bg absolute inset-y-0 left-0 w-72 shadow-2xl">
             <button
               type="button"
               onClick={() => setOpen(false)}

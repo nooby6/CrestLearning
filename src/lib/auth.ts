@@ -3,7 +3,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import prisma from "./prisma";
 import { sessionUserId } from "./session";
-import { toSlug, type RoleSlug } from "./roles";
+import { homePath, portalsFor, type RoleSlug } from "./roles";
 
 /**
  * Local development only: impersonate a seeded user without signing in.
@@ -28,15 +28,14 @@ export async function requireRole(...allowed: RoleSlug[]): Promise<CurrentUser> 
   if (!user) redirect("/sign-in");
   if (!user.active) redirect("/pending?reason=inactive");
   if (user.mustChangePassword && !devImpersonation()) redirect("/account/password?first=1");
-  const slug = toSlug(user.role);
-  if (allowed.length && !allowed.includes(slug)) redirect(`/${slug}`);
+  if (allowed.length && !portalsFor(user).some((p) => allowed.includes(p))) redirect(homePath(user));
   return user;
 }
 
 /** Server-action variant: throws instead of redirecting. */
 export async function assertRole(...allowed: RoleSlug[]): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user || !user.active || !allowed.includes(toSlug(user.role))) {
+  if (!user || !user.active || !portalsFor(user).some((p) => allowed.includes(p))) {
     throw new Error("You do not have permission to do that.");
   }
   return user;

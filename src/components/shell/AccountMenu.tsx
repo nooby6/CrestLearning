@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { AlertTriangle, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
 import { Avatar } from "@/components/ui/primitives";
 import { signOut } from "@/lib/actions/auth";
 
@@ -13,9 +13,11 @@ import { signOut } from "@/lib/actions/auth";
 export function AccountMenu({
   user,
   roleLabel,
+  switchTo = [],
 }: {
   user: { id: string; firstName: string; lastName: string; avatarUrl: string | null };
   roleLabel: string;
+  switchTo?: { href: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [blocked, setBlocked] = useState<number | null>(null);
@@ -72,12 +74,24 @@ export function AccountMenu({
               <p className="mt-1.5 text-xs text-navy-500">
                 Please record what you covered in {blocked} {blocked === 1 ? "lesson" : "lessons"} before signing out.
               </p>
-              <Link href="/teacher/records" onClick={() => setOpen(false)} className="btn-primary mt-3 w-full">
+              <a href="/teacher/records" className="btn-primary mt-3 w-full">
                 Complete lesson records
-              </Link>
+              </a>
             </div>
           ) : (
             <div className="py-1.5">
+              {/* A full page load, so the sidebar and header rebuild for the other portal. */}
+              {switchTo.map((s) => (
+                <a
+                  key={s.href}
+                  href={s.href}
+                  role="menuitem"
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-navy-900 hover:bg-gold-50"
+                >
+                  <ArrowLeftRight className="h-4 w-4 text-gold-600" /> Switch to {s.label}
+                </a>
+              ))}
+              {switchTo.length > 0 && <div className="my-1.5 border-t border-line" />}
               <Link
                 href="/account/password"
                 role="menuitem"

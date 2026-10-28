@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { hasAdminAccess } from "@/lib/roles";
 import { assertRole } from "@/lib/auth";
 import { clearFutureSessions, findSlotConflicts, generateForSlot, type Conflict } from "@/lib/sessions";
 import { TZ, dateKey, isHHMM, meetingRoomName, zonedToUtc } from "@/lib/schedule";
@@ -93,8 +94,8 @@ export async function createEnrollment(input: EnrollmentInputT): Promise<Result<
 
   const startDate = new Date(d.startDate ?? dateKey(new Date()));
   const enrollment = await prisma.$transaction(async (tx) => {
+    if (link) await tx.student.update({ where: { id: d.studentId }, data: { meetingUrl: link.url } });
     const data = {
-      ...(link && { meetingUrl: link.url }),
       curriculum: d.curriculum ?? student.curriculum,
       levelId: d.levelId ?? student.levelId,
       status: "ACTIVE" as const,
@@ -202,7 +203,7 @@ export async function rescheduleSession(sessionId: number, input: z.infer<typeof
     where: { id: sessionId },
     include: { enrollment: { include: { subject: true } }, rescheduledTo: true },
   });
-  if (!s || (me.role === "TEACHER" && s.enrollment.teacherId !== me.id)) return { ok: false, error: "Session not found." };
+  if (!s || (!hasAdminAccess(me) && s.enrollment.teacherId !== me.id)) return { ok: false, error: "Session not found." };
   if (s.status !== "SCHEDULED") return { ok: false, error: "Only upcoming scheduled sessions can be moved." };
 
   const [y, m, d] = p.data.date.split("-").map(Number);
@@ -242,7 +243,7 @@ export async function rescheduleSession(sessionId: number, input: z.infer<typeof
 export async function cancelSession(sessionId: number, reason: string): Promise<Result> {
   const me = await assertRole("admin", "teacher");
   const s = await prisma.sessionInstance.findUnique({ where: { id: sessionId }, include: { enrollment: true } });
-  if (!s || (me.role === "TEACHER" && s.enrollment.teacherId !== me.id)) return { ok: false, error: "Session not found." };
+  if (!s || (!hasAdminAccess(me) && s.enrollment.teacherId !== me.id)) return { ok: false, error: "Session not found." };
   if (s.status !== "SCHEDULED") return { ok: false, error: "Only scheduled sessions can be cancelled." };
   await prisma.sessionInstance.update({
     where: { id: sessionId },
@@ -252,14 +253,15 @@ export async function cancelSession(sessionId: number, reason: string): Promise<
   return { ok: true, message: "Session cancelled" };
 }
 
-/** Set or clear the standing online-class link (e.g. Google Meet) for an enrollment. */
-export async function setMeetingLink(enrollmentId: number, raw: string | null): Promise<Result> {
+/** Set or clear a student's one online-class link (e.g. Google Meet), used for all their subjects and teachers. */
+export async function setStudentMeetingLink(studentId: string, raw: string | null): Promise<Result> {
   await assertRole("admin");
   const link = raw ? parseMeetingLink(raw) : null;
   if (raw && !link) return { ok: false, error: "Paste a Google Meet link like https://meet.google.com/abc-defg-hij" };
-  const e = await prisma.enrollment.findUnique({ where: { id: enrollmentId } });
-  if (!e) return { ok: false, error: "Enrollment not found." };
-  await prisma.enrollment.update({ where: { id: enrollmentId }, data: { meetingUrl: link?.url ?? null } });
-  refresh(enrollmentId);
-  return { ok: true, message: link ? `${link.provider} link saved` : "Link removed" };
+  const st = await prisma.student.findUnique({ where: { id: studentId }, select: { id: true } });
+  if (!st) return { ok: false, error: "Student not found." };
+  await prisma.student.update({ where: { id: studentId }, data: { meetingUrl: link?.url ?? null } });
+  refresh();
+  revalidatePath(`/admin/people/${studentId}`);
+  return { ok: true, message: link ? `${link.provider} link saved for all subjects` : "Link removed" };
 }

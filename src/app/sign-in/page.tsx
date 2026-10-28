@@ -2,7 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { MapPin } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { toSlug } from "@/lib/roles";
+import { homePath } from "@/lib/roles";
 import { Wordmark } from "@/components/brand/Logo";
 import { ensureBootstrapAdmin } from "@/lib/bootstrap";
 import { SignInForm } from "./SignInForm";
@@ -14,7 +14,7 @@ const CURRICULA = ["Cambridge", "Edexcel", "CBE", "IB"];
 export default async function SignInPage() {
   await ensureBootstrapAdmin();
   const me = await getCurrentUser();
-  if (me?.active) redirect(`/${toSlug(me.role)}`);
+  if (me?.active) redirect(homePath(me));
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">

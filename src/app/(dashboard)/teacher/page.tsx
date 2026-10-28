@@ -104,8 +104,8 @@ export default async function TeacherHome() {
           hint={today.filter((s) => s.status !== "CANCELLED").length === 1 ? "session" : "sessions"}
           icon={CalendarClock}
         />
-        <StatCard label="This week" value={hoursLabel(weekMins)} hint={`of ${t?.weeklyCapacityHours ?? 0} h available`} icon={CalendarDays} href="/teacher/timetable" />
-        <StatCard label="Students" value={t?._count.enrollments ?? 0} hint="active enrollments" icon={Users} href="/teacher/students" />
+        <StatCard tone="gold" label="This week" value={hoursLabel(weekMins)} hint={`of ${t?.weeklyCapacityHours ?? 0} h available`} icon={CalendarDays} href="/teacher/timetable" />
+        <StatCard tone="teal" label="Students" value={t?._count.enrollments ?? 0} hint="active enrollments" icon={Users} href="/teacher/students" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

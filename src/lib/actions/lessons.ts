@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { hasAdminAccess } from "@/lib/roles";
 import { assertRole } from "@/lib/auth";
 import { mondayOf, dateKey } from "@/lib/schedule";
 
@@ -19,7 +20,7 @@ async function loadSessionFor(sessionId: number) {
     where: { id: sessionId },
     include: { enrollment: true, progressNote: true, attendances: true },
   });
-  if (!s || (me.role === "TEACHER" && s.enrollment.teacherId !== me.id)) throw new Error("Session not found.");
+  if (!s || (!hasAdminAccess(me) && s.enrollment.teacherId !== me.id)) throw new Error("Session not found.");
   return { me, s };
 }
 
@@ -125,7 +126,7 @@ export async function overrideAttendance(sessionId: number, input: z.input<typeo
   const { userId, status, reason } = p.data;
   const role = userId === s.enrollment.teacherId ? "TEACHER" : userId === s.enrollment.studentId ? "STUDENT" : null;
   if (!role) return { ok: false, error: "That person isn’t part of this session." };
-  if (role === "TEACHER" && me.role !== "ADMIN") return { ok: false, error: "Only the office can change a teacher’s attendance." };
+  if (role === "TEACHER" && !hasAdminAccess(me)) return { ok: false, error: "Only the office can change a teacher’s attendance." };
   if (+s.startsAt > Date.now()) return { ok: false, error: "Attendance can be set once the session has started." };
 
   await prisma.attendance.upsert({
@@ -172,7 +173,7 @@ export async function saveWeeklyReport(input: ReportInputT): Promise<Result> {
   if (d.weekStart > thisWeek) return { ok: false, error: "You can’t report on a future week." };
 
   const e = await prisma.enrollment.findUnique({ where: { id: d.enrollmentId } });
-  if (!e || (me.role === "TEACHER" && e.teacherId !== me.id)) return { ok: false, error: "Enrollment not found." };
+  if (!e || (!hasAdminAccess(me) && e.teacherId !== me.id)) return { ok: false, error: "Enrollment not found." };
 
   const data = { summary: d.summary, strengths: d.strengths || null, nextSteps: d.nextSteps || null, effort: d.effort ?? null };
   const weekStart = new Date(d.weekStart);

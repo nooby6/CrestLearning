@@ -49,6 +49,7 @@ export default async function NewEnrollmentPage({ searchParams }: { searchParams
           meta: [curriculumLabel(s.curriculum), s.level?.name].filter((x) => x && x !== "—").join(" · ") || undefined,
           curriculum: s.curriculum,
           levelId: s.levelId,
+          hasLink: !!s.meetingUrl,
         }))}
         teachers={teachers.map((t) => ({
           id: t.id,

@@ -28,7 +28,7 @@ export default async function StudentHome() {
     lessonSummary([me.id]),
     prisma.sessionInstance.findFirst({
       where: { enrollment: { studentId: me.id }, status: "SCHEDULED", endsAt: { gt: now } },
-      include: { enrollment: { include: { subject: true, teacher: { include: { user: true } } } } },
+      include: { enrollment: { include: { subject: true, teacher: { include: { user: true } }, student: { select: { meetingUrl: true } } } } },
       orderBy: { startsAt: "asc" },
     }),
     prisma.progressNote.findMany({

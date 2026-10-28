@@ -59,11 +59,11 @@ export default async function AdminAttendancePage({ searchParams }: { searchPara
         }
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Lessons held" value={held.length} hint={`last ${days} days`} icon={CalendarCheck2} />
-        <StatCard label="Student attendance" value={held.length ? `${Math.round((attended / held.length) * 100)}%` : "—"} hint={`${attended} of ${held.length} held lessons`} icon={UserCheck} />
-        <StatCard label="Missed by teacher" value={missed.length} hint="teacher did not join" icon={AlertTriangle} />
-        <StatCard label="Records outstanding" value={unrecorded.length} hint="held, no lesson record" icon={ClipboardX} />
+        <StatCard tone="teal" label="Student attendance" value={held.length ? `${Math.round((attended / held.length) * 100)}%` : "—"} hint={`${attended} of ${held.length} held lessons`} icon={UserCheck} />
+        <StatCard tone="rose" label="Missed by teacher" value={missed.length} hint="teacher did not join" icon={AlertTriangle} />
+        <StatCard tone="gold" label="Records outstanding" value={unrecorded.length} hint="held, no lesson record" icon={ClipboardX} />
       </div>
 
       <div className="card">

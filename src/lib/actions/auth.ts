@@ -8,7 +8,7 @@ import { normalisePhone } from "@/lib/format";
 import { dummyHash, hashPassword, verifyPassword } from "@/lib/password-hash";
 import { createSession, destroyAllSessions, destroySession } from "@/lib/session";
 import { pendingRecordCount } from "@/lib/attendance";
-import { toSlug } from "@/lib/roles";
+import { homePath } from "@/lib/roles";
 
 const MAX_FAILS = 8;
 const LOCK_MINUTES = 15;
@@ -53,7 +53,7 @@ export async function signIn(_: SignInState, form: FormData): Promise<SignInStat
 
   await prisma.user.update({ where: { id: user.id }, data: { failedSignIns: 0, lockedUntil: null, lastSignInAt: new Date() } });
   await createSession(user.id);
-  redirect(user.mustChangePassword ? "/account/password?first=1" : `/${toSlug(user.role)}`);
+  redirect(user.mustChangePassword ? "/account/password?first=1" : homePath(user));
 }
 
 /** Sign out — teachers can't while lesson records are outstanding. */
@@ -100,6 +100,6 @@ export async function changePassword(_: ChangePasswordState, form: FormData): Pr
     data: { passwordHash: await hashPassword(p.data.next), mustChangePassword: false },
   });
   await destroyAllSessions(me.id, true);
-  if (me.mustChangePassword) redirect(`/${toSlug(me.role)}`);
+  if (me.mustChangePassword) redirect(homePath(me));
   return { ok: true };
 }

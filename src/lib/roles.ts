@@ -1,6 +1,6 @@
 import type { Role } from "@prisma/client";
 
-/** Roles as stored in Clerk publicMetadata (lowercase, used in URLs). */
+/** Role slugs (lowercase, used in URLs). */
 export type RoleSlug = "admin" | "teacher" | "student" | "parent";
 
 export const ROLE_SLUGS: RoleSlug[] = ["admin", "teacher", "student", "parent"];
@@ -37,3 +37,16 @@ export const RELATIONSHIPS = [
 
 export const relationshipLabel = (r: string) =>
   RELATIONSHIPS.find((x) => x.value === r)?.label ?? r;
+
+type Portaled = { role: Role; adminAccess: boolean };
+
+/** Administrator access: the ADMIN role, or a teacher the office has given admin access. */
+export const hasAdminAccess = (u: Portaled) => u.role === "ADMIN" || (u.role === "TEACHER" && u.adminAccess);
+
+/** Portals a person can open, home portal first. Teachers with admin access land on the admin portal. */
+export function portalsFor(u: Portaled): RoleSlug[] {
+  if (u.role === "TEACHER" && u.adminAccess) return ["admin", "teacher"];
+  return [toSlug(u.role)];
+}
+
+export const homePath = (u: Portaled) => `/${portalsFor(u)[0]}`;

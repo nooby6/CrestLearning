@@ -51,6 +51,9 @@ model User {
   phone              String?   @unique // E.164, e.g. +254712345678 (used for M-Pesa STK push)
   avatarUrl          String?
   active             Boolean   @default(true)
+  /// Administrator access on top of the main role — e.g. a teacher who also runs the office.
+  /// Role ADMIN always has it; this flag grants it to teachers.
+  adminAccess        Boolean   @default(false)
   /// scrypt hash ("scrypt$N$r$p$salt$hash"). Null = no password set yet (cannot sign in).
   passwordHash       String?
   /// Set when an admin issues a temporary password; the user is asked to choose their own.
@@ -88,6 +91,9 @@ model Student {
   dateOfBirth DateTime?   @db.Date
   school      String? // current day school, if any
   notes       String? // admin-only notes
+  /// The student's one standing online-class link (e.g. Google Meet), used for every subject and teacher.
+  /// Never shown in the UI: students and teachers reach it through /class/[id]/go, which records attendance.
+  meetingUrl  String?
 
   guardians   ParentStudent[]
   enrollments Enrollment[]
@@ -214,9 +220,6 @@ model Enrollment {
   status            EnrollmentStatus @default(ACTIVE)
   startDate         DateTime         @default(now()) @db.Date
   endDate           DateTime?        @db.Date
-  /// Standing online-class link (e.g. a Google Meet link) used for every lesson of this enrollment.
-  /// Never shown in the UI: students and teachers reach it through /class/[id]/go, which records attendance.
-  meetingUrl        String?
   /// Optional per-enrollment overrides (KES cents).
   teacherHourlyRate Int?
   createdAt         DateTime         @default(now())

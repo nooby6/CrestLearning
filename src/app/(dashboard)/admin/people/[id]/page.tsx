@@ -9,6 +9,9 @@ import { curriculumLabel, toSlug } from "@/lib/roles";
 import { Avatar, Badge, Card, DefinitionList, RoleBadge } from "@/components/ui/primitives";
 import { FamilyLinks } from "./FamilyLinks";
 import { AccountPanel } from "./AccountPanel";
+import { AdminAccessToggle } from "./AdminAccessToggle";
+import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
+import { providerOf } from "@/lib/meeting";
 
 export default async function PersonPage({ params }: { params: { id: string } }) {
   const me = await requireRole("admin");
@@ -81,16 +84,17 @@ export default async function PersonPage({ params }: { params: { id: string } })
 
       {/* Header */}
       <div className="card mb-6 overflow-hidden">
-        <div className="h-16 bg-navy-800 bg-[radial-gradient(circle_at_85%_-40%,rgba(198,154,58,0.35),transparent_55%)]" />
+        <div className="crest-navy relative h-20 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-gold-400/80 after:to-transparent" />
         <div className="flex flex-col gap-4 px-6 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="-mt-8 shrink-0 rounded-full bg-white p-1">
+            <div className="relative z-10 -mt-8 shrink-0 rounded-full bg-white p-1 shadow-sm">
               <Avatar person={u} size="lg" />
             </div>
             <div className="pt-3">
               <h1 className="font-display text-xl font-semibold text-navy-900">{fullName(u)}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-navy-400">
                 <RoleBadge role={slug} />
+                {u.role === "TEACHER" && u.adminAccess && <RoleBadge role="admin" />}
                 {!u.active && <Badge tone="slate">Suspended</Badge>}
                 <span>@{u.username}</span>
               </div>
@@ -149,6 +153,12 @@ export default async function PersonPage({ params }: { params: { id: string } })
                     isPrimary: g.isPrimary,
                   }))}
                 />
+              </Card>
+              <Card
+                title="Lesson link"
+                description={u.student.meetingUrl ? "One Google Meet link for all of this student’s subjects." : "Add one Google Meet link — it’s used for all of this student’s subjects."}
+              >
+                <StudentLinkEditor studentId={u.id} url={u.student.meetingUrl} provider={providerOf(u.student.meetingUrl)} />
               </Card>
               <Card title="Learning profile">
                 <DefinitionList
@@ -215,6 +225,12 @@ export default async function PersonPage({ params }: { params: { id: string } })
                   { label: "Students", value: u.teacher._count.enrollments },
                 ]}
               />
+            </Card>
+          )}
+
+          {u.teacher && (
+            <Card title="Administrator access">
+              <AdminAccessToggle userId={u.id} firstName={u.firstName} on={u.adminAccess} />
             </Card>
           )}
 

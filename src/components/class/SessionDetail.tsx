@@ -17,7 +17,19 @@ import { sessionLink } from "@/lib/meeting";
 const mins = (sec: number) => (sec < 60 ? "under a minute" : `${Math.round(sec / 60)} min`);
 
 /** One session: attendance (with corrections), the lesson record, and move/cancel. */
-export async function SessionDetail({ id, me, backHref, backLabel }: { id: number; me: CurrentUser; backHref: string; backLabel: string }) {
+export async function SessionDetail({
+  id,
+  me,
+  backHref,
+  backLabel,
+  portal,
+}: {
+  id: number;
+  me: CurrentUser;
+  backHref: string;
+  backLabel: string;
+  portal: "admin" | "teacher";
+}) {
   await finaliseEndedSessions({ id });
   const s = await prisma.sessionInstance.findUnique({
     where: { id },
@@ -30,7 +42,8 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
     },
   });
   if (!s) notFound();
-  const isTeacher = me.role === "TEACHER";
+  const office = portal === "admin"; // admin pages are guarded by requireRole("admin")
+  const isTeacher = !office;
   if (isTeacher && s.enrollment.teacherId !== me.id) notFound();
 
   const e = s.enrollment;
@@ -105,7 +118,7 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
             >
               {!started ? (
                 <p className="text-sm text-navy-400">You can complete the record once the lesson has started.</p>
-              ) : isTeacher || me.role === "ADMIN" ? (
+              ) : (
                 <>
                   <LessonRecordForm
                     sessionId={s.id}
@@ -127,7 +140,7 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
                     </p>
                   )}
                 </>
-              ) : null}
+              )}
             </Card>
           )}
 
@@ -136,7 +149,7 @@ export async function SessionDetail({ id, me, backHref, backLabel }: { id: numbe
               <AttendanceEditor
                 sessionId={s.id}
                 canEdit={started}
-                rows={[row(e.student.user, "Student", true), row(e.teacher.user, "Teacher", me.role === "ADMIN")]}
+                rows={[row(e.student.user, "Student", true), row(e.teacher.user, "Teacher", office)]}
               />
             </Card>
           )}

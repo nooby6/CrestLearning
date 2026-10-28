@@ -15,6 +15,7 @@ export default async function TeacherSessionPage({ params, searchParams }: { par
       me={me}
       backHref={fromRecords ? "/teacher/records" : "/teacher"}
       backLabel={fromRecords ? "Lesson records" : "Today"}
+      portal="teacher"
     />
   );
 }

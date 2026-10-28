@@ -41,12 +41,15 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
         ],
       }
     : {};
-  const where: Prisma.UserWhereInput = {
-    ...search,
-    ...(roleFilter !== "all" ? { role: toRole(roleFilter) } : {}),
-  };
+  const roleWhere: Prisma.UserWhereInput =
+    roleFilter === "admin"
+      ? { OR: [{ role: "ADMIN" }, { role: "TEACHER", adminAccess: true }] } // teachers with admin access count as admins too
+      : roleFilter !== "all"
+        ? { role: toRole(roleFilter) }
+        : {};
+  const where: Prisma.UserWhereInput = { AND: [search, roleWhere] };
 
-  const [rows, total, counts] = await Promise.all([
+  const [rows, total, counts, teacherAdmins] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: [{ active: "desc" }, { firstName: "asc" }, { lastName: "asc" }],
@@ -56,12 +59,13 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
     }),
     prisma.user.count({ where }),
     prisma.user.groupBy({ by: ["role"], where: search, _count: true }),
+    prisma.user.count({ where: { ...search, role: "TEACHER", adminAccess: true } }),
   ]);
 
   const countFor = (slug: RoleSlug | "all") =>
     slug === "all"
       ? counts.reduce((a, c) => a + c._count, 0)
-      : counts.find((c) => c.role === (toRole(slug) as Role))?._count ?? 0;
+      : (counts.find((c) => c.role === (toRole(slug) as Role))?._count ?? 0) + (slug === "admin" ? teacherAdmins : 0);
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const href = (patch: Partial<SP>) => {
@@ -162,7 +166,10 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
                       </Link>
                     </td>
                     <td className="hidden px-3 py-3 md:table-cell">
-                      <RoleBadge role={toSlug(u.role)} />
+                      <span className="flex flex-wrap gap-1">
+                        <RoleBadge role={toSlug(u.role)} />
+                        {u.role === "TEACHER" && u.adminAccess && <RoleBadge role="admin" />}
+                      </span>
                     </td>
                     <td className="max-w-[280px] px-3 py-3 text-navy-600">
                       <Details u={u} />

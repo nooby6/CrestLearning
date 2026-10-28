@@ -9,7 +9,8 @@ import { dateKey, formatTime, hoursLabel, weekdayIso } from "@/lib/schedule";
 import { Avatar, Badge, Card, DefinitionList, EmptyState } from "@/components/ui/primitives";
 import { SessionRow } from "@/components/schedule/SessionRow";
 import { SessionActions } from "@/components/schedule/SessionActions";
-import { MeetingLinkEditor, SlotManager, StatusControls } from "./EnrollmentControls";
+import { SlotManager, StatusControls } from "./EnrollmentControls";
+import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 
 export default async function EnrollmentPage({ params }: { params: { id: string } }) {
@@ -157,8 +158,11 @@ export default async function EnrollmentPage({ params }: { params: { id: string 
         </div>
 
         <div className="space-y-6">
-          <Card title="Online lesson link" description={e.meetingUrl ? undefined : "Required before lessons can be joined online."}>
-            <MeetingLinkEditor enrollmentId={e.id} url={e.meetingUrl} provider={providerOf(e.meetingUrl)} />
+          <Card
+            title={`${e.student.user.firstName}’s lesson link`}
+            description={e.student.meetingUrl ? "Shared by all of this student’s subjects." : "Required before lessons can be joined online. One link covers all of this student’s subjects."}
+          >
+            <StudentLinkEditor studentId={e.studentId} url={e.student.meetingUrl} provider={providerOf(e.student.meetingUrl)} />
           </Card>
           <Card title="Weekly times" description={weekly ? `${hoursLabel(weekly)} a week · Nairobi time` : undefined}>
             <SlotManager enrollmentId={e.id} active={e.status === "ACTIVE"} slots={slots} />

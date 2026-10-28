@@ -226,7 +226,7 @@ export function PercentLine({ data, height = 220, label }: { data: { label: stri
             />
           ))}
           {lastIdx !== undefined && hover === null && (
-            <text x={x(lastIdx)} y={y(data[lastIdx].value!) - 12} textAnchor="middle" fontSize={12} fontWeight={600} fill={INK}>
+            <text x={x(lastIdx) + 6} y={y(data[lastIdx].value!) - 12} textAnchor="end" fontSize={12} fontWeight={600} fill={INK}>
               {data[lastIdx].value}%
             </text>
           )}

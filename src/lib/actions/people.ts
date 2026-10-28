@@ -216,3 +216,26 @@ export async function resetPassword(userId: string, password: string): Promise<A
   await destroyAllSessions(userId, userId === me.id);
   return { ok: true, message: "Password reset. They’ll choose their own the next time they sign in." };
 }
+
+/** Give a teacher administrator access (or take it away). They keep their students and teacher portal. */
+export async function setAdminAccess(userId: string, on: boolean): Promise<ActionResult> {
+  const me = await assertRole("admin");
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, firstName: true } });
+  if (!u) return { ok: false, error: "Person not found." };
+  if (u.role !== "TEACHER") return { ok: false, error: "Only teachers can be given administrator access." };
+  if (!on && me.id === userId) {
+    const others = await prisma.user.count({
+      where: { id: { not: userId }, active: true, OR: [{ role: "ADMIN" }, { role: "TEACHER", adminAccess: true }] },
+    });
+    if (!others) return { ok: false, error: "You’re the only administrator — give someone else access first." };
+  }
+  await prisma.user.update({ where: { id: userId }, data: { adminAccess: on } });
+  revalidatePath(`/admin/people/${userId}`);
+  revalidatePath("/admin/people");
+  return {
+    ok: true,
+    message: on
+      ? `${u.firstName} now has administrator access. They’ll see the admin portal the next time they open Crest.`
+      : `Administrator access removed for ${u.firstName}.`,
+  };
+}

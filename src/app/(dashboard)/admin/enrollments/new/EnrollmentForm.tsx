@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import clsx from "clsx";
 import { toast } from "react-toastify";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { createEnrollment } from "@/lib/actions/schedule";
 import type { Conflict } from "@/lib/sessions";
 import { CURRICULA } from "@/lib/roles";
@@ -14,7 +14,7 @@ import { PersonPicker, type PickerOption } from "@/components/ui/PersonPicker";
 import { ConflictList, SlotFields, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
 
 export type TeacherOption = PickerOption & { subjectIds: number[]; loadMinutes: number; capacityHours: number };
-export type StudentOption = PickerOption & { curriculum: string | null; levelId: number | null };
+export type StudentOption = PickerOption & { curriculum: string | null; levelId: number | null; hasLink: boolean };
 
 export function EnrollmentForm({
   students,
@@ -46,6 +46,7 @@ export function EnrollmentForm({
     () => (subjectId === "" ? [] : teachers.filter((t) => t.subjectIds.includes(subjectId))),
     [teachers, subjectId],
   );
+  const chosen = students.find((x) => x.id === studentIds[0]);
   const weeklyMinutes = slots.reduce((a, s) => a + s.durationMinutes, 0);
 
   const pickStudent = (ids: string[]) => {
@@ -66,7 +67,7 @@ export function EnrollmentForm({
         curriculum: (curriculum || undefined) as "CAMBRIDGE" | undefined,
         levelId: levelId ? Number(levelId) : undefined,
         slots,
-        meetingUrl,
+        meetingUrl: chosen?.hasLink ? undefined : meetingUrl,
         force,
       });
       if (!res.ok) {
@@ -241,6 +242,12 @@ export function EnrollmentForm({
 
       <section className="card space-y-2 p-5 sm:p-6">
         <h2 className="font-display text-sm font-semibold text-navy-900">Online lesson link</h2>
+        {chosen?.hasLink ? (
+          <p className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+            <Check className="h-4 w-4 shrink-0" /> {chosen.firstName} already has a lesson link. This subject will use the same one.
+          </p>
+        ) : (
+        <>
         <input
           className="input"
           placeholder="https://meet.google.com/abc-defg-hij"
@@ -252,9 +259,11 @@ export function EnrollmentForm({
           <p className="text-xs text-rose-600">{errors.meetingUrl}</p>
         ) : (
           <p className="text-xs text-navy-400">
-            Optional now, required before the first lesson. One Google Meet link is used for every lesson; students and the teacher reach it through
-            Join, which records attendance.
+            Each student has one Google Meet link for all their subjects. Optional now, required before the first lesson. Students and teachers
+            reach it through Join, which records attendance.
           </p>
+        )}
+        </>
         )}
       </section>
 

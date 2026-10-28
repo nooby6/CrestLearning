@@ -40,9 +40,9 @@ export default async function AdminOverview() {
       where: { status: "HELD", progressNote: null },
       select: { enrollment: { select: { teacher: { select: { user: true } } } } },
     }),
-    prisma.enrollment.findMany({
-      where: { status: "ACTIVE", meetingUrl: null, slots: { some: { active: true } } },
-      include: { student: { include: { user: true } }, subject: true, teacher: { include: { user: true } } },
+    prisma.student.findMany({
+      where: { meetingUrl: null, user: { active: true }, enrollments: { some: { status: "ACTIVE", slots: { some: { active: true } } } } },
+      include: { user: true, enrollments: { where: { status: "ACTIVE" }, include: { subject: true }, orderBy: { subject: { name: "asc" } } } },
       take: 8,
     }),
   ]);
@@ -74,11 +74,11 @@ export default async function AdminOverview() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Students" value={students} icon={GraduationCap} href="/admin/people?role=student" />
-        <StatCard label="Parents" value={parents} icon={HeartHandshake} href="/admin/people?role=parent" />
-        <StatCard label="Teachers" value={teachers} icon={Presentation} href="/admin/people?role=teacher" />
-        <StatCard label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} href="/admin/enrollments" />
+        <StatCard tone="gold" label="Parents" value={parents} icon={HeartHandshake} href="/admin/people?role=parent" />
+        <StatCard tone="teal" label="Teachers" value={teachers} icon={Presentation} href="/admin/people?role=teacher" />
+        <StatCard tone="sky" label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} href="/admin/enrollments" />
       </div>
 
 
@@ -157,12 +157,12 @@ export default async function AdminOverview() {
                   issue="No parent linked"
                 />
               ))}
-              {noLink.map((e) => (
+              {noLink.map((st) => (
                 <AttentionRow
-                  key={`link-${e.id}`}
-                  href={`/admin/enrollments/${e.id}`}
-                  person={e.student.user}
-                  meta={`${e.subject.name} · ${fullName(e.teacher.user)}`}
+                  key={`link-${st.id}`}
+                  href={`/admin/people/${st.id}`}
+                  person={st.user}
+                  meta={st.enrollments.map((e) => e.subject.name).join(", ")}
                   issue="No lesson link"
                   icon={VideoOff}
                 />

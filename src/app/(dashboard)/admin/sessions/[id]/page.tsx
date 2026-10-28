@@ -8,5 +8,5 @@ export default async function AdminSessionPage({ params }: { params: { id: strin
   const me = await requireRole("admin");
   const id = Number(params.id);
   if (!Number.isInteger(id)) notFound();
-  return <SessionDetail id={id} me={me} backHref="/admin/schedule" backLabel="Schedule" />;
+  return <SessionDetail id={id} me={me} backHref="/admin/schedule" backLabel="Schedule" portal="admin" />;
 }

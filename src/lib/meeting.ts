@@ -35,10 +35,10 @@ export function parseMeetingLink(raw: string): MeetingLink | null {
   return null;
 }
 
-/** The link a session should open: a per-session override (location) or the enrollment's standing link. */
-export function sessionLink(s: { location: string | null; enrollment: { meetingUrl: string | null } }) {
+/** The link a session should open: a per-session override (location) or the student's standing link. */
+export function sessionLink(s: { location: string | null; enrollment: { student: { meetingUrl: string | null } } }) {
   const override = s.location && /^https:\/\//.test(s.location) ? s.location : null;
-  return override ?? s.enrollment.meetingUrl ?? null;
+  return override ?? s.enrollment.student.meetingUrl ?? null;
 }
 
 export const providerOf = (url: string | null) => (url ? parseMeetingLink(url)?.provider ?? "Online class" : null);

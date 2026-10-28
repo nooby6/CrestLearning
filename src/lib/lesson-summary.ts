@@ -18,7 +18,7 @@ export async function lessonSummary(studentIds: string[]) {
         startsAt: { gte: keyToUtcStart(weekKey), lt: keyToUtcStart(addDaysKey(weekKey, 7)) },
         status: { notIn: ["RESCHEDULED"] },
       },
-      include: { enrollment: { include: { subject: true, teacher: { include: { user: true } } } } },
+      include: { enrollment: { include: { subject: true, teacher: { include: { user: true } }, student: { select: { meetingUrl: true } } } } },
       orderBy: { startsAt: "asc" },
     }),
     prisma.enrollment.findMany({

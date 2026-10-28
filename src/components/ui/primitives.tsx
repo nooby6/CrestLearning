@@ -15,13 +15,15 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        {eyebrow && <p className="eyebrow mb-1.5">{eyebrow}</p>}
-        <h1 className="font-display text-2xl font-semibold tracking-tight text-navy-900">{title}</h1>
-        {description && <p className="mt-1 max-w-2xl text-sm text-navy-500">{description}</p>}
+    <div className="page-banner">
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          {eyebrow && <p className="eyebrow mb-1.5">{eyebrow}</p>}
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-white sm:text-[26px]">{title}</h1>
+          {description && <p className="mt-1.5 max-w-2xl text-sm text-navy-100">{description}</p>}
+        </div>
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -44,7 +46,7 @@ export function Card({
   return (
     <section className={clsx("card", className)}>
       {(title || action) && (
-        <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <header className="flex items-start justify-between gap-4 rounded-t-xl border-b border-line bg-gradient-to-b from-ivory/70 to-white px-5 py-4">
           <div>
             {title && <h2 className="font-display text-sm font-semibold text-navy-900">{title}</h2>}
             {description && <p className="mt-0.5 text-xs text-navy-400">{description}</p>}
@@ -113,33 +115,55 @@ export function Avatar({
   );
 }
 
+const STAT_TONES = {
+  navy: { chip: "bg-navy-800 text-gold-300", glow: "bg-navy-100", bar: "from-navy-600 via-navy-400 to-navy-200" },
+  gold: { chip: "bg-gold-500 text-white", glow: "bg-gold-100", bar: "from-gold-600 via-gold-400 to-gold-200" },
+  teal: { chip: "bg-teal-600 text-white", glow: "bg-teal-100", bar: "from-teal-600 via-teal-400 to-teal-200" },
+  sky: { chip: "bg-sky-600 text-white", glow: "bg-sky-100", bar: "from-sky-600 via-sky-400 to-sky-200" },
+  rose: { chip: "bg-rose-600 text-white", glow: "bg-rose-100", bar: "from-rose-600 via-rose-400 to-rose-200" },
+} as const;
+export type StatTone = keyof typeof STAT_TONES;
+
 export function StatCard({
   label,
   value,
   hint,
   icon: Icon,
   href,
+  tone = "navy",
 }: {
   label: string;
   value: React.ReactNode;
   hint?: React.ReactNode;
   icon: LucideIcon;
   href?: string;
+  tone?: StatTone;
 }) {
+  const t = STAT_TONES[tone];
   const body = (
-    <div className="card group flex h-full items-start justify-between gap-3 p-5 transition hover:border-gold-300 hover:shadow-lift">
-      <div>
+    <div className={clsx("card group relative flex h-full items-start justify-between gap-3 overflow-hidden p-5", href && "card-link")}>
+      <span aria-hidden className={clsx("absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r", t.bar)} />
+      <span
+        aria-hidden
+        className={clsx("pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full opacity-60 blur-2xl transition-opacity duration-300 group-hover:opacity-100", t.glow)}
+      />
+      <div className="relative">
         <p className="text-xs font-medium text-navy-500">{label}</p>
         <p className="mt-2 font-display text-3xl font-semibold tabular-nums text-navy-900">{value}</p>
         {hint && <p className="mt-1 text-xs text-navy-400">{hint}</p>}
       </div>
-      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy-50 text-navy-700 transition group-hover:bg-gold-50 group-hover:text-gold-600">
+      <span
+        className={clsx(
+          "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105",
+          t.chip,
+        )}
+      >
         <Icon className="h-5 w-5" strokeWidth={1.75} />
       </span>
     </div>
   );
   return href ? (
-    <Link href={href} className="block h-full">
+    <Link href={href} className="block h-full rounded-xl">
       {body}
     </Link>
   ) : (
