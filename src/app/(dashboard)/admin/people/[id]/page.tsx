@@ -231,6 +231,14 @@ export default async function PersonPage({ params }: { params: { id: string } })
               items={[
                 { label: "Username", value: <span className="font-mono text-[13px]">@{u.username}</span> },
                 { label: "Added", value: formatDate(u.createdAt) },
+                {
+                  label: "Last sign-in",
+                  value: u.lastSignInAt
+                    ? formatDate(u.lastSignInAt, { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+                    : u.mustChangePassword
+                      ? "Not yet — temporary password"
+                      : "Never",
+                },
               ]}
             />
             <div className="mt-5 border-t border-line pt-5">
@@ -238,11 +246,8 @@ export default async function PersonPage({ params }: { params: { id: string } })
                 userId={u.id}
                 active={u.active}
                 isSelf={u.id === me.id}
-                hasLogin={!u.id.startsWith("seed_")}
+                hasLogin
               />
-              {u.id.startsWith("seed_") && (
-                <p className="mt-3 text-[11px] text-navy-400">Demo record from the seed — it has no sign-in.</p>
-              )}
             </div>
           </Card>
         </div>

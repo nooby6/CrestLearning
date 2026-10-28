@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
@@ -24,11 +23,11 @@ export const metadata: Metadata = {
   description: "Crest Learning — Cambridge, Edexcel, CBE and IB tuition in Nairobi. Learn. Grow. Excel.",
 };
 
-// Everything is per-user; never pre-render at build time (also keeps the build independent of Clerk keys).
+// Everything is per-user; never pre-render at build time.
 export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const page = (
+  return (
     <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
       <body className="font-sans">
         {children}
@@ -41,21 +40,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </body>
     </html>
-  );
-  // Without Clerk keys the middleware sends every request to /setup, which needs no Clerk.
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) return page;
-  return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#0A1D4F",
-          colorText: "#06143A",
-          fontFamily: "var(--font-inter)",
-          borderRadius: "0.5rem",
-        },
-      }}
-    >
-      {page}
-    </ClerkProvider>
   );
 }

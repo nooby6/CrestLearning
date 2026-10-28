@@ -1,8 +1,8 @@
 /**
- * Seed: catalogue (subjects, curriculum levels) + a small demo family set.
- * Safe to re-run (upserts). Demo users have ids prefixed "seed_" and no Clerk
- * login — use DEV_AUTH_USER_ID locally to view the app as one of them, and
- * `npm run bootstrap:admin` to create your real admin sign-in.
+ * Demo seed for LOCAL development only: catalogue + a small demo family set.
+ * Safe to re-run (upserts). Demo users have ids prefixed "seed_" and no password —
+ * use DEV_AUTH_USER_ID locally to view the app as one of them.
+ * Never run against the live database (the live site loads the catalogue by itself).
  */
 import "dotenv/config";
 import { PrismaClient, type Curriculum, type GuardianRelationship, type Role, type Weekday } from "@prisma/client";
@@ -11,40 +11,7 @@ import { addDaysKey, dateKey, meetingRoomName, mondayOf, occurrences } from "../
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
-const SUBJECTS: [string, string][] = [
-  ["Mathematics", "MATH"],
-  ["English", "ENG"],
-  ["Kiswahili", "KIS"],
-  ["Physics", "PHY"],
-  ["Chemistry", "CHEM"],
-  ["Biology", "BIO"],
-  ["Integrated Science", "ISCI"],
-  ["Computer Science", "CS"],
-  ["Business Studies", "BUS"],
-  ["Economics", "ECON"],
-  ["Geography", "GEO"],
-  ["History", "HIST"],
-  ["French", "FRE"],
-];
-
-const LEVELS: Record<Curriculum, string[]> = {
-  CAMBRIDGE: [
-    "Primary Stage 4", "Primary Stage 5", "Primary Stage 6",
-    "Lower Secondary Stage 7", "Lower Secondary Stage 8", "Lower Secondary Stage 9",
-    "IGCSE Year 10", "IGCSE Year 11", "AS Level", "A Level",
-  ],
-  EDEXCEL: [
-    "iPrimary", "iLowerSecondary",
-    "International GCSE Year 10", "International GCSE Year 11",
-    "International AS Level", "International A Level",
-  ],
-  CBE: [
-    "Grade 4", "Grade 5", "Grade 6",
-    "Grade 7 (Junior School)", "Grade 8 (Junior School)", "Grade 9 (Junior School)",
-    "Grade 10 (Senior School)", "Grade 11 (Senior School)", "Grade 12 (Senior School)",
-  ],
-  IB: ["PYP", "MYP 1", "MYP 2", "MYP 3", "MYP 4", "MYP 5", "DP1", "DP2"],
-};
+import { LEVELS, SUBJECTS } from "../src/lib/catalogue-data";
 
 type Person = { id: string; role: Role; first: string; last: string; phone?: string; email?: string };
 

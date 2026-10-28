@@ -20,7 +20,6 @@ export function Topbar({ user }: { user: CurrentUser }) {
         <AccountMenu
           user={{ id: user.id, firstName: user.firstName, lastName: user.lastName, avatarUrl: user.avatarUrl }}
           roleLabel={ROLE_LABEL[toSlug(user.role)]}
-          devPreview={!!dev}
         />
       </div>
     </header>

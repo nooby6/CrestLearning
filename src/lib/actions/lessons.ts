@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { assertRole, getCurrentUser } from "@/lib/auth";
-import { pendingRecordCount } from "@/lib/attendance";
+import { assertRole } from "@/lib/auth";
 import { mondayOf, dateKey } from "@/lib/schedule";
 
 type Result = { ok: true; message?: string } | { ok: false; error: string; fieldErrors?: Record<string, string> };
@@ -185,12 +184,4 @@ export async function saveWeeklyReport(input: ReportInputT): Promise<Result> {
   });
   refresh();
   return { ok: true, message: existing ? "Report updated" : "Report submitted" };
-}
-
-/** Server-side guard for the sign-out button: teachers may not leave with lesson records outstanding. */
-export async function signOutCheck(): Promise<{ allowed: boolean; pending: number }> {
-  const me = await getCurrentUser();
-  if (!me || me.role !== "TEACHER") return { allowed: true, pending: 0 };
-  const pending = await pendingRecordCount(me.id);
-  return { allowed: pending === 0, pending };
 }

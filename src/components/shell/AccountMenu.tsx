@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useClerk } from "@clerk/nextjs";
-import { AlertTriangle, ChevronDown, Loader2, LogOut, UserCog } from "lucide-react";
+import { AlertTriangle, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
 import { Avatar } from "@/components/ui/primitives";
-import { signOutCheck } from "@/lib/actions/lessons";
+import { signOut } from "@/lib/actions/auth";
 
 /**
  * Account menu with a guarded sign-out: teachers with outstanding lesson
@@ -14,13 +13,10 @@ import { signOutCheck } from "@/lib/actions/lessons";
 export function AccountMenu({
   user,
   roleLabel,
-  devPreview,
 }: {
   user: { id: string; firstName: string; lastName: string; avatarUrl: string | null };
   roleLabel: string;
-  devPreview: boolean;
 }) {
-  const clerk = useClerk();
   const [open, setOpen] = useState(false);
   const [blocked, setBlocked] = useState<number | null>(null);
   const [pending, start] = useTransition();
@@ -38,14 +34,10 @@ export function AccountMenu({
     };
   }, [open]);
 
-  const signOut = () =>
+  const handleSignOut = () =>
     start(async () => {
-      const r = await signOutCheck();
-      if (!r.allowed) {
-        setBlocked(r.pending);
-        return;
-      }
-      if (!devPreview) await clerk.signOut({ redirectUrl: "/sign-in" });
+      const r = await signOut();
+      if (r && !r.ok) setBlocked(r.pending);
     });
 
   return (
@@ -86,30 +78,24 @@ export function AccountMenu({
             </div>
           ) : (
             <div className="py-1.5">
-              {!devPreview && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setOpen(false);
-                    clerk.openUserProfile();
-                  }}
-                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
-                >
-                  <UserCog className="h-4 w-4 text-navy-400" /> Account & password
-                </button>
-              )}
+              <Link
+                href="/account/password"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
+              >
+                <KeyRound className="h-4 w-4 text-navy-400" /> Change password
+              </Link>
               <button
                 type="button"
                 role="menuitem"
-                onClick={signOut}
+                onClick={handleSignOut}
                 disabled={pending}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
               >
                 {pending ? <Loader2 className="h-4 w-4 animate-spin text-navy-400" /> : <LogOut className="h-4 w-4 text-navy-400" />}
                 Sign out
               </button>
-              {devPreview && <p className="px-4 pb-2 text-[11px] text-navy-300">Preview mode — sign-out is simulated.</p>}
             </div>
           )}
         </div>

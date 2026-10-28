@@ -4,7 +4,7 @@
 
 Student-centred by design: there are no "classes". Every teaching relationship is an **enrollment** — *Teacher A teaches Student B Mathematics* — with its own weekly slots, sessions, attendance, notes and billing.
 
-Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
+Built with Next.js (App Router), Prisma/Postgres and Tailwind, with its own username-and-password sign-in.
 
 ---
 
@@ -12,7 +12,7 @@ Built with Next.js (App Router), Clerk, Prisma/Postgres and Tailwind.
 
 | Module | Scope | State |
 |---|---|---|
-| **1. Auth, roles, families** | Clerk sign-in, 4 roles, role-guarded portals, admin people management, parent ↔ student links (many-to-many, primary contact) | ✅ Built |
+| **1. Auth, roles, families** | Built-in sign-in, 4 roles, role-guarded portals, admin people management, parent ↔ student links (many-to-many, primary contact) | ✅ Built |
 | **2. Enrollments & schedule** | Enrollments with weekly times, sessions generated 6 weeks ahead, clash detection, move/cancel a single session, teacher load, timetables for every role | ✅ Built |
 | **3. Online lessons, attendance, lesson records, weekly reports** | Google Meet link per enrollment behind a Join button; attendance captured from joins (present / late / absent), manual corrections; mandatory lesson record after every lesson (blocks sign-out); weekly teacher reports read by parents for every linked student | ✅ Built |
 | 4. Resources | Uploads scoped to an enrollment, or to a subject and level | Schema ready |
@@ -23,7 +23,7 @@ The **full schema for all five modules** is in `prisma/schema.prisma` and the in
 ## Stack
 
 - **Next.js 14.2.35** App Router, server actions
-- **Clerk** for sign-in; role kept in `publicMetadata` and enforced in middleware, then re-checked against the database row (role + active flag) on every page and action
+- **Built-in sign-in**: passwords hashed with scrypt; sessions stored in the database (httpOnly cookie, 30 days); 8 wrong attempts lock the account for 15 minutes; everyone sets their own password at first sign-in. Role and active flag are read from the database on every page and action.
 - **Prisma + Postgres**, Rust-free client (`engineType = "client"` + `@prisma/adapter-pg`)
 - **Tailwind** with the Crest theme: navy `#0A1D4F` and gold `#C69A3A` from the logo, Montserrat for display type, Inter for text, ivory canvas; fonts self-hosted
 - **zod**, **lucide-react**, **react-toastify**
@@ -34,17 +34,14 @@ Everything deploys from **`main`**. The build never needs secrets to succeed: wi
 
 1. **Import** the repo in Vercel (framework: Next.js, detected automatically). Leave build settings at their defaults — `vercel.json` runs `npm run vercel-build`.
 2. **Database:** Vercel → your project → **Storage → Create Database → Neon (Postgres)** → connect it to the project. This adds `DATABASE_URL` and `DATABASE_URL_UNPOOLED` automatically. (Supabase or any Postgres also works: set `DATABASE_URL`, and `DIRECT_URL` for the unpooled connection.)
-3. **Clerk** (sign-in): create an application at clerk.com, then in the Clerk dashboard:
-   - **User & authentication → Email** on, and **Username** on (students may not have email).
-   - **Restrictions → Sign-up mode: Restricted** — accounts are created by the office only.
-4. **Environment variables** (Vercel → Settings → Environment Variables):
+3. **Environment variables** (Vercel → Settings → Environment Variables):
    | Name | Value |
    |---|---|
-   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Clerk dashboard → API keys |
-   | `ADMIN_SETUP_TOKEN` | any long secret — used once to create the first administrator |
+   | `BOOTSTRAP_ADMIN_USERNAME` | the first administrator's username (default `admin`) |
+   | `BOOTSTRAP_ADMIN_PASSWORD` | their first password — changed at first sign-in |
    | `CRON_SECRET` | any long random string (daily housekeeping job) |
-5. **Redeploy** (Deployments → ⋯ → Redeploy). Database tables are created during the build.
-6. Open **`https://<your-site>/setup`**. The checklist shows what is still missing; once everything is ticked, create the first administrator with the setup token. The setup page switches itself off as soon as an administrator exists. Sign in at `/sign-in`, then add teachers, parents and students from **People**.
+4. **Redeploy**. Database tables are created during the build. On the first visit to `/sign-in`, the subjects and levels are loaded and the administrator is created (only while no administrator exists, so changing the variables later never resets anyone).
+5. Open **`https://<your-site>/setup`** to confirm every check is green, then sign in and add teachers, parents and students from **People**.
 
 **If a build fails**, open the deployment's *Building* log. The build prints a boxed message for database problems (wrong URL, unreachable database, or a pooled URL without an unpooled one).
 
@@ -53,32 +50,27 @@ Everything deploys from **`main`**. The build never needs secrets to succeed: wi
 ## Getting started
 
 ```bash
-cp .env.example .env              # fill in Clerk keys + DATABASE_URL (gitignored)
+cp .env.example .env              # set DATABASE_URL and BOOTSTRAP_ADMIN_PASSWORD (gitignored)
 docker compose up -d db           # or use your own Postgres
 npm install
 npx prisma migrate deploy         # creates all tables
-npm run db:seed                   # subjects, curriculum levels, demo families
-npm run bootstrap:admin -- --username you.name --first You --last Name --password "Summit-Maple-482"   # or use /setup
+npm run db:seed                   # optional: demo families (subjects load automatically)
 npm run dev
 ```
 
-Open http://localhost:3000 and sign in with the admin you just created.
+Open http://localhost:3000/sign-in and sign in as `admin` with the password from `.env`.
 
-### Clerk setup
-
-See step 3 of *Deploying on Vercel*. No session-token customisation is needed: roles are read from the database on every request.
-
-### Preview without Clerk (local only)
+### Preview as a demo user (local only)
 
 Set `DEV_AUTH_USER_ID=seed_admin` (or `seed_parent_wanjiru`, `seed_teacher_achieng`, `seed_student_amani` …) in `.env` and run `npm run dev`. The app renders as that seeded user and shows a "Dev preview" badge. This is ignored in production builds.
 
 ## How Module 1 works
 
-- **Creating people** (`/admin/people/new`): one form for all four roles. It creates the Clerk login *and* our profile in one step; if the database write fails the Clerk user is rolled back, so the two never drift. Usernames are suggested from the name, temporary passwords are generated (readable, e.g. `Cedar-Falcon-731`), and shown once with a copy button.
-- **Families**: link from either side (parent page → Children, student page → Guardians). The first guardian becomes the **primary contact** (receives invoices and reports); there is always exactly one primary while a student has guardians, and removing the primary promotes the next.
-- **Needs attention** on the admin overview lists students with no guardian and parents with no children.
-- **Access**: pausing an account bans it in Clerk (signs them out everywhere) and flags it inactive here; reactivating reverses both. Admins can reset passwords.
-- **Parent portal** shows only children reached through the link table. Placeholders for attendance, homework, notes and invoices sit where those features will land, so the layout won't shift.
+- **Creating people** (`/admin/people/new`): one form for all four roles. It creates the login and profile in one step. Usernames are suggested from the name, temporary passwords are generated (readable, e.g. `Cedar-Falcon-731`), and shown once with a copy button.
+- **Families**: link from either side (parent page → Students, student page → Guardians). The first guardian becomes the **primary contact** (receives invoices and reports); there is always exactly one primary while a student has guardians, and removing the primary promotes the next.
+- **Needs attention** on the admin overview lists students with no guardian and parents with no students.
+- **Access**: pausing an account signs them out everywhere and blocks sign-in; reactivating reverses it. Admins can reset passwords (the person picks a new one at next sign-in).
+- **Parent portal** shows only students reached through the link table. Placeholders for attendance, homework, notes and invoices sit where those features will land, so the layout won't shift.
 
 ## How Module 2 works
 
@@ -114,7 +106,6 @@ Lessons can run as long as needed (Meet allows up to 24 hours on Google Workspac
 ```
 prisma/schema.prisma            all entities, modules 1–5
 prisma/seed.ts                  catalogue + demo data (ids prefixed seed_)
-scripts/bootstrap-admin.ts      first real admin, in Clerk + DB
 src/middleware.ts               sign-in + role routing
 src/lib/auth.ts                 getCurrentUser / requireRole / assertRole
 src/lib/actions/people.ts       create person, link/unlink, primary, pause, reset password

@@ -6,6 +6,10 @@ import { requireRole } from "@/lib/auth";
 import { formatDate, fullName, greeting } from "@/lib/format";
 import { ROLE_LABEL, curriculumLabel, toSlug } from "@/lib/roles";
 import { Avatar, Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
+import { HBars, Legend, PercentLine, StackedColumns } from "@/components/charts/Charts";
+import { SERIES } from "@/components/charts/palette";
+import { adminInsights } from "@/lib/insights";
+import { BarChart3 } from "lucide-react";
 
 export const metadata = { title: "Overview" };
 
@@ -13,6 +17,7 @@ export default async function AdminOverview() {
   const me = await requireRole("admin");
 
   await finaliseEndedSessions();
+  const insightsP = adminInsights();
   const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
@@ -48,6 +53,12 @@ export default async function AdminOverview() {
     return m.set(u.id, cur);
   }, new Map<string, { user: (typeof unrecorded)[number]["enrollment"]["teacher"]["user"]; count: number }>()).values()];
 
+  const { weeks, subjectBars, load } = await insightsP;
+  const hasLessons = weeks.some((w) => w.held + w.missed > 0);
+  const hasAttendance = weeks.some((w) => w.attendance !== null);
+  const heldThisWeek = weeks.at(-1)!.held;
+  const hrs = (m: number) => `${Math.round((m / 60) * 10) / 10}h`;
+
   const attentionCount = orphanStudents.length + childlessParents.length + unrecordedByTeacher.length + noLink.length;
 
   return (
@@ -70,6 +81,53 @@ export default async function AdminOverview() {
         <StatCard label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} href="/admin/enrollments" />
       </div>
 
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-3">
+        <Card
+          className="lg:col-span-2"
+          title="Lessons per week"
+          description={`Last 8 weeks · ${heldThisWeek} held so far this week`}
+          action={hasLessons ? <Legend items={[{ label: "Held", color: SERIES[0] }, { label: "Missed", color: SERIES[1] }]} /> : undefined}
+        >
+          {hasLessons ? (
+            <StackedColumns data={weeks.map((w) => ({ label: w.label, values: [w.held, w.missed] }))} series={["Held", "Missed"]} />
+          ) : (
+            <ChartEmpty>Held and missed lessons appear here once the first lessons take place.</ChartEmpty>
+          )}
+        </Card>
+        <Card title="Student attendance" description="Share of lessons attended, per week">
+          {hasAttendance ? (
+            <PercentLine data={weeks.map((w) => ({ label: w.label, value: w.attendance }))} label="Weekly student attendance rate" />
+          ) : (
+            <ChartEmpty>Attendance is recorded automatically when students join their lessons.</ChartEmpty>
+          )}
+        </Card>
+      </div>
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+        <Card title="Enrollments by subject" description="Active teacher × student × subject enrollments" action={<Link href="/admin/enrollments" className="text-xs font-medium text-gold-600 hover:underline">View all</Link>}>
+          {subjectBars.length ? (
+            <HBars data={subjectBars.slice(0, 8).map((b) => ({ ...b, display: String(b.value) }))} />
+          ) : (
+            <ChartEmpty>Add an enrollment to see which subjects are in demand.</ChartEmpty>
+          )}
+        </Card>
+        <Card title="Teacher load" description="Booked weekly lesson time against each teacher’s capacity">
+          {load.length ? (
+            <HBars
+              data={load.slice(0, 8).map((t) => ({
+                label: t.label,
+                value: t.bookedMinutes,
+                max: t.capacityMinutes,
+                href: `/admin/people/${t.id}`,
+                display: `${hrs(t.bookedMinutes)} of ${hrs(t.capacityMinutes)}${t.bookedMinutes > t.capacityMinutes ? " · over capacity" : ""}`,
+              }))}
+            />
+          ) : (
+            <ChartEmpty>Add teachers from People to see how their weeks are filling up.</ChartEmpty>
+          )}
+        </Card>
+      </div>
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-3">
         <Card
           className="lg:col-span-2"
@@ -168,6 +226,15 @@ export default async function AdminOverview() {
         </ComingNext>
       </div>
     </>
+  );
+}
+
+function ChartEmpty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-[220px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-ivory/60 px-6 text-center">
+      <BarChart3 className="h-6 w-6 text-navy-200" strokeWidth={1.75} />
+      <p className="max-w-xs text-xs text-navy-400">{children}</p>
+    </div>
   );
 }
 

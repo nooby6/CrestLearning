@@ -1,13 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { clerkClient } from "@clerk/nextjs/server";
-import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { assertRole } from "@/lib/auth";
 import { normalisePhone } from "@/lib/format";
-import { toSlug } from "@/lib/roles";
+import { hashPassword } from "@/lib/password-hash";
+import { destroyAllSessions } from "@/lib/session";
 import {
   CreatePersonSchema,
   LinkSchema,
@@ -16,14 +15,6 @@ import {
   type CreatePersonInput,
   type LinkInput,
 } from "@/lib/validation";
-
-const clerkMessage = (err: unknown) => {
-  if (isClerkAPIResponseError(err)) {
-    const e = err.errors[0];
-    return e?.longMessage || e?.message || "Clerk rejected the request.";
-  }
-  return null;
-};
 
 const uniqueMessage = (err: unknown) => {
   if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -34,8 +25,8 @@ const uniqueMessage = (err: unknown) => {
 };
 
 /**
- * Creates the login in Clerk and the matching rows in our DB.
- * If the DB write fails, the Clerk user is rolled back so the two never drift.
+ * Creates the account (sign-in + profile) in one transaction.
+ * The password given is temporary: the person chooses their own at first sign-in.
  */
 export async function createPerson(input: CreatePersonInput): Promise<ActionResult<{ id: string }>> {
   await assertRole("admin");
@@ -47,7 +38,7 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
   const data = parsed.data;
   const phone = normalisePhone(data.phone);
 
-  // Friendly duplicate checks before touching Clerk.
+  // Friendly duplicate checks.
   const clash = await prisma.user.findFirst({
     where: {
       OR: [
@@ -66,28 +57,16 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
     return { ok: false, error: "Some details are already in use.", fieldErrors };
   }
 
-  let clerkId: string;
-  const clerk = await clerkClient();
-  try {
-    const created = await clerk.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      emailAddress: data.email ? [data.email] : undefined,
-      publicMetadata: { role: toSlug(data.role) },
-    });
-    clerkId = created.id;
-  } catch (err) {
-    return { ok: false, error: clerkMessage(err) ?? "Could not create the login." };
-  }
+  const passwordHash = await hashPassword(data.password);
+  let id = "";
 
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.user.create({
+      const u = await tx.user.create({
         data: {
-          id: clerkId,
           role: data.role,
+          passwordHash,
+          mustChangePassword: true,
           username: data.username,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -95,12 +74,13 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
           phone,
         },
       });
+      id = u.id;
 
       switch (data.role) {
         case "TEACHER":
           await tx.teacher.create({
             data: {
-              id: clerkId,
+              id,
               bio: data.bio,
               hourlyRate: data.hourlyRateKes * 100,
               weeklyCapacityHours: data.weeklyCapacityHours,
@@ -111,7 +91,7 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
         case "STUDENT":
           await tx.student.create({
             data: {
-              id: clerkId,
+              id,
               curriculum: data.curriculum,
               levelId: data.levelId,
               school: data.school,
@@ -125,7 +105,7 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
         case "PARENT":
           await tx.parent.create({
             data: {
-              id: clerkId,
+              id,
               occupation: data.occupation,
               address: data.address,
               children: {
@@ -137,12 +117,11 @@ export async function createPerson(input: CreatePersonInput): Promise<ActionResu
       }
     });
   } catch (err) {
-    await clerk.users.deleteUser(clerkId).catch(() => undefined);
-    return { ok: false, error: uniqueMessage(err) ?? "Could not save the profile. Nothing was created." };
+    return { ok: false, error: uniqueMessage(err) ?? "Could not save the account. Nothing was created." };
   }
 
   revalidatePath("/admin", "layout");
-  return { ok: true, data: { id: clerkId }, message: `${data.firstName} ${data.lastName} was added.` };
+  return { ok: true, data: { id }, message: `${data.firstName} ${data.lastName} was added.` };
 }
 
 export async function linkGuardian(input: LinkInput): Promise<ActionResult> {
@@ -213,30 +192,27 @@ async function currentRelationship(parentId: string, studentId: string) {
 
 export async function setActive(userId: string, active: boolean): Promise<ActionResult> {
   const me = await assertRole("admin");
-  if (me.id === userId && !active) return { ok: false, error: "You can't deactivate your own account." };
-
-  const clerk = await clerkClient();
-  try {
-    if (active) await clerk.users.unbanUser(userId);
-    else await clerk.users.banUser(userId); // signs them out everywhere
-  } catch (err) {
-    // Seeded/demo users have no Clerk account — still allow the DB flag.
-    if (!userId.startsWith("seed_")) return { ok: false, error: clerkMessage(err) ?? "Clerk update failed." };
-  }
+  if (me.id === userId && !active) return { ok: false, error: "You can't suspend your own account." };
   await prisma.user.update({ where: { id: userId }, data: { active } });
+  if (!active) await destroyAllSessions(userId); // signs them out everywhere
   revalidatePath(`/admin/people/${userId}`);
   revalidatePath("/admin/people");
   return { ok: true, message: active ? "Account reactivated." : "Account suspended and signed out." };
 }
 
 export async function resetPassword(userId: string, password: string): Promise<ActionResult> {
-  await assertRole("admin");
+  const me = await assertRole("admin");
   if (password.length < 8) return { ok: false, error: "Password must be at least 8 characters." };
-  const clerk = await clerkClient();
-  try {
-    await clerk.users.updateUser(userId, { password, signOutOfOtherSessions: true });
-  } catch (err) {
-    return { ok: false, error: clerkMessage(err) ?? "Could not reset the password." };
-  }
-  return { ok: true, message: "Password updated. Share it with them securely." };
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: await hashPassword(password),
+      // Others choose their own at next sign-in; an admin resetting their own password keeps it.
+      mustChangePassword: userId !== me.id,
+      failedSignIns: 0,
+      lockedUntil: null,
+    },
+  });
+  await destroyAllSessions(userId, userId === me.id);
+  return { ok: true, message: "Password reset. They’ll choose their own the next time they sign in." };
 }

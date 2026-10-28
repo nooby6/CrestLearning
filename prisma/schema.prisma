@@ -6,7 +6,7 @@
 // payouts and parent reports all hang off those instances.
 //
 // Conventions
-//   • User.id is the Clerk user id (string). Profiles share it.
+//   • User.id is a cuid. Student/Teacher/Parent profiles share it. Sign-in is built in (see src/lib/session.ts).
 //   • Money is stored as Int in minor units (KES cents) + currency.
 //   • Times are stored in UTC; SessionSlot keeps wall-clock time
 //     plus an IANA timezone (default Africa/Nairobi).
@@ -42,17 +42,26 @@ enum Curriculum {
 }
 
 model User {
-  id        String   @id // Clerk user id
-  role      Role
-  username  String   @unique
-  firstName String
-  lastName  String
-  email     String?  @unique
-  phone     String?  @unique // E.164, e.g. +254712345678 (used for M-Pesa STK push)
-  avatarUrl String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  role               Role
+  username           String    @unique
+  firstName          String
+  lastName           String
+  email              String?   @unique
+  phone              String?   @unique // E.164, e.g. +254712345678 (used for M-Pesa STK push)
+  avatarUrl          String?
+  active             Boolean   @default(true)
+  /// scrypt hash ("scrypt$N$r$p$salt$hash"). Null = no password set yet (cannot sign in).
+  passwordHash       String?
+  /// Set when an admin issues a temporary password; the user is asked to choose their own.
+  mustChangePassword Boolean   @default(false)
+  failedSignIns      Int       @default(0)
+  lockedUntil        DateTime?
+  lastSignInAt       DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  sessions Session[]
 
   student Student?
   teacher Teacher?
@@ -133,6 +142,22 @@ model ParentStudent {
 
   @@id([parentId, studentId])
   @@index([studentId])
+}
+
+/// Signed-in browser session. The cookie holds a random token; only its SHA-256 is stored.
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ============================================================
