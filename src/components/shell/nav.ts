@@ -4,7 +4,7 @@ export type NavItem = {
   label: string;
   href: string;
   icon: IconName;
-  /** Not built yet — shown so the product shape is visible, but not clickable. */
+  /** Not built yet — shown to the office only, so the product shape is visible. Never used in other portals. */
   soon?: boolean;
   /** Other path prefixes that should highlight this item. */
   also?: string[];
@@ -32,6 +32,7 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Schedule", href: "/admin/schedule", icon: "calendar", also: ["/admin/sessions"] },
     { label: "Attendance", href: "/admin/attendance", icon: "check" },
     { label: "Weekly reports", href: "/admin/reports", icon: "chart" },
+    { label: "Resources", href: "/admin/resources", icon: "book" },
     { label: "Finance", href: "/admin/finance", icon: "wallet", soon: true },
     { label: "Announcements", href: "/admin/announcements", icon: "megaphone", soon: true },
   ],
@@ -41,18 +42,18 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Timetable", href: "/teacher/timetable", icon: "calendar" },
     { label: "Lesson records", href: "/teacher/records", icon: "clipboard", also: ["/teacher/sessions"] },
     { label: "Weekly reports", href: "/teacher/reports", icon: "chart" },
-    { label: "Resources", href: "/teacher/resources", icon: "book", soon: true },
+    { label: "Resources", href: "/teacher/resources", icon: "book" },
   ],
   student: [
     { label: "Home", href: "/student", icon: "home" },
     { label: "Timetable", href: "/student/timetable", icon: "calendar" },
-    { label: "Resources", href: "/student/resources", icon: "book", soon: true },
+    { label: "Worksheets & files", href: "/student/work", icon: "book" },
     { label: "Homework", href: "/student/homework", icon: "clipboard" },
   ],
   parent: [
     { label: "Overview", href: "/parent", icon: "home" },
     { label: "Timetable", href: "/parent/timetable", icon: "calendar" },
     { label: "Weekly reports", href: "/parent/reports", icon: "chart" },
-    { label: "Invoices", href: "/parent/invoices", icon: "receipt", soon: true },
+    { label: "Schoolwork", href: "/parent/work", icon: "book" },
   ],
 };

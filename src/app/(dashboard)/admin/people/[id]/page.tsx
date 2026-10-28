@@ -10,6 +10,7 @@ import { Avatar, Badge, Card, DefinitionList, RoleBadge } from "@/components/ui/
 import { FamilyLinks } from "./FamilyLinks";
 import { AccountPanel } from "./AccountPanel";
 import { AdminAccessToggle } from "./AdminAccessToggle";
+import { DeleteAccount } from "./DeleteAccount";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 
@@ -75,6 +76,23 @@ export default async function PersonPage({ params }: { params: { id: string } })
             meta: p.user.phone ? prettyPhone(p.user.phone) : undefined,
           }))
         : [];
+
+  // What deleting this person would take with them (shown before the typed confirmation).
+  const impact: string[] = [];
+  if (u.role === "STUDENT" || u.role === "TEACHER") {
+    const where = u.role === "STUDENT" ? { studentId: u.id } : { teacherId: u.id };
+    const [enr, held, subs] = await Promise.all([
+      prisma.enrollment.count({ where }),
+      prisma.sessionInstance.count({ where: { enrollment: where, status: "HELD" } }),
+      prisma.submission.count({ where: { enrollment: where } }),
+    ]);
+    const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+    if (enr) impact.push(`${plural(enr, "enrollment", "enrollments")} with ${plural(held, "lesson held", "lessons held")}, attendance and lesson records`);
+    if (subs) impact.push(`${plural(subs, "turned-in worksheet", "turned-in worksheets")} and the comments on them`);
+    if (u.role === "TEACHER" && enr) impact.push("Their students lose these subjects’ timetables — re-enroll them with another teacher first if needed");
+  }
+  if (u.role === "PARENT") impact.push("Their links to students (the students’ accounts are kept)");
+  impact.push("Their sign-in and profile");
 
   return (
     <>
@@ -264,6 +282,11 @@ export default async function PersonPage({ params }: { params: { id: string } })
                 isSelf={u.id === me.id}
                 hasLogin
               />
+              {u.id !== me.id && (
+                <div className="mt-3 border-t border-line pt-3">
+                  <DeleteAccount userId={u.id} name={fullName(u)} impact={impact} />
+                </div>
+              )}
             </div>
           </Card>
         </div>

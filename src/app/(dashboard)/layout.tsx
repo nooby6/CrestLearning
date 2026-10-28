@@ -5,6 +5,7 @@ import { Topbar } from "@/components/shell/Topbar";
 import { NAV } from "@/components/shell/nav";
 import { requireRole } from "@/lib/auth";
 import { pendingRecordCount } from "@/lib/attendance";
+import { staffCounts, workForStudent } from "@/lib/work-queries";
 import { ROLE_LABEL, portalsFor } from "@/lib/roles";
 
 /** Pages a teacher may still open while lesson records are outstanding. */
@@ -24,9 +25,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (pending > 0 && !path.startsWith(RECORDS_PATH) && !path.startsWith("/teacher/sessions/")) redirect(RECORDS_PATH);
   }
 
+  // Sidebar counters: lesson records (teachers), work to mark + requests (teachers), worksheets to do (students).
+  const badges: Record<string, number> = {};
+  if (pending) badges[RECORDS_PATH] = pending;
+  if (slug === "teacher") {
+    const c = await staffCounts("teacher", user.id);
+    if (c.toMark + c.requests) badges["/teacher/resources"] = c.toMark + c.requests;
+  }
+  if (slug === "student") {
+    const todo = (await workForStudent(user.id)).filter((i) => i.state === "todo" || i.state === "overdue").length;
+    if (todo) badges["/student/work"] = todo;
+  }
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar items={NAV[slug]} roleLabel={`${ROLE_LABEL[slug]} portal`} badges={pending ? { [RECORDS_PATH]: pending } : undefined} />
+      <Sidebar items={NAV[slug]} roleLabel={`${ROLE_LABEL[slug]} portal`} badges={badges} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar user={user} portal={slug} portals={portals} />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>

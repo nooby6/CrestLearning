@@ -89,7 +89,12 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
               />
               <span className="flex-1">{item.label}</span>
               {badges?.[item.href] ? (
-                <span className="min-w-[20px] rounded-full bg-rose-500 px-1.5 text-center text-[11px] font-semibold tabular-nums text-white">
+                <span
+                  className={clsx(
+                    "min-w-[20px] rounded-full px-1.5 text-center text-[11px] font-semibold tabular-nums",
+                    item.href.endsWith("/records") ? "bg-rose-500 text-white" : "bg-gold-500 text-navy-950",
+                  )}
+                >
                   {badges[item.href]}
                 </span>
               ) : null}

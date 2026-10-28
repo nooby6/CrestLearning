@@ -76,6 +76,10 @@ model User {
   progressNotes         ProgressNote[]
   weeklyReports         WeeklyReport[]
   uploadedResources     Resource[]
+  storedFiles           StoredFile[]
+  workComments          WorkComment[]           @relation("WorkCommentAuthor")
+  workCommentsResolved  WorkComment[]           @relation("WorkCommentResolver")
+  submissionsReviewed   Submission[]
   announcementsAuthored Announcement[]
   announcementTargets   AnnouncementRecipient[]
 
@@ -100,6 +104,7 @@ model Student {
   feePlans    FeePlan[]
   invoices    Invoice[]
   reports     ParentReport[]
+  submissions Submission[]
 }
 
 model Teacher {
@@ -115,6 +120,7 @@ model Teacher {
   subjects    TeacherSubject[]
   enrollments Enrollment[]
   payouts     TeacherPayout[]
+  resources   Resource[]
 }
 
 model Parent {
@@ -233,6 +239,8 @@ model Enrollment {
   slots         SessionSlot[]
   sessions      SessionInstance[]
   resources     Resource[]
+  submissions   Submission[]
+  workComments  WorkComment[]
   invoiceLines  InvoiceLine[]
   weeklyReports WeeklyReport[]
 
@@ -439,27 +447,133 @@ model ParentReport {
 
 /// A resource is scoped EITHER to one enrollment OR to a subject (+ optional level).
 /// Students see: resources on their enrollments + subject/level resources matching them.
+enum ResourceKind {
+  DOCUMENT // notes, past papers, reading — view and download
+  WORKSHEET // to be completed and turned in
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  REVIEWED
+}
+
+enum WorkCommentKind {
+  COMMENT
+  REQUEST // a student asking for more worksheets
+}
+
+/// An uploaded file. Bytes live in StoredFileData so ordinary queries never load them.
+model StoredFile {
+  id        String   @id @default(cuid())
+  name      String
+  mimeType  String
+  sizeBytes Int
+  /// "resource" | "submission" | "avatar" — decides who may open it.
+  purpose   String
+  ownerId   String?
+  createdAt DateTime @default(now())
+
+  owner           User?            @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  data            StoredFileData?
+  resources       Resource[]
+  submissionFiles SubmissionFile[]
+
+  @@index([purpose, createdAt])
+}
+
+model StoredFileData {
+  fileId String     @id
+  bytes  Bytes
+  file   StoredFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+}
+
+/// A document or worksheet. Audience: one enrollment (one student's subject), or everyone taking
+/// `subjectId` (optionally only at `levelId`, optionally only `teacherId`'s students).
 model Resource {
-  id           Int      @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   title        String
   description  String?
-  url          String
-  storageKey   String? // Cloudinary public_id
-  mimeType     String?
-  sizeBytes    Int?
-  uploadedById String
+  kind         ResourceKind @default(DOCUMENT)
+  fileId       String?
+  linkUrl      String?
+  dueDate      DateTime?    @db.Date
+  uploadedById String?
   enrollmentId Int?
-  subjectId    Int?
+  subjectId    Int
   levelId      Int?
-  createdAt    DateTime @default(now())
+  teacherId    String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  uploadedBy User        @relation(fields: [uploadedById], references: [id])
-  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  subject    Subject?    @relation(fields: [subjectId], references: [id])
-  level      Level?      @relation(fields: [levelId], references: [id])
+  file        StoredFile?   @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  uploadedBy  User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  enrollment  Enrollment?   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  subject     Subject       @relation(fields: [subjectId], references: [id])
+  level       Level?        @relation(fields: [levelId], references: [id])
+  teacher     Teacher?      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+  comments    WorkComment[]
 
   @@index([enrollmentId])
   @@index([subjectId, levelId])
+  @@index([teacherId])
+}
+
+/// A student's turned-in worksheet (one per student per worksheet; turning in again updates it).
+model Submission {
+  id           Int              @id @default(autoincrement())
+  resourceId   Int
+  enrollmentId Int
+  studentId    String
+  note         String?
+  status       SubmissionStatus @default(SUBMITTED)
+  submittedAt  DateTime         @default(now())
+  feedback     String?
+  mark         String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  updatedAt    DateTime         @updatedAt
+
+  resource   Resource         @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  enrollment Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  student    Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy User?            @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  files      SubmissionFile[]
+
+  @@unique([resourceId, studentId])
+  @@index([enrollmentId, status])
+}
+
+model SubmissionFile {
+  id           Int        @id @default(autoincrement())
+  submissionId Int
+  fileId       String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  file         StoredFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, fileId])
+}
+
+/// Comments and worksheet requests. A thread belongs to one enrollment (one student's subject),
+/// optionally about one resource. Seen by the student, their parents, their teacher and the office.
+model WorkComment {
+  id           Int             @id @default(autoincrement())
+  enrollmentId Int
+  resourceId   Int?
+  authorId     String
+  kind         WorkCommentKind @default(COMMENT)
+  body         String
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime        @default(now())
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  resource   Resource?  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  author     User       @relation("WorkCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  resolvedBy User?      @relation("WorkCommentResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([enrollmentId, resourceId])
+  @@index([kind, resolvedAt])
 }
 
 // ============================================================

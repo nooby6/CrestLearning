@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { AlertTriangle, ArrowLeftRight, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Camera, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
 import { Avatar } from "@/components/ui/primitives";
 import { signOut } from "@/lib/actions/auth";
 
@@ -14,10 +14,12 @@ export function AccountMenu({
   user,
   roleLabel,
   switchTo = [],
+  canEditPhoto = false,
 }: {
   user: { id: string; firstName: string; lastName: string; avatarUrl: string | null };
   roleLabel: string;
   switchTo?: { href: string; label: string }[];
+  canEditPhoto?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [blocked, setBlocked] = useState<number | null>(null);
@@ -92,6 +94,16 @@ export function AccountMenu({
                 </a>
               ))}
               {switchTo.length > 0 && <div className="my-1.5 border-t border-line" />}
+              {canEditPhoto && (
+                <Link
+                  href="/account/photo"
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
+                >
+                  <Camera className="h-4 w-4 text-navy-400" /> Profile photo
+                </Link>
+              )}
               <Link
                 href="/account/password"
                 role="menuitem"

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { generateAll } from "@/lib/sessions";
 import { finaliseEndedSessions } from "@/lib/attendance";
+import { removeOrphanFiles } from "@/lib/file-cleanup";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Daily (vercel.json → crons): closes off ended sessions (held / missed, absences)
- * and keeps sessions materialised HORIZON_WEEKS ahead.
+ * keeps sessions materialised HORIZON_WEEKS ahead, and removes uploads nothing uses.
  * Vercel sends `Authorization: Bearer $CRON_SECRET` when CRON_SECRET is set.
  */
 export async function GET(req: Request) {
@@ -16,5 +17,6 @@ export async function GET(req: Request) {
   }
   const finalised = await finaliseEndedSessions();
   const result = await generateAll();
-  return NextResponse.json({ ok: true, finalised, ...result, at: new Date().toISOString() });
+  const filesRemoved = await removeOrphanFiles();
+  return NextResponse.json({ ok: true, finalised, ...result, filesRemoved, at: new Date().toISOString() });
 }

@@ -214,10 +214,7 @@ export default async function AdminOverview() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <ComingNext module="Module 4 · Resources">
-          Upload materials for one student, or for every student at a subject and level.
-        </ComingNext>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
         <ComingNext module="Module 5 · Announcements">
           Notices to everyone, to teachers only, or to selected parents.
         </ComingNext>

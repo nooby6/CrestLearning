@@ -6,7 +6,9 @@ import { formatDate, fullName, greeting } from "@/lib/format";
 import { curriculumLabel } from "@/lib/roles";
 import { dateKey, dbDateKey, formatTimeRange } from "@/lib/schedule";
 import { lessonSummary } from "@/lib/lesson-summary";
-import { Card, ComingNext, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { Card, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { workForStudent } from "@/lib/work-queries";
+import { KindIcon, WorkStateBadge, dueLabel } from "@/components/work/bits";
 import { JoinButton } from "@/components/class/JoinButton";
 import { LessonOverview } from "@/components/class/LessonOverview";
 import { sessionLink } from "@/lib/meeting";
@@ -23,7 +25,7 @@ function dayLabel(d: Date) {
 export default async function StudentHome() {
   const me = await requireRole("student");
   const now = new Date();
-  const [s, summaries, next, homework] = await Promise.all([
+  const [s, summaries, next, homework, work] = await Promise.all([
     prisma.student.findUnique({ where: { id: me.id }, include: { level: true } }),
     lessonSummary([me.id]),
     prisma.sessionInstance.findFirst({
@@ -37,6 +39,7 @@ export default async function StudentHome() {
       orderBy: [{ homeworkDue: "asc" }, { createdAt: "desc" }],
       take: 5,
     }),
+    workForStudent(me.id),
   ]);
   const summary = summaries[me.id];
 
@@ -111,7 +114,42 @@ export default async function StudentHome() {
               </ul>
             )}
           </Card>
-          <ComingNext module="Module 4 · Resources">Notes and files from your teachers, for your subjects and level only.</ComingNext>
+          <Card
+            title="Worksheets"
+            action={
+              <Link href="/student/work" className="text-xs font-medium text-gold-700 hover:underline">
+                See all
+              </Link>
+            }
+            bodyClassName="px-5 py-1"
+          >
+            {(() => {
+              const todo = work
+                .filter((w) => w.state === "todo" || w.state === "overdue")
+                .sort((a, b) => (a.dueDate ? +a.dueDate : Infinity) - (b.dueDate ? +b.dueDate : Infinity))
+                .slice(0, 4);
+              if (!todo.length) return <p className="py-4 text-sm text-navy-400">Nothing to turn in. Well done!</p>;
+              return (
+                <ul className="divide-y divide-line">
+                  {todo.map((w) => (
+                    <li key={w.id}>
+                      <Link href={`/student/work/${w.id}`} className="flex items-center gap-3 py-3 hover:opacity-80">
+                        <KindIcon kind={w.kind} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-navy-900">{w.title}</p>
+                          <p className="truncate text-xs text-navy-400">
+                            {w.subject.name}
+                            {w.dueDate ? ` · ${dueLabel(w.dueDate)}` : ""}
+                          </p>
+                        </div>
+                        {w.state && <WorkStateBadge state={w.state} />}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+          </Card>
         </div>
       </div>
     </>

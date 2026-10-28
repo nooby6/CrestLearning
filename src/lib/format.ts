@@ -57,3 +57,6 @@ export const prettyPhone = (e164?: string | null) => {
   const m = e164.match(/^\+254(\d{3})(\d{3})(\d{3})$/);
   return m ? `+254 ${m[1]} ${m[2]} ${m[3]}` : e164;
 };
+
+export const formatBytes = (n: number) =>
+  n < 1024 ? `${n} B` : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / (1024 * 1024)).toFixed(1)} MB`;

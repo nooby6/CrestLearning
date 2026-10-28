@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, FileText, UsersRound } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, FileText, UsersRound } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName, greeting } from "@/lib/format";
 import { curriculumLabel, relationshipLabel } from "@/lib/roles";
 import { dbDateKey } from "@/lib/schedule";
 import { lessonSummary } from "@/lib/lesson-summary";
-import { Avatar, Badge, ComingNext, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { Avatar, Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { workForParent } from "@/lib/work-queries";
 import { LessonOverview } from "@/components/class/LessonOverview";
 
 export const metadata = { title: "Overview" };
@@ -32,6 +33,15 @@ export default async function ParentHome() {
   const enrollmentStudents = latestReports.length
     ? await prisma.enrollment.findMany({ where: { id: { in: latestReports.map((r) => r.enrollmentId) } }, select: { id: true, studentId: true } })
     : [];
+  const work = new Map((await workForParent(me.id)).map((g) => [g.student.id, g.items]));
+  const workLine = (studentId: string) => {
+    const items = work.get(studentId) ?? [];
+    const todo = items.filter((i) => i.state === "todo" || i.state === "overdue").length;
+    const overdue = items.filter((i) => i.state === "overdue").length;
+    const marked = items.filter((i) => i.state === "reviewed").length;
+    if (!items.length) return "Schoolwork";
+    return [todo ? `${todo} to do` : "Nothing to do", overdue ? `${overdue} overdue` : null, marked ? `${marked} marked` : null].filter(Boolean).join(" · ");
+  };
   const latestFor = (studentId: string) =>
     latestReports
       .filter((r) => enrollmentStudents.find((e) => e.id === r.enrollmentId)?.studentId === studentId)
@@ -97,6 +107,15 @@ export default async function ParentHome() {
                     </span>
                     <ArrowRight className="h-4 w-4 text-navy-300" />
                   </Link>
+                  <Link
+                    href="/parent/work"
+                    className="col-span-2 flex items-center justify-between gap-2 !border-l-0 border-t border-line px-5 py-3 text-navy-700 hover:bg-ivory"
+                  >
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-gold-500" /> Worksheets · {workLine(s.id)}
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-navy-300" />
+                  </Link>
                 </footer>
               </article>
             );
@@ -104,11 +123,6 @@ export default async function ParentHome() {
         </div>
       )}
 
-      {links.length > 0 && (
-        <div className="mt-6">
-          <ComingNext module="Module 5 · Fees">Invoices and payment status, with M-Pesa and card payments.</ComingNext>
-        </div>
-      )}
     </>
   );
 }

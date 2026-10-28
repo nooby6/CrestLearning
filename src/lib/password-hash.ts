@@ -4,7 +4,6 @@ import { randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } 
 /**
  * Password hashing with scrypt (Node built-in, no native dependency).
  * Stored format: scrypt$N$r$p$<salt base64>$<hash base64>
- * scripts/bootstrap.mjs writes the same format.
  */
 const N = 16384;
 const R = 8;

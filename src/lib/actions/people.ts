@@ -239,3 +239,68 @@ export async function setAdminAccess(userId: string, on: boolean): Promise<Actio
       : `Administrator access removed for ${u.firstName}.`,
   };
 }
+
+
+/**
+ * Permanently deletes an account. Students and teachers take their enrollments with them (lessons,
+ * attendance, lesson records, reports, worksheets and comments for those subjects). Records they wrote
+ * on other people's lessons are kept and credited to the administrator who deleted them.
+ */
+export async function deletePerson(userId: string, typedName: string): Promise<ActionResult> {
+  const me = await assertRole("admin");
+  if (userId === me.id) return { ok: false, error: "You can’t delete your own account." };
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true, adminAccess: true, firstName: true, lastName: true } });
+  if (!u) return { ok: false, error: "That account no longer exists." };
+  const name = `${u.firstName} ${u.lastName}`.trim();
+  if (typedName.trim().replace(/\s+/g, " ").toLowerCase() !== name.replace(/\s+/g, " ").toLowerCase()) {
+    return { ok: false, error: `Type “${name}” exactly to confirm.` };
+  }
+  if (u.role === "ADMIN" || (u.role === "TEACHER" && u.adminAccess)) {
+    const others = await prisma.user.count({
+      where: { id: { not: u.id }, active: true, OR: [{ role: "ADMIN" }, { role: "TEACHER", adminAccess: true }] },
+    });
+    if (!others) return { ok: false, error: "This is the only administrator. Give someone else access first." };
+  }
+
+  try {
+    await prisma.$transaction(
+      async (tx) => {
+        const enrollmentWhere = u.role === "STUDENT" ? { studentId: u.id } : u.role === "TEACHER" ? { teacherId: u.id } : null;
+        if (enrollmentWhere) {
+          const ids = (await tx.enrollment.findMany({ where: enrollmentWhere, select: { id: true } })).map((e) => e.id);
+          if (ids.length) {
+            await tx.teacherPayoutItem.deleteMany({ where: { session: { enrollmentId: { in: ids } } } });
+            await tx.invoiceLine.updateMany({ where: { enrollmentId: { in: ids } }, data: { enrollmentId: null } });
+            // Cascades: weekly times, lessons (attendance, join events, lesson records), weekly reports,
+            // one-student resources, submissions and comment threads.
+            await tx.enrollment.deleteMany({ where: { id: { in: ids } } });
+          }
+        }
+        if (u.role === "STUDENT") {
+          const invoices = (await tx.invoice.findMany({ where: { studentId: u.id }, select: { id: true } })).map((i) => i.id);
+          if (invoices.length) {
+            await tx.payment.deleteMany({ where: { invoiceId: { in: invoices } } });
+            await tx.invoice.deleteMany({ where: { id: { in: invoices } } });
+          }
+        }
+        if (u.role === "TEACHER") await tx.teacherPayout.deleteMany({ where: { teacherId: u.id } });
+        if (u.role === "PARENT") await tx.invoice.updateMany({ where: { billToId: u.id }, data: { billToId: null } });
+
+        await tx.attendance.updateMany({ where: { overriddenById: u.id }, data: { overriddenById: null } });
+        await tx.attendance.deleteMany({ where: { userId: u.id } });
+        await tx.sessionJoinEvent.deleteMany({ where: { userId: u.id } });
+        await tx.progressNote.updateMany({ where: { authorId: u.id }, data: { authorId: me.id } });
+        await tx.weeklyReport.updateMany({ where: { authorId: u.id }, data: { authorId: me.id } });
+        await tx.announcement.updateMany({ where: { authorId: u.id }, data: { authorId: me.id } });
+        // Their uploads: submissions went with their enrollments; shared resources stay (uploader cleared).
+        await tx.user.delete({ where: { id: u.id } });
+      },
+      { timeout: 30_000 },
+    );
+  } catch (err) {
+    console.error("[deletePerson]", err);
+    return { ok: false, error: "The account couldn’t be deleted. Nothing was changed — please try again." };
+  }
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: `${name}’s account has been deleted.` };
+}

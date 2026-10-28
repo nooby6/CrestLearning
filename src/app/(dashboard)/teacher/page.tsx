@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, CalendarClock, CalendarDays, Users } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarClock, CalendarDays, Users } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName, greeting } from "@/lib/format";
 import { addDaysKey, dateKey, formatTime, hoursLabel, keyToUtcStart, mondayOf } from "@/lib/schedule";
-import { Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
+import { Badge, Card, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
+import { staffCounts } from "@/lib/work-queries";
 import { SessionRow } from "@/components/schedule/SessionRow";
 import { JoinButton } from "@/components/class/JoinButton";
 import { sessionLink } from "@/lib/meeting";
@@ -26,7 +27,7 @@ export default async function TeacherHome() {
   } as const;
 
   const lastWeek = addDaysKey(weekKey, -7);
-  const [t, today, upcoming, weekMinutes, reportsMissing] = await Promise.all([
+  const [t, today, upcoming, weekMinutes, reportsMissing, work] = await Promise.all([
     prisma.teacher.findUnique({
       where: { id: me.id },
       include: {
@@ -61,6 +62,7 @@ export default async function TeacherHome() {
         weeklyReports: { none: { weekStart: new Date(lastWeek) } },
       },
     }),
+    staffCounts("teacher", me.id),
   ]);
 
   const weekMins = weekMinutes.reduce((a, s) => a + (+s.endsAt - +s.startsAt) / 60000, 0);
@@ -189,10 +191,24 @@ export default async function TeacherHome() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <ComingNext module="Module 4 · Resources">Upload notes and worksheets for a student, or for every student at a subject and level.</ComingNext>
-        <ComingNext module="Module 5 · Payouts">Monthly payout statements calculated from the lessons you have held.</ComingNext>
-      </div>
+      <Link href="/teacher/resources" className="card card-link group mt-6 flex flex-col gap-4 overflow-hidden p-5 sm:flex-row sm:items-center">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-white shadow-sm">
+          <BookOpen className="h-6 w-6" strokeWidth={1.75} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-sm font-semibold text-navy-900">Documents & worksheets</p>
+          <p className="text-sm text-navy-500">
+            {work.toMark || work.requests
+              ? [work.toMark && `${work.toMark} turned in to mark`, work.requests && `${work.requests} worksheet ${work.requests === 1 ? "request" : "requests"}`]
+                  .filter(Boolean)
+                  .join(" · ")
+              : "Share notes and worksheets with your students, and mark what they turn in."}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-gold-700">
+          Open <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+        </span>
+      </Link>
     </>
   );
 }
