@@ -11,6 +11,7 @@ import { FamilyLinks } from "./FamilyLinks";
 import { AccountPanel } from "./AccountPanel";
 import { AdminAccessToggle } from "./AdminAccessToggle";
 import { DeleteAccount } from "./DeleteAccount";
+import { TeacherPayEditor } from "./TeacherPayEditor";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 
@@ -238,11 +239,14 @@ export default async function PersonPage({ params }: { params: { id: string } })
                       "—"
                     ),
                   },
-                  { label: "Payout rate", value: u.teacher.hourlyRate ? `${formatMoney(u.teacher.hourlyRate)} / hr` : "Not set" },
+                  { label: "Hourly rate", value: u.teacher.hourlyRate ? `${formatMoney(u.teacher.hourlyRate)} / hr` : "Not set" },
                   { label: "Weekly capacity", value: `${u.teacher.weeklyCapacityHours} hrs` },
                   { label: "Students", value: new Set(u.teacher.enrollments.map((e) => e.studentId)).size },
                 ]}
               />
+              <div className="mt-4">
+                <TeacherPayEditor teacherId={u.id} rateKes={Math.round(u.teacher.hourlyRate / 100)} capacity={u.teacher.weeklyCapacityHours} />
+              </div>
             </Card>
           )}
 

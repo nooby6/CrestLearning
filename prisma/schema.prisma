@@ -80,6 +80,7 @@ model User {
   workComments          WorkComment[]           @relation("WorkCommentAuthor")
   workCommentsResolved  WorkComment[]           @relation("WorkCommentResolver")
   submissionsReviewed   Submission[]
+  payoutsConfirmed      TeacherPayout[]         @relation("PayoutConfirmedBy")
   announcementsAuthored Announcement[]
   announcementTargets   AnnouncementRecipient[]
 
@@ -699,23 +700,28 @@ enum PayoutStatus {
 
 /// Teacher payout for a period, calculated from sessions actually HELD.
 model TeacherPayout {
-  id           Int          @id @default(autoincrement())
-  teacherId    String
-  periodStart  DateTime     @db.Date
-  periodEnd    DateTime     @db.Date
-  sessionsHeld Int
-  minutesHeld  Int
-  amount       Int
-  currency     String       @default("KES")
-  status       PayoutStatus @default(DRAFT)
-  reference    String? // bank / M-Pesa B2C ref
-  paidAt       DateTime?
-  createdAt    DateTime     @default(now())
+  id            Int              @id @default(autoincrement())
+  teacherId     String
+  periodStart   DateTime         @db.Date
+  periodEnd     DateTime         @db.Date
+  sessionsHeld  Int
+  minutesHeld   Int
+  amount        Int
+  currency      String           @default("KES")
+  status        PayoutStatus     @default(DRAFT)
+  method        PaymentProvider?
+  reference     String? // bank / M-Pesa ref
+  note          String?
+  paidAt        DateTime?
+  confirmedById String?
+  createdAt     DateTime         @default(now())
 
-  teacher Teacher             @relation(fields: [teacherId], references: [id])
-  items   TeacherPayoutItem[]
+  teacher     Teacher             @relation(fields: [teacherId], references: [id])
+  confirmedBy User?               @relation("PayoutConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+  items       TeacherPayoutItem[]
 
-  @@unique([teacherId, periodStart, periodEnd])
+  /// Several payouts can cover one period (a later payment for lessons recorded after the first).
+  @@index([teacherId, periodStart])
 }
 
 /// Each held session is paid at most once.

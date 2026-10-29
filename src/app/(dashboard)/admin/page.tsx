@@ -3,12 +3,13 @@ import { ArrowRight, ClipboardX, GraduationCap, HeartHandshake, Link2Off, Presen
 import prisma from "@/lib/prisma";
 import { finaliseEndedSessions } from "@/lib/attendance";
 import { requireRole } from "@/lib/auth";
-import { formatDate, fullName, greeting } from "@/lib/format";
+import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { ROLE_LABEL, curriculumLabel, toSlug } from "@/lib/roles";
 import { Avatar, Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
 import { HBars, Legend, PercentLine, StackedColumns } from "@/components/charts/Charts";
 import { SERIES } from "@/components/charts/palette";
 import { adminInsights } from "@/lib/insights";
+import { dayLabel, lastEndedPeriod, periodLabel, periodSummary } from "@/lib/payouts";
 import { BarChart3 } from "lucide-react";
 
 export const metadata = { title: "Overview" };
@@ -18,6 +19,8 @@ export default async function AdminOverview() {
 
   await finaliseEndedSessions();
   const insightsP = adminInsights();
+  const payPeriod = lastEndedPeriod();
+  const payP = periodSummary(payPeriod);
   const [students, parents, teachers, enrolledStudents, subjectsTaught, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
@@ -55,6 +58,8 @@ export default async function AdminOverview() {
   }, new Map<string, { user: (typeof unrecorded)[number]["enrollment"]["teacher"]["user"]; count: number }>()).values()];
 
   const { weeks, subjectBars, load } = await insightsP;
+  const payRows = (await payP).filter((r) => r.owed > 0);
+  const payOwed = payRows.reduce((a, r) => a + r.owed, 0);
   const hasLessons = weeks.some((w) => w.held + w.missed > 0);
   const hasAttendance = weeks.some((w) => w.attendance !== null);
   const heldThisWeek = weeks.at(-1)!.held;
@@ -74,6 +79,21 @@ export default async function AdminOverview() {
           </Link>
         }
       />
+
+      {payOwed > 0 && (
+        <Link
+          href={`/admin/payments?period=${payPeriod.start}`}
+          className="mb-6 flex items-center justify-between gap-3 border border-amber-300 border-l-[3px] border-l-amber-500 bg-amber-50 px-5 py-3 text-sm text-amber-900 hover:border-amber-400"
+        >
+          <span>
+            <b>{formatMoney(payOwed)}</b> owed to {payRows.length} {payRows.length === 1 ? "teacher" : "teachers"} for {periodLabel(payPeriod)} · due{" "}
+            {dayLabel(payPeriod.due, { weekday: "short", day: "numeric", month: "short" })}
+          </span>
+          <span className="flex shrink-0 items-center gap-1 font-medium">
+            Confirm payments <ArrowRight className="h-4 w-4" />
+          </span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Students enrolled" value={enrolledStudents} hint={`${students} student ${students === 1 ? "account" : "accounts"}`} icon={GraduationCap} href="/admin/enrollments" />

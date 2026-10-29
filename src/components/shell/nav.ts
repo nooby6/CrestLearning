@@ -33,7 +33,8 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Attendance", href: "/admin/attendance", icon: "check" },
     { label: "Weekly reports", href: "/admin/reports", icon: "chart" },
     { label: "Resources", href: "/admin/resources", icon: "book" },
-    { label: "Finance", href: "/admin/finance", icon: "wallet", soon: true },
+    { label: "Teacher payments", href: "/admin/payments", icon: "wallet" },
+    { label: "Fees & invoices", href: "/admin/finance", icon: "receipt", soon: true },
     { label: "Announcements", href: "/admin/announcements", icon: "megaphone", soon: true },
   ],
   teacher: [
@@ -43,6 +44,7 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Lesson records", href: "/teacher/records", icon: "clipboard", also: ["/teacher/sessions"] },
     { label: "Weekly reports", href: "/teacher/reports", icon: "chart" },
     { label: "Resources", href: "/teacher/resources", icon: "book" },
+    { label: "Payments", href: "/teacher/payments", icon: "wallet" },
   ],
   student: [
     { label: "Home", href: "/student", icon: "home" },

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, CalendarClock, CalendarDays, Users } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarClock, CalendarDays, Users, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
-import { formatDate, fullName, greeting } from "@/lib/format";
-import { addDaysKey, dateKey, formatTime, hoursLabel, keyToUtcStart, mondayOf } from "@/lib/schedule";
+import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
+import { addDaysKey, dateKey, formatTime, keyToUtcStart, mondayOf } from "@/lib/schedule";
+import { dayLabel, periodContaining, teacherHistory } from "@/lib/payouts";
 import { Badge, Card, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
 import { staffCounts } from "@/lib/work-queries";
 import { SessionRow } from "@/components/schedule/SessionRow";
@@ -27,7 +28,7 @@ export default async function TeacherHome() {
   } as const;
 
   const lastWeek = addDaysKey(weekKey, -7);
-  const [t, today, upcoming, weekMinutes, reportsMissing, work] = await Promise.all([
+  const [t, today, upcoming, reportsMissing, work, pay] = await Promise.all([
     prisma.teacher.findUnique({
       where: { id: me.id },
       include: {
@@ -46,14 +47,6 @@ export default async function TeacherHome() {
       orderBy: { startsAt: "asc" },
       take: 5,
     }),
-    prisma.sessionInstance.findMany({
-      where: {
-        enrollment: { teacherId: me.id },
-        status: { in: ["SCHEDULED", "HELD"] },
-        startsAt: { gte: keyToUtcStart(weekKey), lt: keyToUtcStart(addDaysKey(weekKey, 7)) },
-      },
-      select: { startsAt: true, endsAt: true },
-    }),
     // Last week's reports are due by Sunday — flag any still missing.
     prisma.enrollment.count({
       where: {
@@ -63,9 +56,9 @@ export default async function TeacherHome() {
       },
     }),
     staffCounts("teacher", me.id),
+    teacherHistory(me.id, 4),
   ]);
 
-  const weekMins = weekMinutes.reduce((a, s) => a + (+s.endsAt - +s.startsAt) / 60000, 0);
   const remaining = today.filter((s) => s.status === "SCHEDULED" && +s.endsAt > Date.now()).length;
 
   return (
@@ -106,7 +99,24 @@ export default async function TeacherHome() {
           hint={today.filter((s) => s.status !== "CANCELLED").length === 1 ? "session" : "sessions"}
           icon={CalendarClock}
         />
-        <StatCard tone="gold" label="This week" value={hoursLabel(weekMins)} hint={`of ${t?.weeklyCapacityHours ?? 0} h available`} icon={CalendarDays} href="/teacher/timetable" />
+        {(() => {
+          const current = periodContaining();
+          const owedBefore = pay.filter((h) => h.period.start !== current.start).reduce((a, h) => a + h.summary.owed, 0);
+          const sofar = pay.find((h) => h.period.start === current.start)?.summary.owed ?? 0;
+          const cur = pay[0]?.summary.currency ?? "KES";
+          return owedBefore > 0 ? (
+            <StatCard tone="gold" label="Payment due" value={formatMoney(owedBefore, cur)} hint="Awaiting payment from the office" icon={Wallet} href="/teacher/payments" />
+          ) : (
+            <StatCard
+              tone="gold"
+              label="Next payment"
+              value={formatMoney(sofar, cur)}
+              hint={`So far this period · paid by ${dayLabel(current.due, { weekday: "short", day: "numeric", month: "short" })}`}
+              icon={Wallet}
+              href="/teacher/payments"
+            />
+          );
+        })()}
         <StatCard tone="teal" label="Students" value={new Set(t?.enrollments.map((e) => e.studentId) ?? []).size} hint="currently enrolled" icon={Users} href="/teacher/students" />
       </div>
 

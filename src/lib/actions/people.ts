@@ -304,3 +304,17 @@ export async function deletePerson(userId: string, typedName: string): Promise<A
   revalidatePath("/admin", "layout");
   return { ok: true, message: `${name}’s account has been deleted.` };
 }
+
+/** Office-only: a teacher's hourly rate (KES) and weekly capacity. Confirmed payments keep their amounts. */
+export async function setTeacherPay(teacherId: string, rateKes: number, capacityHours: number): Promise<ActionResult> {
+  await assertRole("admin");
+  if (!Number.isInteger(rateKes) || rateKes < 0 || rateKes > 100_000) return { ok: false, error: "Enter the hourly rate in whole shillings." };
+  if (!Number.isInteger(capacityHours) || capacityHours < 1 || capacityHours > 80) return { ok: false, error: "Weekly capacity must be between 1 and 80 hours." };
+  const t = await prisma.teacher.findUnique({ where: { id: teacherId }, select: { id: true } });
+  if (!t) return { ok: false, error: "Teacher not found." };
+  await prisma.teacher.update({ where: { id: teacherId }, data: { hourlyRate: rateKes * 100, weeklyCapacityHours: capacityHours } });
+  revalidatePath(`/admin/people/${teacherId}`);
+  revalidatePath("/admin/payments");
+  revalidatePath("/teacher", "layout");
+  return { ok: true, message: "Pay details saved. Unpaid lessons now use the new rate." };
+}
