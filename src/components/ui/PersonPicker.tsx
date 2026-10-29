@@ -59,7 +59,7 @@ export function PersonPicker({
           {selected.map((o) => (
             <li
               key={o.id}
-              className="flex items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-2 text-sm text-navy-800"
+              className="flex items-center gap-2 border border-line bg-white py-1 pl-1 pr-2 text-sm text-navy-800"
             >
               <Avatar person={o} size="sm" />
               <span>
@@ -68,7 +68,7 @@ export function PersonPicker({
               <button
                 type="button"
                 onClick={() => onChange(value.filter((v) => v !== o.id))}
-                className="rounded-full p-0.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700"
+                className=" p-0.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700"
                 aria-label={`Remove ${o.firstName}`}
               >
                 <X className="h-3.5 w-3.5" />

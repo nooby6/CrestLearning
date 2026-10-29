@@ -28,7 +28,7 @@ export default async function StudentHomework() {
         const d = due(h.homeworkDue);
         return (
           <li key={h.id} className="flex items-start gap-3 px-5 py-3">
-            <span className={`mt-1 h-8 w-1 shrink-0 rounded-full border-l-[3px] ${tintFor(e.subject.code)}`} />
+            <span className={`mt-1 h-8 w-1 shrink-0 border-l-[3px] ${tintFor(e.subject.code)}`} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-navy-900">{h.homework}</p>
               <p className="text-xs text-navy-400">

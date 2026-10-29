@@ -60,7 +60,7 @@ export function ReviewPanel({
     <div className="space-y-4">
       <p className="flex flex-wrap items-center gap-2 text-sm text-navy-700">
         <Clock3 className="h-4 w-4 text-navy-400" /> Turned in {when(submission.submittedAt)}
-        {late && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700 ring-1 ring-rose-100">Late</span>}
+        {late && <span className=" bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-700 ring-1 ring-rose-100">Late</span>}
       </p>
       {submission.files.length > 0 ? (
         <div className="space-y-2">

@@ -43,7 +43,7 @@ export default async function AdminSchedulePage({ searchParams }: { searchParams
         description={`${scheduled.length} sessions · ${hoursLabel(minutes)} of teaching this week. Select a session for attendance and the lesson record.`}
         actions={
           <Link href="/admin/enrollments/new" className="btn-primary">
-            <CalendarPlus className="h-4 w-4" /> New enrollment
+            <CalendarPlus className="h-4 w-4" /> Enroll a student
           </Link>
         }
       />
@@ -81,8 +81,8 @@ export default async function AdminSchedulePage({ searchParams }: { searchParams
                         <span className="flex-1 truncate text-sm font-medium text-navy-900">{fullName(t.user)}</span>
                         <span className={clsx("text-xs font-semibold tabular-nums", pct > 100 ? "text-rose-600" : "text-navy-500")}>{pct}%</span>
                       </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-navy-50">
-                        <div className={clsx("h-full rounded-full", tone)} style={{ width: `${Math.min(pct, 100)}%` }} />
+                      <div className="mt-2 h-1.5 overflow-hidden bg-navy-50">
+                        <div className={clsx("h-full", tone)} style={{ width: `${Math.min(pct, 100)}%` }} />
                       </div>
                       <p className="mt-1 text-[11px] tabular-nums text-navy-400">
                         {hoursLabel(mins)} of {t.weeklyCapacityHours} h

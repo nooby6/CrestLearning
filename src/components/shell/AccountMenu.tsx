@@ -52,7 +52,7 @@ export function AccountMenu({
           setOpen((v) => !v);
           setBlocked(null);
         }}
-        className="flex items-center gap-3 rounded-full py-1 pl-3 pr-1 transition hover:bg-navy-50"
+        className="flex items-center gap-3 py-1 pl-3 pr-1 transition hover:bg-navy-50"
         aria-haspopup="menu"
         aria-expanded={open}
       >

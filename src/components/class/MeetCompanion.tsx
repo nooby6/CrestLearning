@@ -57,7 +57,7 @@ export function MeetCompanion(p: {
 
       <main className="mx-auto grid max-w-5xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
         <section className="card p-6 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy-800 text-gold-400">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center bg-navy-800 text-gold-400">
             <Video className="h-6 w-6" />
           </span>
           {state === "upcoming" ? (

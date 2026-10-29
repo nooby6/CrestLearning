@@ -22,7 +22,7 @@ const STATE_STYLE: Record<WorkState, { cls: string; icon: typeof CheckCircle2 }>
 export function WorkStateBadge({ state, mark }: { state: WorkState; mark?: string | null }) {
   const s = STATE_STYLE[state];
   return (
-    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset", s.cls)}>
+    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset", s.cls)}>
       <s.icon className="h-3 w-3" />
       {WORK_STATE_LABEL[state]}
       {state === "reviewed" && mark ? ` · ${mark}` : ""}
@@ -35,9 +35,9 @@ export function KindIcon({ kind, size = "md" }: { kind: "DOCUMENT" | "WORKSHEET"
   return (
     <span
       className={clsx(
-        "flex shrink-0 items-center justify-center rounded-xl shadow-sm",
+        "flex shrink-0 items-center justify-center border",
         size === "lg" ? "h-12 w-12" : "h-10 w-10",
-        kind === "WORKSHEET" ? "bg-gradient-to-br from-gold-400 to-gold-600 text-white" : "bg-gradient-to-br from-navy-600 to-navy-800 text-gold-300",
+        kind === "WORKSHEET" ? "border-gold-300 bg-gold-50 text-gold-700" : "border-navy-200 bg-navy-50 text-navy-700",
       )}
     >
       <Icon className={size === "lg" ? "h-6 w-6" : "h-5 w-5"} strokeWidth={1.75} />

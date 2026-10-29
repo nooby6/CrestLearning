@@ -57,7 +57,7 @@ export function PhotoForm({ current, initials }: { current: string | null; initi
       <button
         type="button"
         onClick={() => input.current?.click()}
-        className="group relative h-32 w-32 overflow-hidden rounded-full bg-gradient-to-br from-navy-700 to-navy-900 shadow-lift ring-4 ring-white transition hover:ring-gold-200"
+        className="group relative h-32 w-32 overflow-hidden rounded-full bg-navy-800 ring-4 ring-white transition hover:ring-gold-200"
         aria-label="Choose a photo"
       >
         {preview ? (

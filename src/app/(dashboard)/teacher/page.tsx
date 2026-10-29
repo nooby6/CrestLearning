@@ -32,7 +32,7 @@ export default async function TeacherHome() {
       where: { id: me.id },
       include: {
         subjects: { include: { subject: true } },
-        _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+        enrollments: { where: { status: "ACTIVE" }, select: { studentId: true } },
       },
     }),
     prisma.sessionInstance.findMany({
@@ -107,7 +107,7 @@ export default async function TeacherHome() {
           icon={CalendarClock}
         />
         <StatCard tone="gold" label="This week" value={hoursLabel(weekMins)} hint={`of ${t?.weeklyCapacityHours ?? 0} h available`} icon={CalendarDays} href="/teacher/timetable" />
-        <StatCard tone="teal" label="Students" value={t?._count.enrollments ?? 0} hint="active enrollments" icon={Users} href="/teacher/students" />
+        <StatCard tone="teal" label="Students" value={new Set(t?.enrollments.map((e) => e.studentId) ?? []).size} hint="currently enrolled" icon={Users} href="/teacher/students" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -192,7 +192,7 @@ export default async function TeacherHome() {
       </div>
 
       <Link href="/teacher/resources" className="card card-link group mt-6 flex flex-col gap-4 overflow-hidden p-5 sm:flex-row sm:items-center">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-white shadow-sm">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center border border-gold-300 bg-gold-50 text-gold-700">
           <BookOpen className="h-6 w-6" strokeWidth={1.75} />
         </span>
         <div className="min-w-0 flex-1">

@@ -108,7 +108,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
                   {t.label}
                   <span
                     className={clsx(
-                      "rounded-full px-1.5 text-[11px] tabular-nums",
+                    " px-1.5 text-[11px] tabular-nums",
                       active ? "bg-navy-800 text-white" : "bg-navy-50 text-navy-500",
                     )}
                   >

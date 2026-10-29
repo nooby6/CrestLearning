@@ -60,7 +60,7 @@ export default async function AdminReportsPage({ searchParams }: { searchParams:
         </div>
         {digest.length === 0 ? (
           <div className="p-6">
-            <EmptyState icon={FileText} title="No enrollments this week" />
+            <EmptyState icon={FileText} title="No subjects running this week" />
           </div>
         ) : (
           <div className="overflow-x-auto">

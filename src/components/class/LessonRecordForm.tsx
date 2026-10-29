@@ -82,7 +82,7 @@ export function LessonRecordForm({
                 setSaved(false);
               }}
               className={clsx(
-                "rounded-full border px-3 py-1 text-xs font-medium transition",
+              " border px-3 py-1 text-xs font-medium transition",
                 attendance === a ? "border-navy-800 bg-navy-800 text-white" : "border-line bg-white text-navy-600 hover:border-navy-200",
               )}
             >

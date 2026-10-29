@@ -38,7 +38,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
           },
         },
       },
-      teacher: { include: { subjects: { include: { subject: true } }, _count: { select: { enrollments: true } } } },
+      teacher: { include: { subjects: { include: { subject: true } }, enrollments: { where: { status: "ACTIVE" }, select: { studentId: true } } } },
     },
   });
   if (!u) notFound();
@@ -87,7 +87,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
       prisma.submission.count({ where: { enrollment: where } }),
     ]);
     const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-    if (enr) impact.push(`${plural(enr, "enrollment", "enrollments")} with ${plural(held, "lesson held", "lessons held")}, attendance and lesson records`);
+    if (enr) impact.push(`${plural(enr, "subject", "subjects")} with ${plural(held, "lesson held", "lessons held")}, attendance and lesson records`);
     if (subs) impact.push(`${plural(subs, "turned-in worksheet", "turned-in worksheets")} and the comments on them`);
     if (u.role === "TEACHER" && enr) impact.push("Their students lose these subjects’ timetables — re-enroll them with another teacher first if needed");
   }
@@ -102,10 +102,10 @@ export default async function PersonPage({ params }: { params: { id: string } })
 
       {/* Header */}
       <div className="card mb-6 overflow-hidden">
-        <div className="crest-navy relative h-20 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-gold-400/80 after:to-transparent" />
+        <div className="crest-navy h-16 border-b-[3px] border-gold-500" />
         <div className="flex flex-col gap-4 px-6 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="relative z-10 -mt-8 shrink-0 rounded-full bg-white p-1 shadow-sm">
+            <div className="relative z-10 -mt-8 shrink-0 rounded-full bg-white p-1">
               <Avatar person={u} size="lg" />
             </div>
             <div className="pt-3">
@@ -196,8 +196,8 @@ export default async function PersonPage({ params }: { params: { id: string } })
               <Card
                 title="Subjects"
                 action={
-                  <Link href={`/admin/enrollments/new?student=${u.id}`} className="btn-ghost px-3 py-1.5 text-xs">
-                    <CalendarPlus className="h-3.5 w-3.5" /> Enroll
+                  <Link href={`/admin/enrollments/${u.id}`} className="btn-ghost px-3 py-1.5 text-xs">
+                    <CalendarPlus className="h-3.5 w-3.5" /> Manage enrollment
                   </Link>
                 }
                 bodyClassName="px-5 py-1"
@@ -240,7 +240,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
                   },
                   { label: "Payout rate", value: u.teacher.hourlyRate ? `${formatMoney(u.teacher.hourlyRate)} / hr` : "Not set" },
                   { label: "Weekly capacity", value: `${u.teacher.weeklyCapacityHours} hrs` },
-                  { label: "Students", value: u.teacher._count.enrollments },
+                  { label: "Students", value: new Set(u.teacher.enrollments.map((e) => e.studentId)).size },
                 ]}
               />
             </Card>

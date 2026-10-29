@@ -123,7 +123,7 @@ export async function createEnrollment(input: EnrollmentInputT): Promise<Result<
   return {
     ok: true,
     data: { id: enrollment.id, sessions },
-    message: sessions ? `Enrolled · ${sessions} sessions scheduled` : "Enrolled",
+    message: sessions ? `Subject added · ${sessions} lessons scheduled` : "Subject added",
   };
 }
 
@@ -132,7 +132,7 @@ export async function addSlot(enrollmentId: number, input: SlotInputT, force = f
   const s = SlotInput.safeParse(input);
   if (!s.success) return { ok: false, error: "Check the day, time and length." };
   const e = await prisma.enrollment.findUnique({ where: { id: enrollmentId } });
-  if (!e) return { ok: false, error: "Enrollment not found." };
+  if (!e) return { ok: false, error: "Subject not found." };
   if (e.status !== "ACTIVE") return { ok: false, error: "Reactivate the enrollment before adding times." };
 
   if (!force) {
@@ -166,7 +166,7 @@ export async function removeSlot(slotId: number): Promise<Result> {
 export async function setEnrollmentStatus(id: number, status: "ACTIVE" | "PAUSED" | "ENDED"): Promise<Result> {
   await assertRole("admin");
   const e = await prisma.enrollment.findUnique({ where: { id }, include: { slots: { where: { active: true } } } });
-  if (!e) return { ok: false, error: "Enrollment not found." };
+  if (!e) return { ok: false, error: "Subject not found." };
 
   if (status === "ACTIVE") {
     await prisma.enrollment.update({ where: { id }, data: { status, endDate: null } });

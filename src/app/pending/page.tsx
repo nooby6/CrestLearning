@@ -9,7 +9,7 @@ export default function PendingPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-ivory px-6">
       <Wordmark className="mb-10" />
       <div className="card w-full max-w-md p-8 text-center">
-        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gold-50 text-gold-600">
+        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center bg-gold-50 text-gold-600">
           <ShieldOff className="h-6 w-6" strokeWidth={1.75} />
         </span>
         <h1 className="font-display text-lg font-semibold text-navy-900">This account is suspended</h1>

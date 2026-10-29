@@ -77,7 +77,7 @@ export default async function ParentHome() {
             const latest = latestFor(s.id);
             return (
               <article key={s.id} className="card flex flex-col overflow-hidden">
-                <header className="flex items-center gap-4 border-b border-line bg-gradient-to-r from-navy-50/70 to-white px-5 py-4">
+                <header className="flex items-center gap-4 border-b border-line bg-ivory/60 px-5 py-4">
                   <Avatar person={s.user} size="lg" />
                   <div className="min-w-0 flex-1">
                     <h2 className="font-display text-lg font-semibold text-navy-900">{fullName(s.user)}</h2>

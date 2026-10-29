@@ -261,8 +261,8 @@ export async function StaffNewResourcePage({ portal, me, enrollment, request }: 
       <PageHeader eyebrow="Resources" title="Share a document or worksheet" description="Students see it in their portal straight away; parents can follow along." />
       <div className="max-w-3xl">
         {options.length === 0 ? (
-          <EmptyState icon={Users} title={portal === "admin" ? "No enrollments yet" : "You have no students yet"}>
-            {portal === "admin" ? "Enroll a student in a subject first." : "Once the office enrolls students with you, you can share work with them."}
+          <EmptyState icon={Users} title={portal === "admin" ? "No students enrolled yet" : "You have no students yet"}>
+            {portal === "admin" ? "Enroll a student and add their subjects first." : "Once the office enrolls students with you, you can share work with them."}
           </EmptyState>
         ) : (
           <ResourceForm
@@ -314,8 +314,8 @@ export async function StaffResourceDetail({ portal, me, id, student }: { portal:
       return (a.state ? order[a.state] : 0) - (b.state ? order[b.state] : 0) || a.e.student.user.firstName.localeCompare(b.e.student.user.firstName);
     });
 
-  const selectedId = Number(student) || rows[0]?.e.id;
-  const sel = rows.find((x) => x.e.id === selectedId);
+  const sel = rows.find((x) => x.e.id === Number(student)) ?? rows[0];
+  const selectedId = sel?.e.id;
   const thread = sel ? await threadFor(sel.e.id, id) : [];
   const due = r.kind === "WORKSHEET" ? dueLabel(r.dueDate) : null;
   const base = `/${portal}/resources`;
@@ -391,7 +391,7 @@ export async function StaffResourceDetail({ portal, me, id, student }: { portal:
                     scroll={false}
                     className={clsx(
                       "flex items-center gap-3 px-5 py-3 transition",
-                      e.id === selectedId ? "bg-gradient-to-r from-gold-50 to-transparent shadow-[inset_3px_0_0_#C69A3A]" : "hover:bg-ivory",
+                      e.id === selectedId ? "bg-navy-50 shadow-[inset_3px_0_0_#0A1D4F]" : "hover:bg-ivory",
                     )}
                   >
                     <Avatar person={e.student.user} size="sm" />

@@ -113,7 +113,7 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
     <Link
       href={href}
       className={clsx(
-        "rounded-full border px-3 py-1 text-xs font-medium transition",
+      " border px-3 py-1 text-xs font-medium transition",
         active ? "border-navy-800 bg-navy-800 text-white" : "border-line bg-white text-navy-600 hover:border-navy-200",
       )}
     >

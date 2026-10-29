@@ -72,7 +72,7 @@ function Row({ sessionId, row, canEdit }: { sessionId: number; row: AttendanceRo
                 aria-checked={status === s}
                 onClick={() => setStatus(s)}
                 className={clsx(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition",
+                " border px-3 py-1 text-xs font-medium transition",
                   status === s ? "border-navy-800 bg-navy-800 text-white" : "border-line bg-white text-navy-600 hover:border-navy-200",
                 )}
               >

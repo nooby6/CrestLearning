@@ -18,11 +18,12 @@ export default async function AdminOverview() {
 
   await finaliseEndedSessions();
   const insightsP = adminInsights();
-  const [students, parents, teachers, enrollments, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
+  const [students, parents, teachers, enrolledStudents, subjectsTaught, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
     prisma.teacher.count({ where: { user: { active: true } } }),
-    prisma.enrollment.count({ where: { status: "ACTIVE" } }),
+    prisma.student.count({ where: { user: { active: true }, enrollments: { some: { status: "ACTIVE" } } } }),
+    prisma.enrollment.count({ where: { status: "ACTIVE", student: { user: { active: true } } } }),
     prisma.student.findMany({
       where: { guardians: { none: {} }, user: { active: true } },
       include: { user: true, level: true },
@@ -66,7 +67,7 @@ export default async function AdminOverview() {
       <PageHeader
         eyebrow="Administration"
         title={`${greeting()}, ${me.firstName}`}
-        description="Summary of accounts, enrollments and items requiring attention."
+        description="Students, teaching load and anything that needs the office’s attention."
         actions={
           <Link href="/admin/people/new" className="btn-primary">
             <UserPlus className="h-4 w-4" /> Add person
@@ -75,10 +76,10 @@ export default async function AdminOverview() {
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <StatCard label="Students" value={students} icon={GraduationCap} href="/admin/people?role=student" />
-        <StatCard tone="gold" label="Parents" value={parents} icon={HeartHandshake} href="/admin/people?role=parent" />
+        <StatCard label="Students enrolled" value={enrolledStudents} hint={`${students} student ${students === 1 ? "account" : "accounts"}`} icon={GraduationCap} href="/admin/enrollments" />
+        <StatCard tone="sky" label="Subjects taught" value={subjectsTaught} hint="Across enrolled students" icon={UsersRound} href="/admin/enrollments" />
         <StatCard tone="teal" label="Teachers" value={teachers} icon={Presentation} href="/admin/people?role=teacher" />
-        <StatCard tone="sky" label="Active enrollments" value={enrollments} hint="Teacher × student × subject" icon={UsersRound} href="/admin/enrollments" />
+        <StatCard tone="gold" label="Parents" value={parents} icon={HeartHandshake} href="/admin/people?role=parent" />
       </div>
 
 
@@ -105,11 +106,11 @@ export default async function AdminOverview() {
       </div>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
-        <Card title="Enrollments by subject" description="Active teacher × student × subject enrollments" action={<Link href="/admin/enrollments" className="text-xs font-medium text-gold-600 hover:underline">View all</Link>}>
+        <Card title="Students per subject" description="Enrolled students taking each subject" action={<Link href="/admin/enrollments" className="text-xs font-medium text-gold-600 hover:underline">View all</Link>}>
           {subjectBars.length ? (
             <HBars data={subjectBars.slice(0, 8).map((b) => ({ ...b, display: String(b.value) }))} />
           ) : (
-            <ChartEmpty>Add an enrollment to see which subjects are in demand.</ChartEmpty>
+            <ChartEmpty>Enroll a student to see which subjects are in demand.</ChartEmpty>
           )}
         </Card>
         <Card title="Teacher load" description="Booked weekly lesson time against each teacher’s capacity">

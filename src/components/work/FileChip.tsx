@@ -34,7 +34,7 @@ export function FileChip({ file, className, action }: { file: FileInfo; classNam
   return (
     <div
       className={clsx(
-        "group flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-2.5 transition hover:border-gold-300 hover:shadow-sm",
+        "group flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-2.5 transition-colors hover:border-navy-400",
         className,
       )}
     >

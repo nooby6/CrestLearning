@@ -7,7 +7,7 @@ import { AccountMenu } from "./AccountMenu";
 export function Topbar({ user, portal, portals }: { user: CurrentUser; portal: RoleSlug; portals: RoleSlug[] }) {
   const dev = devImpersonation();
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md print:hidden">
+    <header className="sticky top-0 z-20 border-b border-line bg-white print:hidden">
       <div className="flex h-16 items-center justify-end gap-4 px-4 pl-16 sm:px-6 lg:px-8">
         <Link href="/" className="mr-auto lg:hidden" aria-label="Crest Learning home">
           <Wordmark />
@@ -24,7 +24,6 @@ export function Topbar({ user, portal, portals }: { user: CurrentUser; portal: R
           switchTo={portals.filter((p) => p !== portal).map((p) => ({ href: `/${p}`, label: `${ROLE_LABEL[p]} portal` }))}
         />
       </div>
-      <div aria-hidden className="h-px bg-gradient-to-r from-line via-gold-300/70 to-line" />
     </header>
   );
 }

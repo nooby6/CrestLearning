@@ -38,9 +38,9 @@ export function RequestWorksheet({ options, label = "Request more worksheets" }:
       {open &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" role="dialog" aria-modal="true" aria-label={label}>
-            <div className="fade-in absolute inset-0 bg-navy-950/40 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+            <div className="fade-in absolute inset-0 bg-navy-950/40" onClick={() => setOpen(false)} />
             <form
-              className="fade-in relative w-full max-w-md rounded-2xl bg-white p-5 text-navy-900 shadow-2xl"
+              className="fade-in relative w-full max-w-md border border-line bg-white p-5 text-navy-900 shadow-lift"
               onSubmit={(e) => {
                 e.preventDefault();
                 send();
@@ -54,7 +54,7 @@ export function RequestWorksheet({ options, label = "Request more worksheets" }:
               >
                 <X className="h-4 w-4" />
               </button>
-              <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gold-50 text-gold-600">
+              <span className="mb-3 flex h-10 w-10 items-center justify-center bg-gold-50 text-gold-600">
                 <Hand className="h-5 w-5" />
               </span>
               <h2 className="font-display text-base font-semibold">Ask for more worksheets</h2>

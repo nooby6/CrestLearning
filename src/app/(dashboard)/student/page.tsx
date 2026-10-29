@@ -61,7 +61,6 @@ export default async function StudentHome() {
         <div className="space-y-6 lg:col-span-2">
           {next ? (
             <section className="card relative overflow-hidden bg-navy-800 px-6 py-6 text-white">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border-[10px] border-white/[0.05]" />
               <p className="eyebrow text-gold-400">Next lesson</p>
               <h2 className="mt-2 font-display text-2xl font-semibold">{next.enrollment.subject.name}</h2>
               <p className="mt-1 text-sm text-navy-200">

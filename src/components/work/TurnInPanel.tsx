@@ -33,9 +33,9 @@ const when = (iso: string) =>
 export function Feedback({ s }: { s: SubmissionView }) {
   if (s.status !== "REVIEWED") return null;
   return (
-    <div className="relative overflow-hidden rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4">
+    <div className="relative overflow-hidden border border-emerald-300 border-l-[3px] border-l-emerald-600 bg-emerald-50/60 p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-emerald-300 bg-white text-emerald-700">
           <Award className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">

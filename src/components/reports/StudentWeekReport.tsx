@@ -20,7 +20,7 @@ export function StudentWeekReport({
 
   return (
     <section className="card overflow-hidden break-inside-avoid print:shadow-none">
-      <header className="flex flex-wrap items-center gap-4 border-b border-line bg-gradient-to-r from-navy-50/70 to-white px-5 py-4">
+      <header className="flex flex-wrap items-center gap-4 border-b border-line bg-ivory/60 px-5 py-4">
         <Avatar person={student} size="lg" />
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-lg font-semibold text-navy-900">{fullName(student)}</h2>
@@ -46,7 +46,7 @@ export function StudentWeekReport({
               <article key={e.id} className="grid gap-6 px-5 py-5 lg:grid-cols-[1.1fr_1fr]">
                 <div>
                   <div className="mb-3 flex items-center gap-2">
-                    <span className={`h-5 w-1 rounded-full border-l-[3px] ${tintFor(e.subject.code)}`} />
+                    <span className={`h-5 w-1 border-l-[3px] ${tintFor(e.subject.code)}`} />
                     <h3 className="font-display text-base font-semibold text-navy-900">{e.subject.name}</h3>
                     <span className="text-sm text-navy-400">· {fullName(e.teacher.user)}</span>
                   </div>
@@ -70,7 +70,7 @@ export function StudentWeekReport({
                           Effort and engagement
                           <span className="flex gap-0.5" aria-label={`${r.effort} of 5`}>
                             {[1, 2, 3, 4, 5].map((i) => (
-                              <span key={i} className={`h-1.5 w-4 rounded-full ${i <= r.effort! ? "bg-gold-500" : "bg-navy-100"}`} />
+                              <span key={i} className={`h-1.5 w-4 ${i <= r.effort! ? "bg-gold-500" : "bg-navy-100"}`} />
                             ))}
                           </span>
                           <span className="font-medium text-navy-700">{EFFORT_LABEL[r.effort]}</span>

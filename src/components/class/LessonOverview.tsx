@@ -25,7 +25,7 @@ export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "stude
           <ul className="divide-y divide-line rounded-lg border border-line">
             {s.today.map((x) => (
               <li key={x.id} className={clsx("flex items-center gap-3 px-3 py-2.5", x.status === "CANCELLED" && "opacity-60")}>
-                <span className={`h-8 w-1 shrink-0 rounded-full border-l-[3px] ${tintFor(x.enrollment.subject.code)}`} />
+                <span className={`h-8 w-1 shrink-0 border-l-[3px] ${tintFor(x.enrollment.subject.code)}`} />
                 <div className="w-[92px] shrink-0 text-sm font-semibold tabular-nums text-navy-900">{formatTimeRange(x.startsAt, x.endsAt)}</div>
                 <div className="min-w-0 flex-1">
                   <p className={clsx("truncate text-sm font-medium text-navy-900", x.status === "CANCELLED" && "line-through")}>{x.enrollment.subject.name}</p>

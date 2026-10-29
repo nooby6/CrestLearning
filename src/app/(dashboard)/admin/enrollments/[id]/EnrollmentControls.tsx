@@ -114,16 +114,16 @@ export function StatusControls({ id, status }: { id: number; status: "ACTIVE" | 
       {pending && <Loader2 className="h-4 w-4 animate-spin self-center text-navy-300" />}
       {status === "ACTIVE" && (
         <>
-          <button className="btn-ghost" disabled={pending} onClick={() => go("PAUSED", "Pause this enrollment? Upcoming sessions are removed until you resume.")}>
+          <button className="btn-ghost px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("PAUSED", "Pause this subject? Its upcoming lessons are removed until you resume.")}>
             <PauseCircle className="h-4 w-4" /> Pause
           </button>
-          <button className="btn-danger" disabled={pending} onClick={() => go("ENDED", "End this enrollment? Weekly times stop today and upcoming sessions are removed. History is kept.")}>
+          <button className="btn-danger px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("ENDED", "End this subject for the student? Its weekly times stop today and upcoming lessons are removed. History is kept.")}>
             <StopCircle className="h-4 w-4" /> End
           </button>
         </>
       )}
       {status === "PAUSED" && (
-        <button className="btn-primary" disabled={pending} onClick={() => go("ACTIVE")}>
+        <button className="btn-primary px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("ACTIVE")}>
           <PlayCircle className="h-4 w-4" /> Resume
         </button>
       )}

@@ -161,7 +161,7 @@ export function CreatePersonForm({
                 className={clsx(
                   "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition",
                   active
-                    ? "border-navy-800 bg-navy-800 text-white shadow-lift"
+                    ? "border-navy-800 bg-navy-800 text-white"
                     : "border-line bg-white text-navy-800 hover:border-navy-200",
                 )}
               >
@@ -169,7 +169,7 @@ export function CreatePersonForm({
                 <span className="font-display text-sm font-semibold">{c.label}</span>
                 <span className={clsx("text-xs", active ? "text-navy-200" : "text-navy-400")}>{c.hint}</span>
                 {active && (
-                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-gold-500 text-navy-950">
+                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center bg-gold-500 text-navy-950">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </span>
                 )}
@@ -281,7 +281,7 @@ export function CreatePersonForm({
 
       {role === "TEACHER" && (
         <Section title="Teaching">
-          <Field label="Subjects" optional hint="Enrollments in Module 2 are limited to these subjects.">
+          <Field label="Subjects" optional hint="Students can only be given this teacher for these subjects.">
             <div className="flex flex-wrap gap-2">
               {subjects.map((s) => {
                 const on = f.subjectIds.includes(s.id);
@@ -294,7 +294,7 @@ export function CreatePersonForm({
                       set("subjectIds", on ? f.subjectIds.filter((x) => x !== s.id) : [...f.subjectIds, s.id])
                     }
                     className={clsx(
-                      "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                    " border px-3 py-1.5 text-xs font-medium transition",
                       on
                         ? "border-navy-800 bg-navy-800 text-white"
                         : "border-line bg-white text-navy-600 hover:border-navy-200",

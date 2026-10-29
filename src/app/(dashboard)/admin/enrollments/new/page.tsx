@@ -7,7 +7,7 @@ import { weeklyLoadByTeacher } from "@/lib/sessions";
 import { PageHeader } from "@/components/ui/primitives";
 import { EnrollmentForm } from "./EnrollmentForm";
 
-export const metadata = { title: "New enrollment" };
+export const metadata = { title: "Enroll a student" };
 
 export default async function NewEnrollmentPage({ searchParams }: { searchParams: { student?: string } }) {
   await requireRole("admin");
@@ -27,18 +27,23 @@ export default async function NewEnrollmentPage({ searchParams }: { searchParams
     weeklyLoadByTeacher(),
   ]);
 
+  const preset = students.find((s) => s.id === searchParams.student);
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/enrollments" className="mb-4 inline-flex items-center gap-1 text-sm text-navy-400 hover:text-navy-700">
-        <ChevronLeft className="h-4 w-4" /> Enrollments
+      <Link href={preset ? `/admin/enrollments/${preset.id}` : "/admin/enrollments"} className="mb-4 inline-flex items-center gap-1 text-sm text-navy-400 hover:text-navy-700">
+        <ChevronLeft className="h-4 w-4" /> {preset ? `${preset.user.firstName}’s enrollment` : "Enrollments"}
       </Link>
       <PageHeader
-        eyebrow="Scheduling"
-        title="New enrollment"
-        description="One student, one subject, one teacher — plus the weekly times they meet. Sessions for the next six weeks are created straight away."
+        eyebrow="Enrollments"
+        title={preset ? `Add a subject for ${preset.user.firstName}` : "Enroll a student"}
+        description={
+          preset
+            ? "Choose the subject, the teacher and the weekly times. Lessons for the next six weeks are scheduled straight away."
+            : "Choose the student, then their first subject, teacher and weekly times. Add more subjects from the student’s enrollment page."
+        }
       />
       <EnrollmentForm
-        initialStudentId={students.some((s) => s.id === searchParams.student) ? searchParams.student : undefined}
+        initialStudentId={preset?.id}
         subjects={subjects}
         levels={levels}
         students={students.map((s) => ({

@@ -8,6 +8,18 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./src/**/*.{ts,tsx,mdx}"],
   theme: {
+    // Square corners everywhere. `full` stays for avatars, toggles and status dots.
+    borderRadius: {
+      none: "0",
+      sm: "0",
+      DEFAULT: "0",
+      md: "0",
+      lg: "0",
+      xl: "0",
+      "2xl": "0",
+      "3xl": "0",
+      full: "9999px",
+    },
     extend: {
       colors: {
         navy: {
@@ -35,8 +47,10 @@ const config: Config = {
           800: "#5F451A",
           900: "#3E2D12",
         },
-        ivory: "#F8F6F1",
-        line: "#E8E3D8",
+        // Neutral, cool surfaces and a visible hairline — crisp rather than warm.
+        ivory: "#F4F6F9", // page background / table headers
+        line: "#D5DBE5", // 1px borders
+        "line-strong": "#B9C2D3",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -46,8 +60,8 @@ const config: Config = {
         crest: "0.22em", // the wide tracking of "LEARNING" in the logo
       },
       boxShadow: {
-        card: "0 1px 2px rgba(10,29,79,0.04), 0 1px 1px rgba(10,29,79,0.03)",
-        lift: "0 10px 30px -12px rgba(10,29,79,0.25)",
+        card: "none",
+        lift: "0 6px 16px -6px rgba(10,29,79,0.22)", // menus and dialogs only
       },
     },
   },

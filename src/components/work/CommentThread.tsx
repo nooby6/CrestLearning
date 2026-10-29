@@ -116,7 +116,7 @@ export function CommentThread({
                     {request && (
                       <span
                         className={clsx(
-                          "inline-flex items-center gap-1 rounded-full px-1.5 py-px font-semibold",
+                        "inline-flex items-center gap-1 px-1.5 py-px font-semibold",
                           c.resolvedAt ? "bg-emerald-100 text-emerald-700" : "bg-gold-200/70 text-gold-800",
                         )}
                       >
@@ -190,7 +190,7 @@ export function CommentThread({
                 onClick={() => setAsRequest((v) => !v)}
                 aria-pressed={asRequest}
                 className={clsx(
-                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition",
+                "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium transition",
                   asRequest ? "bg-gold-500 text-white" : "bg-gold-50 text-gold-800 hover:bg-gold-100",
                 )}
               >

@@ -1,170 +1,209 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { CalendarPlus, Link2 } from "lucide-react";
-import type { EnrollmentStatus, Prisma } from "@prisma/client";
+import { GraduationCap, UserPlus, VideoOff } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName } from "@/lib/format";
+import { curriculumLabel } from "@/lib/roles";
 import { formatSlot, formatTime, weekdayIso } from "@/lib/schedule";
-import { Avatar, Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { Avatar, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 export const metadata = { title: "Enrollments" };
 
-const TABS: { status: EnrollmentStatus; label: string }[] = [
-  { status: "ACTIVE", label: "Active" },
-  { status: "PAUSED", label: "Paused" },
-  { status: "ENDED", label: "Ended" },
-];
+/**
+ * One enrollment = one student. Their subjects (each with a teacher and weekly times) sit underneath.
+ * A student is "enrolled" while at least one subject is active.
+ */
+const TABS = [
+  { key: "enrolled", label: "Enrolled" },
+  { key: "paused", label: "Paused" },
+  { key: "none", label: "Not enrolled" },
+] as const;
+type Tab = (typeof TABS)[number]["key"];
 
-export default async function EnrollmentsPage({ searchParams }: { searchParams: { status?: string; q?: string } }) {
+export default async function EnrollmentsPage({ searchParams }: { searchParams: { tab?: string; q?: string } }) {
   await requireRole("admin");
-  const status = (TABS.find((t) => t.status === searchParams.status)?.status ?? "ACTIVE") as EnrollmentStatus;
-  const q = searchParams.q?.trim();
+  const tab: Tab = TABS.find((t) => t.key === searchParams.tab)?.key ?? "enrolled";
+  const q = searchParams.q?.trim().toLowerCase() ?? "";
+  const now = new Date();
 
-  const nameMatch = (path: "student" | "teacher"): Prisma.EnrollmentWhereInput => ({
-    [path]: {
-      user: {
-        OR: [
-          { firstName: { contains: q, mode: "insensitive" } },
-          { lastName: { contains: q, mode: "insensitive" } },
-        ],
+  const students = await prisma.student.findMany({
+    where: { user: { active: true } },
+    include: {
+      user: true,
+      level: true,
+      enrollments: {
+        where: { status: { in: ["ACTIVE", "PAUSED"] } },
+        include: {
+          subject: true,
+          teacher: { include: { user: true } },
+          slots: { where: { active: true } },
+          sessions: { where: { status: "SCHEDULED", startsAt: { gt: now } }, orderBy: { startsAt: "asc" }, take: 1 },
+        },
+        orderBy: { subject: { name: "asc" } },
       },
     },
+    orderBy: [{ user: { firstName: "asc" } }, { user: { lastName: "asc" } }],
   });
-  const search: Prisma.EnrollmentWhereInput = q
-    ? { OR: [nameMatch("student"), nameMatch("teacher"), { subject: { name: { contains: q, mode: "insensitive" } } }] }
-    : {};
 
-  const now = new Date();
-  const [rows, counts] = await Promise.all([
-    prisma.enrollment.findMany({
-      where: { status, ...search },
-      include: {
-        student: { include: { user: true } },
-        teacher: { include: { user: true } },
-        subject: true,
-        level: true,
-        slots: { where: { active: true } },
-        sessions: {
-          where: { status: "SCHEDULED", startsAt: { gt: now } },
-          orderBy: { startsAt: "asc" },
-          take: 1,
-        },
-      },
-      orderBy: [{ student: { user: { firstName: "asc" } } }, { subject: { name: "asc" } }],
-    }),
-    prisma.enrollment.groupBy({ by: ["status"], where: search, _count: true }),
-  ]);
-  const count = (s: EnrollmentStatus) => counts.find((c) => c.status === s)?._count ?? 0;
+  const tabOf = (s: (typeof students)[number]): Tab =>
+    s.enrollments.some((e) => e.status === "ACTIVE") ? "enrolled" : s.enrollments.length ? "paused" : "none";
+  const matches = (s: (typeof students)[number]) =>
+    !q ||
+    fullName(s.user).toLowerCase().includes(q) ||
+    s.enrollments.some((e) => e.subject.name.toLowerCase().includes(q) || fullName(e.teacher.user).toLowerCase().includes(q));
+
+  const searched = students.filter(matches);
+  const rows = searched.filter((s) => tabOf(s) === tab);
+  const count = (t: Tab) => searched.filter((s) => tabOf(s) === t).length;
+
+  const enrolled = students.filter((s) => tabOf(s) === "enrolled");
+  const subjectsTaught = enrolled.reduce((a, s) => a + s.enrollments.filter((e) => e.status === "ACTIVE").length, 0);
+  const teachers = new Set(enrolled.flatMap((s) => s.enrollments.filter((e) => e.status === "ACTIVE").map((e) => e.teacherId))).size;
 
   return (
     <>
       <PageHeader
         eyebrow="Administration"
         title="Enrollments"
-        description="Who teaches whom, which subject, and when. Each weekly time creates sessions automatically."
+        description="Every student currently enrolled, with the subjects they take, who teaches each one and when."
         actions={
           <Link href="/admin/enrollments/new" className="btn-primary">
-            <CalendarPlus className="h-4 w-4" /> New enrollment
+            <UserPlus className="h-4 w-4" /> Enroll a student
           </Link>
         }
       />
+
+      <dl className="mb-6 grid grid-cols-3 border border-line bg-white">
+        {[
+          { label: "Students enrolled", value: enrolled.length },
+          { label: "Subjects taught", value: subjectsTaught },
+          { label: "Teachers", value: teachers },
+        ].map((x, i) => (
+          <div key={x.label} className={clsx("px-5 py-4", i > 0 && "border-l border-line")}>
+            <dt className="text-[11px] font-semibold uppercase tracking-wider text-navy-400">{x.label}</dt>
+            <dd className="mt-1 font-display text-2xl font-semibold tabular-nums text-navy-900">{x.value}</dd>
+          </div>
+        ))}
+      </dl>
 
       <div className="card">
         <div className="flex flex-col gap-3 border-b border-line px-4 pt-3 sm:flex-row sm:items-end sm:justify-between sm:px-5">
           <nav className="-mb-px flex gap-1">
             {TABS.map((t) => {
-              const active = t.status === status;
-              const qs = new URLSearchParams({ ...(t.status !== "ACTIVE" && { status: t.status }), ...(q && { q }) }).toString();
+              const active = t.key === tab;
+              const qs = new URLSearchParams({ ...(t.key !== "enrolled" && { tab: t.key }), ...(q && { q }) }).toString();
               return (
                 <Link
-                  key={t.status}
+                  key={t.key}
                   href={`/admin/enrollments${qs ? `?${qs}` : ""}`}
                   className={clsx(
-                    "flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition",
-                    active ? "border-gold-500 font-medium text-navy-900" : "border-transparent text-navy-400 hover:text-navy-700",
+                    "flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors",
+                    active ? "border-navy-800 font-medium text-navy-900" : "border-transparent text-navy-400 hover:text-navy-700",
                   )}
                 >
                   {t.label}
-                  <span className={clsx("rounded-full px-1.5 text-[11px] tabular-nums", active ? "bg-navy-800 text-white" : "bg-navy-50 text-navy-500")}>
-                    {count(t.status)}
-                  </span>
+                  <span className={clsx("px-1.5 text-[11px] tabular-nums", active ? "bg-navy-800 text-white" : "bg-navy-50 text-navy-500")}>{count(t.key)}</span>
                 </Link>
               );
             })}
           </nav>
           <div className="pb-3">
-            <SearchInput placeholder="Student, teacher or subject" />
+            <SearchInput placeholder="Student, subject or teacher" />
           </div>
         </div>
 
         {rows.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              icon={Link2}
-              title={q ? `Nothing matches “${q}”` : status === "ACTIVE" ? "No active enrollments yet" : `No ${status.toLowerCase()} enrollments`}
+              icon={GraduationCap}
+              title={q ? `Nothing matches “${q}”` : tab === "enrolled" ? "No students enrolled yet" : tab === "paused" ? "No paused students" : "Every student is enrolled"}
               action={
-                status === "ACTIVE" && !q ? (
-                  <Link href="/admin/enrollments/new" className="btn-gold">
-                    <CalendarPlus className="h-4 w-4" /> New enrollment
+                tab === "enrolled" && !q ? (
+                  <Link href="/admin/enrollments/new" className="btn-primary">
+                    <UserPlus className="h-4 w-4" /> Enroll a student
                   </Link>
                 ) : undefined
               }
             >
-              {status === "ACTIVE" && !q ? "Pair a student with a teacher for a subject, then set their weekly times." : undefined}
+              {tab === "enrolled" && !q ? "Choose a student, then add the subjects they take, their teachers and weekly times." : undefined}
             </EmptyState>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-navy-400">
-                  <th className="px-5 py-3 font-semibold">Student</th>
-                  <th className="px-3 py-3 font-semibold">Subject</th>
-                  <th className="hidden px-3 py-3 font-semibold md:table-cell">Teacher</th>
-                  <th className="hidden px-3 py-3 font-semibold lg:table-cell">Weekly</th>
-                  <th className="px-5 py-3 text-right font-semibold">{status === "ACTIVE" ? "Next session" : "Since"}</th>
+                <tr className="border-b border-line bg-ivory text-left text-[11px] font-semibold uppercase tracking-wider text-navy-500">
+                  <th className="w-[26%] px-5 py-2.5">Student</th>
+                  <th className="px-3 py-2.5">Subjects · teacher · weekly times</th>
+                  <th className="hidden w-[16%] px-5 py-2.5 text-right lg:table-cell">Next lesson</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
-                {rows.map((e) => {
-                  const next = e.sessions[0];
-                  const slots = [...e.slots].sort((a, b) => weekdayIso(a.weekday) - weekdayIso(b.weekday) || a.startTime.localeCompare(b.startTime));
+              <tbody>
+                {rows.map((s) => {
+                  const next = s.enrollments
+                    .flatMap((e) => e.sessions.map((x) => ({ ...x, subject: e.subject.name })))
+                    .sort((a, b) => +a.startsAt - +b.startsAt)[0];
                   return (
-                    <tr key={e.id} className="group cursor-pointer transition hover:bg-ivory">
-                      <td className="px-5 py-3">
-                        <Link href={`/admin/enrollments/${e.id}`} className="flex items-center gap-3">
-                          <Avatar person={e.student.user} size="sm" />
-                          <span className="font-medium text-navy-900 group-hover:underline group-hover:decoration-gold-400 group-hover:underline-offset-4">
-                            {fullName(e.student.user)}
+                    <tr key={s.id} className="group border-b border-line align-top last:border-b-0 hover:bg-ivory/70">
+                      <td className="px-5 py-3.5">
+                        <Link href={`/admin/enrollments/${s.id}`} className="flex items-center gap-3">
+                          <Avatar person={s.user} size="sm" />
+                          <span className="min-w-0">
+                            <span className="block font-medium text-navy-900 group-hover:underline group-hover:underline-offset-4">{fullName(s.user)}</span>
+                            <span className="block truncate text-xs text-navy-400">
+                              {[curriculumLabel(s.curriculum), s.level?.name].filter((x) => x && x !== "—").join(" · ") || "Level not set"}
+                            </span>
+                            {!s.meetingUrl && s.enrollments.length > 0 && (
+                              <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
+                                <VideoOff className="h-3 w-3" /> No lesson link
+                              </span>
+                            )}
                           </span>
                         </Link>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="block font-medium text-navy-800">{e.subject.name}</span>
-                        {e.level && <span className="block text-xs text-navy-400">{e.level.name}</span>}
-                      </td>
-                      <td className="hidden px-3 py-3 text-navy-600 md:table-cell">{fullName(e.teacher.user)}</td>
-                      <td className="hidden px-3 py-3 lg:table-cell">
-                        {slots.length ? (
-                          <span className="flex flex-wrap gap-1">
-                            {slots.map((s) => (
-                              <Badge key={s.id} tone="slate">
-                                {formatSlot(s)}
-                              </Badge>
-                            ))}
-                          </span>
+                        {s.enrollments.length === 0 ? (
+                          <Link href={`/admin/enrollments/new?student=${s.id}`} className="text-xs font-medium text-navy-500 hover:text-navy-900">
+                            No subjects — add the first →
+                          </Link>
                         ) : (
-                          <span className="text-xs text-amber-600">No weekly time</span>
+                          <ul className="divide-y divide-line/70 border border-line">
+                            {s.enrollments.map((e) => {
+                              const slots = [...e.slots].sort((a, b) => weekdayIso(a.weekday) - weekdayIso(b.weekday) || a.startTime.localeCompare(b.startTime));
+                              return (
+                                <li key={e.id}>
+                                  <Link
+                                    href={`/admin/enrollments/${s.id}#subject-${e.id}`}
+                                    className="grid grid-cols-[minmax(110px,1fr)_minmax(110px,1fr)_minmax(0,1.6fr)] items-center gap-3 bg-white px-3 py-2 hover:bg-ivory"
+                                  >
+                                    <span className="truncate font-medium text-navy-900">
+                                      {e.subject.name}
+                                      {e.status === "PAUSED" && <span className="ml-1.5 text-[11px] font-normal text-amber-700">paused</span>}
+                                    </span>
+                                    <span className="truncate text-navy-600">{fullName(e.teacher.user)}</span>
+                                    <span className="truncate text-xs tabular-nums text-navy-500">
+                                      {slots.length ? slots.map((x) => formatSlot(x)).join(" · ") : <span className="text-amber-700">No weekly time</span>}
+                                    </span>
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-right tabular-nums text-navy-600">
-                        {status !== "ACTIVE"
-                          ? formatDate(e.updatedAt)
-                          : next
-                            ? `${formatDate(next.startsAt, { weekday: "short", year: undefined })} · ${formatTime(next.startsAt)}`
-                            : "—"}
+                      <td className="hidden px-5 py-3.5 text-right tabular-nums text-navy-600 lg:table-cell">
+                        {next ? (
+                          <>
+                            <span className="block">{formatDate(next.startsAt, { weekday: "short", year: undefined })}</span>
+                            <span className="block text-xs text-navy-400">
+                              {formatTime(next.startsAt)} · {next.subject}
+                            </span>
+                          </>
+                        ) : (
+                          "—"
+                        )}
                       </td>
                     </tr>
                   );

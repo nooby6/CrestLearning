@@ -44,7 +44,7 @@ export function SessionRow({
 }) {
   return (
     <div className={clsx("flex items-center gap-4 py-3", status === "CANCELLED" && "opacity-60")}>
-      <span className={clsx("h-10 w-1 shrink-0 rounded-full border-l-[3px]", tintFor(colorKey))} />
+      <span className={clsx("h-10 w-1 shrink-0 border-l-[3px]", tintFor(colorKey))} />
       <div className="w-24 shrink-0">
         {dateLabel && <p className="text-[11px] font-medium text-navy-400">{dateLabel}</p>}
         <p className="text-sm font-semibold tabular-nums text-navy-900">{formatTimeRange(startsAt, endsAt)}</p>

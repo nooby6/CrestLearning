@@ -212,7 +212,7 @@ export function ClassRoom(p: Props) {
 
           {phase === "waiting" && (
             <Centered>
-              <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-gold-400">
+              <span className="mb-4 flex h-14 w-14 items-center justify-center bg-white/5 text-gold-400">
                 <Video className="h-6 w-6" />
               </span>
               <h1 className="font-display text-xl font-semibold">The class opens {untilLabel(window_.opensAt, now)}</h1>
@@ -269,7 +269,7 @@ export function ClassRoom(p: Props) {
           <aside
             className={clsx(
               "z-20 w-full max-w-md shrink-0 overflow-y-auto border-l border-white/10 bg-white p-5 text-navy-900",
-              mustRecord ? "absolute inset-0 m-auto h-fit max-h-[90%] rounded-xl shadow-2xl sm:inset-x-auto sm:right-6 sm:top-6" : "absolute inset-y-0 right-0 sm:relative",
+              mustRecord ? "absolute inset-0 m-auto h-fit max-h-[90%] shadow-lift sm:inset-x-auto sm:right-6 sm:top-6" : "absolute inset-y-0 right-0 sm:relative",
             )}
             role={mustRecord ? "dialog" : undefined}
             aria-modal={mustRecord || undefined}

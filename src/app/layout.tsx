@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           theme="light"
           hideProgressBar
           closeButton={false}
-          toastClassName="!rounded-lg !border !border-line !shadow-lift !text-sm !text-navy-900 !font-sans"
+          toastClassName="!rounded-none !border !border-line !shadow-lift !text-sm !text-navy-900 !font-sans"
         />
       </body>
     </html>

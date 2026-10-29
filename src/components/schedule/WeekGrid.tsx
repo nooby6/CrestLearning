@@ -118,7 +118,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
                   </p>
                   <p
                     className={clsx(
-                      "mx-auto mt-1 flex h-7 w-7 items-center justify-center rounded-full font-display text-sm font-semibold tabular-nums",
+                    "mx-auto mt-1 flex h-7 w-7 items-center justify-center font-display text-sm font-semibold tabular-nums",
                       isToday ? "bg-navy-800 text-white" : "text-navy-800",
                     )}
                   >
@@ -144,7 +144,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
                 ))}
                 {d.key === today && now.minutes >= startH * 60 && now.minutes <= endH * 60 && (
                   <div className="pointer-events-none absolute inset-x-0 z-10 flex items-center" style={{ top: ((now.minutes - startH * 60) / 60) * HOUR_PX }}>
-                    <span className="-ml-1 h-2 w-2 rounded-full bg-gold-500" />
+                    <span className="-ml-1 h-2 w-2 bg-gold-500" />
                     <span className="h-px flex-1 bg-gold-500" />
                   </div>
                 )}
@@ -155,7 +155,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
                   const Body = (
                     <div
                       className={clsx(
-                        "absolute overflow-hidden rounded-md border-l-[3px] px-2 py-1 text-[11px] leading-tight shadow-card transition hover:z-20 hover:shadow-lift",
+                        "absolute overflow-hidden rounded-md border-l-[3px] px-2 py-1 text-[11px] leading-tight transition hover:z-20 hover:shadow-lift",
                         tintFor(s.colorKey),
                         cancelled && "opacity-50 [&_p:first-child]:line-through",
                       )}

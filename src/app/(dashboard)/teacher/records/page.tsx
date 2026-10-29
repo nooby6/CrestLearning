@@ -48,7 +48,7 @@ export default async function TeacherRecordsPage() {
               key={s.id}
               title={
                 <span className="flex items-center gap-2">
-                  <span className={`h-4 w-1 rounded-full border-l-[3px] ${tintFor(s.enrollment.subject.code)}`} />
+                  <span className={`h-4 w-1 border-l-[3px] ${tintFor(s.enrollment.subject.code)}`} />
                   {s.enrollment.subject.name} · {fullName(s.enrollment.student.user)}
                 </span>
               }

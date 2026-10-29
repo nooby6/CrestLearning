@@ -98,17 +98,17 @@ function WorkSections({ items, hrefFor, viewer }: { items: StudentWorkItem[]; hr
 function Summary({ items }: { items: StudentWorkItem[] }) {
   const n = (s: string) => items.filter((i) => i.state === s).length;
   const tiles = [
-    { label: "To do", value: n("todo"), cls: "from-sky-500 to-sky-600" },
-    { label: "Overdue", value: n("overdue"), cls: "from-rose-500 to-rose-600" },
-    { label: "Turned in", value: n("submitted"), cls: "from-gold-400 to-gold-600" },
-    { label: "Marked", value: n("reviewed"), cls: "from-emerald-500 to-emerald-600" },
+    { label: "To do", value: n("todo"), cls: "bg-sky-600" },
+    { label: "Overdue", value: n("overdue"), cls: "bg-rose-600" },
+    { label: "Turned in", value: n("submitted"), cls: "bg-gold-500" },
+    { label: "Marked", value: n("reviewed"), cls: "bg-emerald-600" },
   ];
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
       {tiles.map((t) => (
         <div key={t.label} className="card relative overflow-hidden p-4">
-          <span className={clsx("absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r", t.cls)} />
-          <p className="text-xs font-medium text-navy-500">{t.label}</p>
+          <span className={clsx("absolute inset-y-0 left-0 w-[3px]", t.cls)} />
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-navy-500">{t.label}</p>
           <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-navy-900">{t.value}</p>
         </div>
       ))}
@@ -130,7 +130,7 @@ async function RequestsCard({ enrollmentIds, viewer }: { enrollmentIds: number[]
       <ul className="divide-y divide-line">
         {reqs.map((r) => (
           <li key={r.id} className="flex items-start gap-3 px-5 py-3">
-            <span className={clsx("mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full", r.resolvedAt ? "bg-emerald-50 text-emerald-600" : "bg-gold-50 text-gold-600")}>
+            <span className={clsx("mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center", r.resolvedAt ? "bg-emerald-50 text-emerald-600" : "bg-gold-50 text-gold-600")}>
               {r.resolvedAt ? <CheckCircle2 className="h-4 w-4" /> : <Hand className="h-4 w-4" />}
             </span>
             <div className="min-w-0 flex-1">

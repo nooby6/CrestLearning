@@ -33,7 +33,7 @@ function Tooltip({ x, y, width, children }: { x: number; y: number; width: numbe
   const left = Math.min(Math.max(x, 70), width - 70);
   return (
     <div
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-line bg-white px-3 py-2 text-xs shadow-lg"
+      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap border border-line-strong bg-white px-3 py-2 text-xs shadow-lift"
       style={{ left, top: y - 8 }}
       role="status"
     >
@@ -103,9 +103,8 @@ export function StackedColumns({
                   const top = y(acc + v);
                   const bottom = y(acc);
                   acc += v;
-                  const isTop = acc === total;
                   const h = Math.max(0, bottom - top - (s > 0 ? 2 : 0)); // 2px surface gap between segments
-                  const r = isTop ? Math.min(4, h, barW / 2) : 0;
+                  const r = 0; // square bar ends, matching the interface
                   const x0 = cx - barW / 2;
                   const yTop = top;
                   return (
@@ -226,7 +225,7 @@ export function PercentLine({ data, height = 220, label }: { data: { label: stri
             />
           ))}
           {lastIdx !== undefined && hover === null && (
-            <text x={x(lastIdx) + 6} y={y(data[lastIdx].value!) - 12} textAnchor="end" fontSize={12} fontWeight={600} fill={INK}>
+            <text x={x(lastIdx) + 6} y={y(data[lastIdx].value!) - 12} textAnchor="end" fontSize={12} fontWeight={600} fill={INK} stroke="#fff" strokeWidth={4} paintOrder="stroke">
               {data[lastIdx].value}%
             </text>
           )}
@@ -260,9 +259,9 @@ export function HBars({ data }: { data: { label: string; value: number; display:
               <span className="truncate text-navy-800">{d.label}</span>
               <span className="shrink-0 tabular-nums font-semibold text-navy-900">{d.display}</span>
             </div>
-            <div className={track ? "h-2 overflow-hidden rounded-full bg-navy-50" : "h-2"}>
+            <div className={track ? "h-2 overflow-hidden bg-navy-50" : "h-2"}>
               <div
-                className="h-2 rounded-full transition-[width] duration-500"
+                className="h-2 transition-[width] duration-500"
                 style={{ width: `${Math.min(100, Math.max(pct, d.value ? 2 : 0))}%`, background: over ? SERIES[1] : SERIES[0] }}
               />
             </div>

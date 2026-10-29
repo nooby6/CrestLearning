@@ -77,7 +77,7 @@ export function EnrollmentForm({
         return;
       }
       toast.success(res.message);
-      router.push(`/admin/enrollments/${res.data!.id}`);
+      router.push(`/admin/enrollments/${studentIds[0]}#subject-${res.data!.id}`);
     });
   };
 
@@ -183,8 +183,8 @@ export function EnrollmentForm({
                     <p className="text-sm font-medium text-navy-900">
                       {t.firstName} {t.lastName}
                     </p>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-navy-50">
-                      <div className={clsx("h-full rounded-full", over ? "bg-rose-500" : "bg-gold-500")} style={{ width: `${pct}%` }} />
+                    <div className="mt-2 h-1.5 overflow-hidden bg-navy-50">
+                      <div className={clsx("h-full", over ? "bg-rose-500" : "bg-gold-500")} style={{ width: `${pct}%` }} />
                     </div>
                     <p className={clsx("mt-1 text-[11px] tabular-nums", over ? "text-rose-600" : "text-navy-400")}>
                       {hoursLabel(after)} of {t.capacityHours} h a week{teacherId === t.id && weeklyMinutes ? " incl. this" : ""}
@@ -277,7 +277,7 @@ export function EnrollmentForm({
           </button>
         )}
         <button type="submit" className="btn-primary min-w-[150px]" disabled={pending}>
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create enrollment"}
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save subject"}
         </button>
       </div>
     </form>

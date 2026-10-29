@@ -62,7 +62,7 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 <span className="flex-1">{item.label}</span>
-                <span className="rounded-full border border-navy-600 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-navy-300">
+                <span className=" border border-navy-600 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-navy-300">
                   Soon
                 </span>
               </span>
@@ -78,7 +78,7 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
               className={clsx(
                 "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-gold-500/[0.18] via-white/[0.06] to-transparent font-medium text-white"
+                  ? "bg-navy-700 font-medium text-white"
                   : "text-navy-200 hover:bg-white/[0.05] hover:text-white",
               )}
             >
@@ -91,7 +91,7 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
               {badges?.[item.href] ? (
                 <span
                   className={clsx(
-                    "min-w-[20px] rounded-full px-1.5 text-center text-[11px] font-semibold tabular-nums",
+                  "min-w-[20px] px-1.5 text-center text-[11px] font-semibold tabular-nums",
                     item.href.endsWith("/records") ? "bg-rose-500 text-white" : "bg-gold-500 text-navy-950",
                   )}
                 >
@@ -121,7 +121,7 @@ function Panel({ items, roleLabel, onNavigate, badges }: { items: NavItem[]; rol
         <NavList items={items} onNavigate={onNavigate} badges={badges} />
       </nav>
       <div className="px-6 pb-6">
-        <div className="mb-3 h-px bg-gradient-to-r from-gold-500/60 to-transparent" />
+        <div className="mb-3 h-px bg-navy-600" />
         <p className="font-display text-[9px] font-semibold tracking-[0.3em] text-navy-300">
           LEARN. GROW. EXCEL.
         </p>
@@ -146,7 +146,7 @@ export function Sidebar({ items, roleLabel, badges }: { items: NavItem[]; roleLa
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-navy-800 text-white shadow-lift lg:hidden print:hidden"
+        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-navy-800 text-white lg:hidden print:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
@@ -155,8 +155,8 @@ export function Sidebar({ items, roleLabel, badges }: { items: NavItem[]; roleLa
       {/* Mobile drawer */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
-          <div className="fade-in absolute inset-0 bg-navy-950/50 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-          <aside className="sidebar-bg absolute inset-y-0 left-0 w-72 shadow-2xl">
+          <div className="fade-in absolute inset-0 bg-navy-950/50" onClick={() => setOpen(false)} />
+          <aside className="sidebar-bg absolute inset-y-0 left-0 w-72">
             <button
               type="button"
               onClick={() => setOpen(false)}

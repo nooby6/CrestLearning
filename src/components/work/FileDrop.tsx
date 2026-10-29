@@ -151,9 +151,9 @@ export function FileDrop({
             )}
           </div>
           {!p.error && (
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-navy-50">
+            <div className="mt-2 h-1 overflow-hidden bg-navy-50">
               <div
-                className="h-1 rounded-full bg-gradient-to-r from-gold-500 to-gold-300 transition-[width] duration-200"
+                className="h-1 bg-navy-700 transition-[width] duration-200"
                 style={{ width: `${p.progress}%` }}
               />
             </div>
@@ -181,8 +181,8 @@ export function FileDrop({
         >
           <span
             className={clsx(
-              "flex h-10 w-10 items-center justify-center rounded-full transition",
-              over ? "bg-gold-500 text-white" : "bg-white text-gold-600 shadow-sm",
+            "flex h-10 w-10 items-center justify-center transition",
+              over ? "border-navy-700 bg-navy-700 text-white" : "border-line bg-white text-navy-600",
             )}
           >
             <UploadCloud className="h-5 w-5" />
