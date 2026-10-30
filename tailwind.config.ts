@@ -48,9 +48,10 @@ const config: Config = {
           900: "#3E2D12",
         },
         // Neutral, cool surfaces and a visible hairline — crisp rather than warm.
-        ivory: "#F4F6F9", // page background / table headers
-        line: "#D5DBE5", // 1px borders
-        "line-strong": "#B9C2D3",
+        canvas: "#E2E7F0", // page background — deep enough that white cards read clearly
+        ivory: "#F4F6F9", // hovers, quiet panels
+        line: "#BFC8D9", // 1px borders
+        "line-strong": "#93A1BC",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
@@ -60,7 +61,7 @@ const config: Config = {
         crest: "0.22em", // the wide tracking of "LEARNING" in the logo
       },
       boxShadow: {
-        card: "none",
+        card: "0 1px 0 rgba(10,29,79,0.08)",
         lift: "0 6px 16px -6px rgba(10,29,79,0.22)", // menus and dialogs only
       },
     },

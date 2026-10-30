@@ -5,12 +5,13 @@ import { finaliseEndedSessions } from "@/lib/attendance";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { ROLE_LABEL, curriculumLabel, toSlug } from "@/lib/roles";
-import { Avatar, Badge, Card, ComingNext, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
+import { Avatar, Badge, Card, EmptyState, PageHeader, StatCard } from "@/components/ui/primitives";
 import { HBars, Legend, PercentLine, StackedColumns } from "@/components/charts/Charts";
 import { SERIES } from "@/components/charts/palette";
 import { adminInsights } from "@/lib/insights";
 import { dayLabel, lastEndedPeriod, periodLabel, periodSummary } from "@/lib/payouts";
-import { BarChart3 } from "lucide-react";
+import { AlertTriangle, Banknote, BarChart3, Wallet } from "lucide-react";
+import { financeSummary } from "@/lib/finance";
 
 export const metadata = { title: "Overview" };
 
@@ -21,6 +22,7 @@ export default async function AdminOverview() {
   const insightsP = adminInsights();
   const payPeriod = lastEndedPeriod();
   const payP = periodSummary(payPeriod);
+  const feesP = financeSummary();
   const [students, parents, teachers, enrolledStudents, subjectsTaught, orphanStudents, childlessParents, recent, unrecorded, noLink] = await Promise.all([
     prisma.student.count({ where: { user: { active: true } } }),
     prisma.parent.count({ where: { user: { active: true } } }),
@@ -58,6 +60,7 @@ export default async function AdminOverview() {
   }, new Map<string, { user: (typeof unrecorded)[number]["enrollment"]["teacher"]["user"]; count: number }>()).values()];
 
   const { weeks, subjectBars, load } = await insightsP;
+  const fees = await feesP;
   const payRows = (await payP).filter((r) => r.owed > 0);
   const payOwed = payRows.reduce((a, r) => a + r.owed, 0);
   const hasLessons = weeks.some((w) => w.held + w.missed > 0);
@@ -235,13 +238,17 @@ export default async function AdminOverview() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <ComingNext module="Module 5 · Announcements">
-          Notices to everyone, to teachers only, or to selected parents.
-        </ComingNext>
-        <ComingNext module="Module 5 · Finance">
-          Fee plans, invoices, M-Pesa and Flutterwave payments, and payouts from sessions held.
-        </ComingNext>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <StatCard label="Fees outstanding" value={formatMoney(fees.outstanding)} hint="Unpaid invoices" icon={Wallet} tone="navy" href="/admin/finance" />
+        <StatCard
+          label="Fees overdue"
+          value={formatMoney(fees.overdue)}
+          hint={fees.overdueCount ? `${fees.overdueCount} past due` : "Nothing past due"}
+          icon={AlertTriangle}
+          tone="rose"
+          href="/admin/finance?tab=overdue"
+        />
+        <StatCard label="Collected this month" value={formatMoney(fees.collectedThisMonth)} hint={fees.drafts ? `${fees.drafts} draft invoices to issue` : "Payments recorded"} icon={Banknote} tone="teal" href="/admin/finance" />
       </div>
     </>
   );

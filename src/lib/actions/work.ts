@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { deleteStoredFile } from "@/lib/storage";
 import { assertRole, type CurrentUser } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/roles";
 import type { ActionResult } from "@/lib/validation";
@@ -18,7 +19,7 @@ const isOffice = (me: CurrentUser, as?: "admin" | "teacher") => as === "admin" &
 async function dropFileIfUnused(fileId: string | null | undefined) {
   if (!fileId) return;
   const [r, s] = await Promise.all([prisma.resource.count({ where: { fileId } }), prisma.submissionFile.count({ where: { fileId } })]);
-  if (!r && !s) await prisma.storedFile.delete({ where: { id: fileId } }).catch(() => undefined);
+  if (!r && !s) await deleteStoredFile(fileId);
 }
 
 /* ------------------------------------------------------------------ resources */

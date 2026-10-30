@@ -82,7 +82,7 @@ function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?:
                   : "text-navy-200 hover:bg-white/[0.05] hover:text-white",
               )}
             >
-              {isActive && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r bg-gold-500" />}
+              {isActive && <span className="absolute inset-y-0 left-0 w-1 bg-gold-500" />}
               <Icon
                 className={clsx("h-[18px] w-[18px] transition-transform duration-200 group-hover:translate-x-0.5", isActive && "text-gold-400")}
                 strokeWidth={1.75}
@@ -114,7 +114,7 @@ function Panel({ items, roleLabel, onNavigate, badges }: { items: NavItem[]; rol
           <Wordmark tone="light" />
         </Link>
       </div>
-      <p className="px-6 pb-2 font-display text-[10px] font-semibold uppercase tracking-crest text-navy-300">
+      <p className="px-6 pb-2 font-display text-[10px] font-semibold uppercase tracking-crest text-gold-400">
         {roleLabel}
       </p>
       <nav className="flex-1 px-3">

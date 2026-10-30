@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { upload as blobUpload } from "@vercel/blob/client";
 import clsx from "clsx";
 import { AlertCircle, Loader2, UploadCloud, X } from "lucide-react";
 import { formatBytes } from "@/lib/format";
@@ -54,6 +55,38 @@ function upload(file: File, purpose: string, onProgress: (p: number) => void): P
   });
 }
 
+type Mode = { blob: boolean; userId: string; limits: Record<string, number> | null };
+let modeCache: Promise<Mode | null> | null = null;
+/** Whether large-file storage is on (asked once per page load). */
+const getMode = () =>
+  (modeCache ??= fetch("/api/uploads/mode")
+    .then((r) => (r.ok ? (r.json() as Promise<Mode>) : null))
+    .catch(() => null));
+
+/** Straight to private Blob storage; files over 20 MB go up in parallel parts with retries. */
+async function uploadLarge(file: File, purpose: string, mode: Mode, onProgress: (p: number) => void): Promise<FileInfo> {
+  const safe = file.name.replace(/[^\w.\- ]+/g, "_").replace(/\s+/g, "-").slice(-120) || "file";
+  const result = await blobUpload(`${purpose}/${mode.userId}/${safe}`, file, {
+    access: "private",
+    handleUploadUrl: "/api/uploads/blob",
+    clientPayload: JSON.stringify({ purpose }),
+    multipart: file.size > 20 * 1024 * 1024,
+    contentType: file.type || undefined,
+    onUploadProgress: (e) => onProgress(Math.min(99, Math.round(e.percentage))),
+  });
+  const res = await fetch("/api/uploads/blob/complete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pathname: result.pathname, name: file.name, purpose }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { error?: string } & Partial<FileInfo>;
+  if (!res.ok || !data.id) throw new Error(data.error ?? "Upload failed. Please try again.");
+  onProgress(100);
+  return data as FileInfo;
+}
+
+const limitLabel = (bytes: number) => (bytes >= 1024 * 1024 * 1024 ? `${(bytes / (1024 * 1024 * 1024)).toFixed(0)} GB` : `${Math.round(bytes / (1024 * 1024))} MB`);
+
 type Pending = { key: string; name: string; progress: number; error?: string };
 
 export function FileDrop({
@@ -62,7 +95,7 @@ export function FileDrop({
   onChange,
   multiple = false,
   accept,
-  hint = "PDF, Word, PowerPoint, Excel or photos · up to 4 MB each",
+  hint,
   onBusyChange,
 }: {
   purpose: "resource" | "submission" | "avatar";
@@ -78,6 +111,17 @@ export function FileDrop({
   const [over, setOver] = useState(false);
   const current = useRef(value);
   current.current = value;
+  const [mode, setMode] = useState<Mode | null>(null);
+  useEffect(() => {
+    if (purpose !== "avatar") getMode().then(setMode);
+  }, [purpose]);
+  const large = !!(mode?.blob && mode.limits?.[purpose]);
+  const limit = large ? mode!.limits![purpose] : MAX;
+  const hintText =
+    hint ??
+    (purpose === "submission"
+      ? `Photos of your pages, a PDF or a Word file · up to ${limitLabel(limit)} each`
+      : `PDF, Word, PowerPoint, Excel, photos${large ? ", video or audio" : ""} · up to ${limitLabel(limit)} each`);
 
   const handle = async (list: FileList | null) => {
     if (!list?.length) return;
@@ -96,8 +140,8 @@ export function FileDrop({
         const set = (patch: Partial<Pending>) => setPending((p) => p.map((x) => (x.key === key ? { ...x, ...patch } : x)));
         try {
           const f = await shrinkImage(raw);
-          if (f.size > MAX) throw new Error(`“${raw.name}” is ${formatBytes(f.size)} — the limit is 4 MB. Please upload a smaller copy.`);
-          done.push(await upload(f, purpose, (progress) => set({ progress })));
+          if (f.size > limit) throw new Error(`“${raw.name}” is ${formatBytes(f.size)} — the limit is ${limitLabel(limit)}. Please upload a smaller copy.`);
+          done.push(large ? await uploadLarge(f, purpose, mode!, (progress) => set({ progress })) : await upload(f, purpose, (progress) => set({ progress })));
           setPending((p) => p.filter((x) => x.key !== key));
         } catch (e) {
           set({ error: (e as Error).message });
@@ -191,7 +235,7 @@ export function FileDrop({
             {multiple && value.length ? "Add more files" : "Drop a file here or "}
             {!(multiple && value.length) && <span className="text-gold-700 underline decoration-gold-300 underline-offset-4">browse</span>}
           </span>
-          <span className="text-[11px] text-navy-400">{hint}</span>
+          <span className="text-[11px] text-navy-400">{hintText}</span>
         </button>
       )}
       <input ref={input} type="file" className="hidden" multiple={multiple} accept={accept} onChange={(e) => handle(e.target.files)} />

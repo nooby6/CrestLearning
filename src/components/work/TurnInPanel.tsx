@@ -127,7 +127,6 @@ export function TurnInPanel({ resourceId, submission, overdue }: { resourceId: n
           onChange={setFiles}
           multiple
           onBusyChange={setBusy}
-          hint="Photos of your pages, a PDF or a Word file · up to 4 MB each"
         />
       </div>
       <div>

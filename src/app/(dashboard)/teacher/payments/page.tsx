@@ -34,7 +34,7 @@ export default async function TeacherPaymentsPage() {
         description="You’re paid every two weeks for the lessons you hold. Payment is due on the Friday after each pay period ends."
       />
 
-      <div className="mb-6 grid border border-line bg-white sm:grid-cols-2">
+      <div className="card mb-6 grid sm:grid-cols-2">
         <div className={clsx("border-l-[3px] px-5 py-4", owedTotal ? "border-l-amber-500" : "border-l-emerald-600")}>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-navy-500">Payment due</p>
           <p className="mt-1.5 font-display text-[28px] font-semibold leading-none tabular-nums text-navy-900">{formatMoney(owedTotal, currency)}</p>

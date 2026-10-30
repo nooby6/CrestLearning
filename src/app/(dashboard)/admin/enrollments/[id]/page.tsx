@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { BookPlus, CalendarDays, ChevronLeft, ExternalLink } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
-import { formatDate, fullName, prettyPhone } from "@/lib/format";
+import { formatDate, formatMoney, fullName, prettyPhone } from "@/lib/format";
 import { curriculumLabel, relationshipLabel } from "@/lib/roles";
 import { dateKey, formatTime, hoursLabel, weekdayIso } from "@/lib/schedule";
 import { Avatar, Badge, Card, EmptyState, PageHeader } from "@/components/ui/primitives";
@@ -13,6 +13,8 @@ import { SessionActions } from "@/components/schedule/SessionActions";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 import { SlotManager, StatusControls } from "./EnrollmentControls";
+import { FeePlanEditor } from "@/components/finance/FinanceControls";
+import { balanceOf } from "@/lib/finance";
 
 export const metadata = { title: "Enrollment" };
 
@@ -57,6 +59,11 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
     },
   });
   if (!s) notFound();
+  const [plan, openInvoices] = await Promise.all([
+    prisma.feePlan.findFirst({ where: { studentId: s.id, active: true }, orderBy: { createdAt: "desc" } }),
+    prisma.invoice.findMany({ where: { studentId: s.id, status: { in: ["ISSUED", "PARTIALLY_PAID"] } }, select: { total: true, amountPaid: true } }),
+  ]);
+  const owing = openInvoices.reduce((a, i) => a + balanceOf(i), 0);
 
   const current = s.enrollments.filter((e) => e.status !== "ENDED");
   const past = s.enrollments.filter((e) => e.status === "ENDED");
@@ -205,6 +212,20 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
         <div className="space-y-6">
           <Card title="Lesson link" description="One Google Meet link for all of this student’s subjects.">
             <StudentLinkEditor studentId={s.id} url={s.meetingUrl} provider={providerOf(s.meetingUrl)} />
+          </Card>
+          <Card
+            title="Fees"
+            description={owing ? <span className="font-medium text-rose-700">{formatMoney(owing)} outstanding</span> : "Nothing outstanding."}
+            action={
+              <Link href={`/admin/finance?q=${encodeURIComponent(fullName(s.user))}`} className="text-xs font-medium text-navy-500 hover:text-navy-900">
+                Invoices →
+              </Link>
+            }
+          >
+            <FeePlanEditor studentId={s.id} plan={plan ? { name: plan.name, cycle: plan.cycle, amountKes: plan.amount / 100 } : null} />
+            <Link href={`/admin/finance/new?student=${s.id}`} className="btn-ghost mt-3 w-full">
+              New invoice
+            </Link>
           </Card>
           <Card title="Parents & guardians" bodyClassName="p-0">
             {s.guardians.length === 0 ? (

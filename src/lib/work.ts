@@ -206,6 +206,14 @@ export const ALLOWED_TYPES: Record<string, string> = {
   "application/vnd.ms-excel": "Excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "Excel",
   "text/plain": "Text",
+  "video/mp4": "Video",
+  "video/quicktime": "Video",
+  "video/webm": "Video",
+  "audio/mpeg": "Audio",
+  "audio/mp4": "Audio",
+  "audio/x-m4a": "Audio",
+  "application/zip": "Zip",
+  "application/x-zip-compressed": "Zip",
 };
 
 /** Browsers sometimes send an empty or generic type; fall back to the extension. */
@@ -228,6 +236,12 @@ export function mimeFromName(name: string, given: string): string {
       xls: "application/vnd.ms-excel",
       xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       txt: "text/plain",
+      mp4: "video/mp4",
+      mov: "video/quicktime",
+      webm: "video/webm",
+      mp3: "audio/mpeg",
+      m4a: "audio/mp4",
+      zip: "application/zip",
     }[ext] ?? given
   );
 }

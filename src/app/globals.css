@@ -13,7 +13,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
   body {
-    @apply bg-ivory text-navy-900;
+    @apply bg-canvas text-navy-900;
     font-feature-settings: "cv11", "ss01"; /* Inter: straight-sided digits and simpler forms */
   }
   ::selection {
@@ -29,12 +29,13 @@
   .eyebrow {
     @apply font-display text-[11px] font-semibold uppercase tracking-crest text-gold-600;
   }
+  /* Every card: white, hairline border, a navy rule across the top — the house style. */
   .card {
-    @apply border border-line bg-white transition-colors duration-150;
+    @apply border border-line border-t-[3px] border-t-navy-800 bg-white shadow-card transition-colors duration-150;
   }
-  /* Cards that are links: the border darkens on hover — no movement, no shadow. */
+  /* Cards that are links: the frame darkens on hover — no movement. */
   .card-link {
-    @apply hover:border-navy-400;
+    @apply hover:border-navy-500 hover:border-t-navy-800;
   }
   .input {
     @apply block w-full border border-line bg-white px-3 py-2 text-sm text-navy-900
@@ -75,14 +76,14 @@
 
   /* Page header: a flat navy band with a gold rule underneath. */
   .page-banner {
-    @apply crest-navy relative mb-6 border-b-[3px] border-gold-500 px-6 py-5 text-white sm:px-7;
+    @apply crest-navy relative mb-6 border-b-4 border-gold-500 px-6 py-5 text-white sm:px-7;
   }
   /* Flat navy brand surface (page header, profile covers). */
   .crest-navy {
     background-color: #0a1d4f;
   }
   .page-banner .eyebrow {
-    @apply text-gold-300;
+    @apply text-gold-400;
   }
   .page-banner .btn-primary {
     @apply border-gold-500 bg-gold-500 text-navy-950 hover:border-gold-400 hover:bg-gold-400;
@@ -93,7 +94,11 @@
 
   /* Data tables: header row in caps on a grey band, hairline rows. */
   .table-head {
-    @apply border-b border-line bg-ivory text-left text-[11px] font-semibold uppercase tracking-wider text-navy-500;
+    @apply bg-navy-800 text-left text-[11px] font-semibold uppercase tracking-wider text-white;
+  }
+  /* Tables nested inside a card section (details, breakdowns). */
+  .table-head-sub {
+    @apply border-b border-line bg-ivory text-left text-[11px] font-semibold uppercase tracking-wider text-navy-600;
   }
 }
 

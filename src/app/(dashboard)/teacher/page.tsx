@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarClock, CalendarDays, Users, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { announcementsFor } from "@/lib/announcements";
+import { AnnouncementStrip } from "@/components/announcements/AnnouncementList";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { addDaysKey, dateKey, formatTime, keyToUtcStart, mondayOf } from "@/lib/schedule";
@@ -17,6 +19,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default async function TeacherHome() {
   const me = await requireRole("teacher");
+  const news = await announcementsFor(me.id, 5);
   const todayKey = dateKey(new Date());
   const dayStart = keyToUtcStart(todayKey);
   const dayEnd = keyToUtcStart(addDaysKey(todayKey, 1));
@@ -76,6 +79,7 @@ export default async function TeacherHome() {
             : "No sessions today."
         }
       />
+      <AnnouncementStrip href="/teacher/announcements" latest={news.find((n) => !n.readAt)} unread={news.filter((n) => !n.readAt).length} />
 
       {reportsMissing > 0 && (
         <Link

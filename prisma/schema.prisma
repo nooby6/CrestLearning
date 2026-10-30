@@ -81,6 +81,7 @@ model User {
   workCommentsResolved  WorkComment[]           @relation("WorkCommentResolver")
   submissionsReviewed   Submission[]
   payoutsConfirmed      TeacherPayout[]         @relation("PayoutConfirmedBy")
+  paymentsRecorded      Payment[]               @relation("PaymentRecordedBy")
   announcementsAuthored Announcement[]
   announcementTargets   AnnouncementRecipient[]
 
@@ -465,14 +466,17 @@ enum WorkCommentKind {
 
 /// An uploaded file. Bytes live in StoredFileData so ordinary queries never load them.
 model StoredFile {
-  id        String   @id @default(cuid())
-  name      String
-  mimeType  String
-  sizeBytes Int
+  id           String   @id @default(cuid())
+  name         String
+  mimeType     String
+  sizeBytes    Int
   /// "resource" | "submission" | "avatar" — decides who may open it.
-  purpose   String
-  ownerId   String?
-  createdAt DateTime @default(now())
+  purpose      String
+  /// "db" (bytes in StoredFileData, small files) or "blob" (private Vercel Blob, large files).
+  storage      String   @default("db")
+  blobPathname String?  @unique
+  ownerId      String?
+  createdAt    DateTime @default(now())
 
   owner           User?            @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   data            StoredFileData?
@@ -672,21 +676,24 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id          Int             @id @default(autoincrement())
-  invoiceId   Int
-  amount      Int
-  currency    String          @default("KES")
-  provider    PaymentProvider
-  status      PaymentStatus   @default(PENDING)
+  id           Int             @id @default(autoincrement())
+  invoiceId    Int
+  amount       Int
+  currency     String          @default("KES")
+  provider     PaymentProvider
+  status       PaymentStatus   @default(PENDING)
   /// M-Pesa CheckoutRequestID / receipt, Flutterwave tx_ref — unique per provider for idempotent webhooks.
-  providerRef String?
-  receipt     String? // e.g. M-Pesa receipt number
-  payerPhone  String?
-  raw         Json?
-  paidAt      DateTime?
-  createdAt   DateTime        @default(now())
+  providerRef  String?
+  receipt      String? // e.g. M-Pesa receipt number
+  payerPhone   String?
+  raw          Json?
+  note         String?
+  paidAt       DateTime?
+  recordedById String?
+  createdAt    DateTime        @default(now())
 
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice    Invoice @relation(fields: [invoiceId], references: [id])
+  recordedBy User?   @relation("PaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
 
   @@unique([provider, providerRef])
   @@index([invoiceId])
@@ -775,4 +782,11 @@ model AnnouncementRecipient {
 
   @@id([announcementId, userId])
   @@index([userId])
+}
+
+/// Office-editable settings (e.g. payment instructions shown to parents on invoices).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

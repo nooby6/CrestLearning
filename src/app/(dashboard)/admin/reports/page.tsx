@@ -66,7 +66,7 @@ export default async function AdminReportsPage({ searchParams }: { searchParams:
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-navy-400">
+                <tr className="table-head">
                   <th className="px-5 py-3 font-semibold">Student</th>
                   <th className="px-3 py-3 font-semibold">Subject</th>
                   <th className="hidden px-3 py-3 font-semibold md:table-cell">Teacher</th>

@@ -7,6 +7,8 @@ import { requireRole } from "@/lib/auth";
 import { pendingRecordCount } from "@/lib/attendance";
 import { staffCounts, workForStudent } from "@/lib/work-queries";
 import { ROLE_LABEL, portalsFor } from "@/lib/roles";
+import { unreadAnnouncements } from "@/lib/announcements";
+import prisma from "@/lib/prisma";
 
 /** Pages a teacher may still open while lesson records are outstanding. */
 const RECORDS_PATH = "/teacher/records";
@@ -35,6 +37,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (slug === "student") {
     const todo = (await workForStudent(user.id)).filter((i) => i.state === "todo" || i.state === "overdue").length;
     if (todo) badges["/student/work"] = todo;
+  }
+
+  if (slug !== "admin") {
+    const unread = await unreadAnnouncements(user.id);
+    if (unread) badges[`/${slug}/announcements`] = unread;
+  }
+  if (slug === "parent") {
+    const due = await prisma.invoice.count({
+      where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: user.id } } } },
+    });
+    if (due) badges["/parent/invoices"] = due;
   }
 
   return (

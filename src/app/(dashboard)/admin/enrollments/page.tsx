@@ -75,7 +75,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
         }
       />
 
-      <dl className="mb-6 grid grid-cols-3 border border-line bg-white">
+      <dl className="card mb-6 grid grid-cols-3">
         {[
           { label: "Students enrolled", value: enrolled.length },
           { label: "Subjects taught", value: subjectsTaught },
@@ -134,7 +134,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-line bg-ivory text-left text-[11px] font-semibold uppercase tracking-wider text-navy-500">
+                <tr className="table-head">
                   <th className="w-[26%] px-5 py-2.5">Student</th>
                   <th className="px-3 py-2.5">Subjects · teacher · weekly times</th>
                   <th className="hidden w-[16%] px-5 py-2.5 text-right lg:table-cell">Next lesson</th>

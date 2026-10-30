@@ -67,7 +67,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
         </Link>
       </div>
 
-      <dl className="mb-6 grid grid-cols-2 border border-line bg-white sm:grid-cols-4">
+      <dl className="card mb-6 grid grid-cols-2 sm:grid-cols-4">
         {[
           { label: ended ? "Owed" : "Owed so far", value: formatMoney(totals.owed), accent: totals.owed > 0 },
           { label: "Paid", value: formatMoney(totals.paid) },
@@ -152,7 +152,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                         </summary>
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="table-head">
+                            <tr className="table-head-sub">
                               <th className="px-3 py-2">Date</th>
                               <th className="px-3 py-2">Student · subject</th>
                               <th className="px-3 py-2 text-right">Hours</th>

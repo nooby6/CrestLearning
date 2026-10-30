@@ -46,10 +46,15 @@ export function Card({
   return (
     <section className={clsx("card", className)}>
       {(title || action) && (
-        <header className="flex items-start justify-between gap-4 border-b border-line bg-ivory/60 px-5 py-3">
+        <header className="flex items-start justify-between gap-4 border-b border-line bg-white px-5 py-3.5">
           <div>
-            {title && <h2 className="font-display text-[13px] font-semibold uppercase tracking-wide text-navy-900">{title}</h2>}
-            {description && <p className="mt-0.5 text-xs text-navy-500">{description}</p>}
+            {title && (
+              <h2 className="flex items-center gap-2 font-display text-[13px] font-bold uppercase tracking-wide text-navy-900">
+                <span aria-hidden className="h-2.5 w-2.5 shrink-0 bg-gold-500" />
+                {title}
+              </h2>
+            )}
+            {description && <p className="mt-1 pl-[18px] text-xs text-navy-500">{description}</p>}
           </div>
           {action}
         </header>
@@ -60,12 +65,12 @@ export function Card({
 }
 
 const TONES = {
-  navy: "bg-navy-50 text-navy-800 ring-navy-200",
-  gold: "bg-gold-50 text-gold-800 ring-gold-300",
-  green: "bg-emerald-50 text-emerald-800 ring-emerald-300",
-  amber: "bg-amber-50 text-amber-800 ring-amber-300",
-  rose: "bg-rose-50 text-rose-800 ring-rose-300",
-  slate: "bg-slate-50 text-slate-700 ring-slate-300",
+  navy: "bg-navy-100 text-navy-900 ring-navy-300",
+  gold: "bg-gold-100 text-gold-900 ring-gold-400",
+  green: "bg-emerald-100 text-emerald-900 ring-emerald-400",
+  amber: "bg-amber-100 text-amber-900 ring-amber-400",
+  rose: "bg-rose-100 text-rose-900 ring-rose-400",
+  slate: "bg-slate-100 text-slate-800 ring-slate-300",
 } as const;
 
 export type Tone = keyof typeof TONES;
@@ -74,7 +79,7 @@ export function Badge({ tone = "navy", children, className }: { tone?: Tone; chi
   return (
     <span
       className={clsx(
-      "inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
+      "inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset",
         TONES[tone],
         className,
       )}
@@ -116,11 +121,11 @@ export function Avatar({
 }
 
 const STAT_TONES = {
-  navy: "border-l-navy-800 text-navy-800",
-  gold: "border-l-gold-500 text-gold-600",
-  teal: "border-l-teal-600 text-teal-700",
-  sky: "border-l-sky-600 text-sky-700",
-  rose: "border-l-rose-600 text-rose-700",
+  navy: { bar: "border-t-navy-800", icon: "bg-navy-800 text-gold-400" },
+  gold: { bar: "border-t-gold-500", icon: "bg-gold-500 text-navy-950" },
+  teal: { bar: "border-t-teal-600", icon: "bg-teal-600 text-white" },
+  sky: { bar: "border-t-sky-600", icon: "bg-sky-600 text-white" },
+  rose: { bar: "border-t-rose-600", icon: "bg-rose-600 text-white" },
 } as const;
 export type StatTone = keyof typeof STAT_TONES;
 
@@ -141,13 +146,15 @@ export function StatCard({
   tone?: StatTone;
 }) {
   const body = (
-    <div className={clsx("card flex h-full items-start justify-between gap-3 border-l-[3px] px-5 py-4", STAT_TONES[tone], href && "card-link")}>
+    <div className={clsx("card flex h-full items-start justify-between gap-3 border-t-4 px-5 py-4", STAT_TONES[tone].bar, href && "card-link")}>
       <div className="min-w-0">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-navy-500">{label}</p>
         <p className="mt-1.5 font-display text-[28px] font-semibold leading-none tabular-nums text-navy-900">{value}</p>
         {hint && <p className="mt-2 truncate text-xs text-navy-400">{hint}</p>}
       </div>
-      <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
+      <span className={clsx("flex h-9 w-9 shrink-0 items-center justify-center", STAT_TONES[tone].icon)}>
+        <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+      </span>
     </div>
   );
   return href ? (

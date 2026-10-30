@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, FileText, UsersRound } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { announcementsFor } from "@/lib/announcements";
+import { AnnouncementStrip } from "@/components/announcements/AnnouncementList";
 import { requireRole } from "@/lib/auth";
-import { formatDate, fullName, greeting } from "@/lib/format";
+import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { curriculumLabel, relationshipLabel } from "@/lib/roles";
 import { dbDateKey } from "@/lib/schedule";
 import { lessonSummary } from "@/lib/lesson-summary";
@@ -14,6 +16,8 @@ export const metadata = { title: "Overview" };
 
 export default async function ParentHome() {
   const me = await requireRole("parent");
+  const news = await announcementsFor(me.id, 5);
+  const owing = (await prisma.invoice.findMany({ where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: me.id } } } }, select: { total: true, amountPaid: true } })).reduce((a, i) => a + Math.max(0, i.total - i.amountPaid), 0);
 
   // Scoped strictly through the link table — a parent only ever sees their own students.
   const links = await prisma.parentStudent.findMany({
@@ -66,6 +70,16 @@ export default async function ParentHome() {
           ) : undefined
         }
       />
+      <AnnouncementStrip href="/parent/announcements" latest={news.find((n) => !n.readAt)} unread={news.filter((n) => !n.readAt).length} />
+      {owing > 0 && (
+        <Link href="/parent/invoices" className="mb-6 flex items-center gap-3 border border-line border-l-4 border-l-navy-800 bg-white px-4 py-3 text-sm shadow-card transition-colors hover:border-navy-400">
+          <span className="min-w-0 flex-1">
+            <b className="font-semibold text-navy-900">Fees due: {formatMoney(owing)}</b>
+            <span className="text-navy-500"> · see invoices and how to pay</span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-navy-500" />
+        </Link>
+      )}
 
       {links.length === 0 ? (
         <EmptyState icon={UsersRound} title="No students linked yet">

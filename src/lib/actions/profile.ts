@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
+import { deleteStoredFile } from "@/lib/storage";
 import { getCurrentUser } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/roles";
 import type { ActionResult } from "@/lib/validation";
@@ -20,7 +21,7 @@ export async function setMyPhoto(fileId: string | null): Promise<ActionResult> {
   }
   const old = me.avatarUrl?.startsWith(FILE_PREFIX) ? me.avatarUrl.slice(FILE_PREFIX.length) : null;
   await prisma.user.update({ where: { id: me.id }, data: { avatarUrl: fileId ? `${FILE_PREFIX}${fileId}` : null } });
-  if (old && old !== fileId) await prisma.storedFile.delete({ where: { id: old } }).catch(() => undefined);
+  if (old && old !== fileId) await deleteStoredFile(old);
   revalidatePath("/", "layout");
   return { ok: true, message: fileId ? "Profile photo updated" : "Profile photo removed" };
 }
