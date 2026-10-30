@@ -14,7 +14,7 @@ export default async function ParentInvoicePage({ params }: { params: { id: stri
   const id = Number(params.id);
   if (!Number.isInteger(id)) notFound();
   const [inv, instructions] = await Promise.all([
-    prisma.invoice.findFirst({ where: { id, status: { not: "DRAFT" }, student: { guardians: { some: { parentId: me.id } } } }, include: invoiceInclude }),
+    prisma.invoice.findFirst({ where: { id, status: { notIn: ["DRAFT", "VOID"] }, student: { guardians: { some: { parentId: me.id } } } }, include: invoiceInclude }),
     getSetting(PAYMENT_INSTRUCTIONS_KEY, DEFAULT_PAYMENT_INSTRUCTIONS),
   ]);
   if (!inv) notFound();

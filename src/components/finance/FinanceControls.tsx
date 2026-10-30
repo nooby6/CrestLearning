@@ -138,7 +138,7 @@ export function InvoiceStatusActions({ id, status, hasPayments }: { id: number; 
           className="btn-danger"
           disabled={pending}
           onClick={() => {
-            if (!confirm(status === "DRAFT" ? "Delete this draft?" : "Void this invoice? The parent will see it as void.")) return;
+            if (!confirm(status === "DRAFT" ? "Delete this draft?" : "Void this invoice? It will be removed from the parent’s portal and kept here for your records.")) return;
             run(
               () => voidInvoice(id),
               () => status === "DRAFT" && router.push("/admin/finance"),

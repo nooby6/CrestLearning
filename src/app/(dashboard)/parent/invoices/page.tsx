@@ -14,7 +14,7 @@ export default async function ParentInvoicesPage() {
   const me = await requireRole("parent");
   const [invoices, instructions] = await Promise.all([
     prisma.invoice.findMany({
-      where: { status: { not: "DRAFT" }, student: { guardians: { some: { parentId: me.id } } } },
+      where: { status: { notIn: ["DRAFT", "VOID"] }, student: { guardians: { some: { parentId: me.id } } } },
       include: { student: { include: { user: true } } },
       orderBy: [{ dueDate: "desc" }, { id: "desc" }],
     }),

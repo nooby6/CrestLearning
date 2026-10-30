@@ -115,7 +115,7 @@ export async function voidInvoice(id: number): Promise<ActionResult> {
   }
   await prisma.invoice.update({ where: { id }, data: { status: "VOID" } });
   refresh();
-  return { ok: true, message: `Invoice ${inv.number} voided` };
+  return { ok: true, message: `Invoice ${inv.number} voided — removed from the parent’s portal` };
 }
 
 /* ------------------------------------------------------------------ payments */
