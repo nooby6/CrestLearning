@@ -20,11 +20,11 @@ const endOf = (s: { createdAt: Date; expiresAt: Date }) => new Date(Math.min(+s.
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 
-export async function createSession(userId: string) {
+export async function createSession(userId: string, method: "password" | "google" = "password") {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_MS);
   await prisma.session.create({
-    data: { tokenHash: sha256(token), userId, expiresAt, userAgent: headers().get("user-agent")?.slice(0, 300) ?? null },
+    data: { tokenHash: sha256(token), userId, expiresAt, method, userAgent: headers().get("user-agent")?.slice(0, 300) ?? null },
   });
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -36,7 +36,7 @@ export async function createSession(userId: string) {
 }
 
 /** The current request's session (id, user, when it ends), or null if signed out or timed out. */
-export const currentSession = cache(async (): Promise<{ userId: string; endsAt: Date } | null> => {
+export const currentSession = cache(async (): Promise<{ id: string; userId: string; endsAt: Date } | null> => {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const s = await prisma.session.findUnique({ where: { tokenHash: sha256(token) } });
@@ -49,7 +49,7 @@ export const currentSession = cache(async (): Promise<{ userId: string; endsAt: 
   if (Date.now() - +s.lastSeenAt > TOUCH_EVERY_MS) {
     await prisma.session.update({ where: { id: s.id }, data: { lastSeenAt: new Date() } }).catch(() => undefined);
   }
-  return { userId: s.userId, endsAt };
+  return { id: s.id, userId: s.userId, endsAt };
 });
 
 /** The user id for the current request's session, or null. */
@@ -77,5 +77,15 @@ export async function purgeEndedSessions() {
   const { count } = await prisma.session.deleteMany({
     where: { OR: [{ expiresAt: { lte: now } }, { createdAt: { lte: new Date(+now - SESSION_MS) } }] },
   });
+  await prisma.passwordReset.deleteMany({ where: { createdAt: { lte: new Date(+now - 86_400_000) } } });
   return count;
 }
+
+/** A user's sign-ins that are still running, newest first. */
+export async function activeSessions(userId: string) {
+  const rows = await prisma.session.findMany({ where: { userId }, orderBy: { lastSeenAt: "desc" } });
+  const now = Date.now();
+  return rows.map((r) => ({ ...r, endsAt: endOf(r) })).filter((r) => +r.endsAt > now);
+}
+
+export const sessionTokenHash = sha256;

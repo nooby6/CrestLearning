@@ -6,12 +6,21 @@ import { homePath } from "@/lib/roles";
 import { Wordmark } from "@/components/brand/Logo";
 import { ensureBootstrapAdmin } from "@/lib/bootstrap";
 import { SignInForm } from "./SignInForm";
+import { googleConfigured } from "@/lib/env";
+
+const GOOGLE_MSG: Record<string, string> = {
+  nomatch: "That Google account’s email isn’t on a Crest account. Sign in with your username, or ask the office to add this email to your account.",
+  suspended: "This account is suspended. Please contact the Crest Learning office.",
+  failed: "Google sign-in didn’t complete. Please try again.",
+  cancelled: "Google sign-in was cancelled.",
+  off: "Google sign-in isn’t switched on.",
+};
 
 export const metadata = { title: "Sign in" };
 
 const CURRICULA = ["Cambridge", "Edexcel", "CBE", "IB"];
 
-export default async function SignInPage({ searchParams }: { searchParams: { timeout?: string } }) {
+export default async function SignInPage({ searchParams }: { searchParams: { timeout?: string; reset?: string; google?: string } }) {
   await ensureBootstrapAdmin();
   const me = await getCurrentUser();
   if (me?.active) redirect(homePath(me));
@@ -52,12 +61,22 @@ export default async function SignInPage({ searchParams }: { searchParams: { tim
             <h1 className="mt-2 font-display text-2xl font-semibold text-navy-900">Sign in to Crest</h1>
             <p className="mt-1.5 text-sm text-navy-500">Parents, students and teachers use the details given by the Crest Learning office.</p>
           </div>
+          {searchParams.reset && (
+            <p role="status" className="mb-5 border border-line border-l-4 border-l-emerald-600 bg-ivory px-3 py-2.5 text-sm text-navy-700">
+              Your password has been changed. Sign in with your new password.
+            </p>
+          )}
+          {searchParams.google && GOOGLE_MSG[searchParams.google] && (
+            <p role="alert" className="mb-5 border border-line border-l-4 border-l-rose-600 bg-ivory px-3 py-2.5 text-sm text-navy-700">
+              {GOOGLE_MSG[searchParams.google]}
+            </p>
+          )}
           {searchParams.timeout && (
             <p role="status" className="mb-5 border border-line border-l-4 border-l-gold-500 bg-ivory px-3 py-2.5 text-sm text-navy-700">
               You were signed out because your 3-hour session ended. Please sign in again.
             </p>
           )}
-          <SignInForm />
+          <SignInForm google={googleConfigured()} />
           <div className="mt-10 gold-rule" />
           <p className="mt-4 text-center font-display text-[10px] font-semibold tracking-[0.3em] text-navy-300">CREST LEARNING · NAIROBI</p>
         </div>

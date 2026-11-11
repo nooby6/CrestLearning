@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { AlertTriangle, ArrowLeftRight, Camera, ChevronDown, KeyRound, Loader2, LogOut } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Camera, ChevronDown, KeyRound, MonitorSmartphone, Loader2, LogOut } from "lucide-react";
 import { Avatar } from "@/components/ui/primitives";
 import { signOut } from "@/lib/actions/auth";
 
@@ -111,6 +111,14 @@ export function AccountMenu({
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
               >
                 <KeyRound className="h-4 w-4 text-navy-400" /> Change password
+              </Link>
+              <Link
+                href="/account/sessions"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy-800 hover:bg-navy-50"
+              >
+                <MonitorSmartphone className="h-4 w-4 text-navy-400" /> Signed-in devices
               </Link>
               <button
                 type="button"

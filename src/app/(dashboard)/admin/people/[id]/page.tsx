@@ -11,6 +11,9 @@ import { FamilyLinks } from "./FamilyLinks";
 import { AccountPanel } from "./AccountPanel";
 import { AdminAccessToggle } from "./AdminAccessToggle";
 import { DeleteAccount } from "./DeleteAccount";
+import { EndSessionsButton } from "./EndSessionsButton";
+import { activeSessions } from "@/lib/session";
+import { deviceLabel } from "@/lib/device";
 import { TeacherPayEditor } from "./TeacherPayEditor";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
@@ -43,6 +46,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
     },
   });
   if (!u) notFound();
+  const devices = await activeSessions(u.id);
 
   const slug = toSlug(u.role);
 
@@ -265,6 +269,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
 
         <div className="space-y-6">
           <Card title="Account">
+            {/* signed-in devices */}
             <DefinitionList
               items={[
                 { label: "Username", value: <span className="break-all font-mono text-[13px]">@{u.username}</span> },
@@ -277,8 +282,17 @@ export default async function PersonPage({ params }: { params: { id: string } })
                       ? "Not yet — temporary password"
                       : "Never",
                 },
+                {
+                  label: "Signed in now",
+                  value: devices.length ? devices.map((d) => deviceLabel(d.userAgent)).join(", ") : "Not signed in",
+                },
               ]}
             />
+            {u.id !== me.id && (
+              <div className="mt-3">
+                <EndSessionsButton userId={u.id} name={u.firstName} count={devices.length} />
+              </div>
+            )}
             <div className="mt-5 border-t border-line pt-5">
               <AccountPanel
                 userId={u.id}

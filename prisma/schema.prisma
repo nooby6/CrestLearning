@@ -65,6 +65,7 @@ model User {
   updatedAt          DateTime  @updatedAt
 
   sessions Session[]
+  passwordResets PasswordReset[]
 
   student Student?
   teacher Teacher?
@@ -167,6 +168,8 @@ model Session {
   createdAt  DateTime @default(now())
   lastSeenAt DateTime @default(now())
   userAgent  String?
+  /// How this sign-in happened: "password" or "google".
+  method     String   @default("password")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -789,4 +792,18 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// Single-use "forgot password" link. Only the SHA-256 of the token is stored.
+model PasswordReset {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
