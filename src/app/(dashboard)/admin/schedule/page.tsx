@@ -48,7 +48,7 @@ export default async function AdminSchedulePage({ searchParams }: { searchParams
         }
       />
 
-      <div className="grid items-start gap-6 xl:grid-cols-[1fr_280px]">
+      <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="card overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <WeekNav weekKey={weekKey} basePath="/admin/schedule" params={{ teacher: searchParams.teacher, student: searchParams.student }} />

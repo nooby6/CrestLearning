@@ -278,9 +278,9 @@ function AttentionRow({
 }) {
   return (
     <li>
-      <Link href={href} className="group flex items-center gap-3 px-5 py-3 transition hover:bg-ivory">
+      <Link href={href} className="group flex flex-wrap items-center gap-x-3 gap-y-1.5 px-5 py-3 transition hover:bg-ivory">
         <Avatar person={person} size="sm" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[8rem] flex-1">
           <p className="truncate text-sm font-medium text-navy-900">{fullName(person)}</p>
           <p className="truncate text-xs text-navy-400">{meta || "—"}</p>
         </div>

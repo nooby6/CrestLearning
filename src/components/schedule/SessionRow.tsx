@@ -43,31 +43,36 @@ export function SessionRow({
   href?: string;
 }) {
   return (
-    <div className={clsx("flex items-center gap-4 py-3", status === "CANCELLED" && "opacity-60")}>
-      <span className={clsx("h-10 w-1 shrink-0 border-l-[3px]", tintFor(colorKey))} />
-      <div className="w-24 shrink-0">
-        {dateLabel && <p className="text-[11px] font-medium text-navy-400">{dateLabel}</p>}
-        <p className="text-sm font-semibold tabular-nums text-navy-900">{formatTimeRange(startsAt, endsAt)}</p>
-      </div>
-      <div className="min-w-0 flex-1">
-        {href ? (
-          <Link
-            href={href}
-            className={clsx(
-              "block truncate text-sm font-medium text-navy-900 hover:underline hover:decoration-gold-400 hover:underline-offset-4",
-              status === "CANCELLED" && "line-through",
+    <div className="@container">
+      <div className={clsx("flex items-center gap-3 py-3 @md:gap-4", status === "CANCELLED" && "opacity-60")}>
+        <span className={clsx("h-10 w-1 shrink-0 self-stretch border-l-[3px]", tintFor(colorKey))} />
+        {/* Narrow: time above title. Wider: time column beside the title. */}
+        <div className="flex min-w-0 flex-1 flex-col @md:flex-row @md:items-center @md:gap-4">
+          <div className="@md:w-24 @md:shrink-0">
+            {dateLabel && <p className="text-[11px] font-medium text-navy-400">{dateLabel}</p>}
+            <p className="whitespace-nowrap text-sm font-semibold tabular-nums text-navy-900">{formatTimeRange(startsAt, endsAt)}</p>
+          </div>
+          <div className="min-w-0 flex-1">
+            {href ? (
+              <Link
+                href={href}
+                className={clsx(
+                  "block truncate text-sm font-medium text-navy-900 hover:underline hover:decoration-gold-400 hover:underline-offset-4",
+                  status === "CANCELLED" && "line-through",
+                )}
+              >
+                {title}
+              </Link>
+            ) : (
+              <p className={clsx("truncate text-sm font-medium text-navy-900", status === "CANCELLED" && "line-through")}>{title}</p>
             )}
-          >
-            {title}
-          </Link>
-        ) : (
-          <p className={clsx("truncate text-sm font-medium text-navy-900", status === "CANCELLED" && "line-through")}>{title}</p>
-        )}
-        {subtitle && <p className="truncate text-xs text-navy-400">{subtitle}</p>}
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <StatusBadge status={status} startsAt={startsAt} endsAt={endsAt} />
-        {action}
+            {subtitle && <p className="truncate text-xs text-navy-400">{subtitle}</p>}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <StatusBadge status={status} startsAt={startsAt} endsAt={endsAt} />
+          {action}
+        </div>
       </div>
     </div>
   );

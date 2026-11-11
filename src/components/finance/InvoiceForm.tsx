@@ -120,7 +120,8 @@ export function InvoiceForm({ students, initialStudentId }: { students: InvoiceS
               <span aria-hidden className="h-2.5 w-2.5 bg-gold-500" /> Items
             </h2>
           </header>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[34rem] text-sm">
             <thead>
               <tr className="table-head-sub">
                 <th className="px-5 py-2">Description</th>
@@ -154,6 +155,7 @@ export function InvoiceForm({ students, initialStudentId }: { students: InvoiceS
               ))}
             </tbody>
           </table>
+          </div>
           <div className="border-t border-line px-5 py-3">
             <button type="button" className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-600 hover:text-navy-900" onClick={() => setLines((ls) => [...ls, { key: seq++, description: "", quantity: "1", unitKes: "" }])}>
               <Plus className="h-4 w-4" /> Add a line

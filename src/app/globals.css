@@ -16,6 +16,17 @@
     @apply bg-canvas text-navy-900;
     font-feature-settings: "cv11", "ss01"; /* Inter: straight-sided digits and simpler forms */
   }
+  /*
+   * Layout safety net — nothing may push the page wider than the window.
+   * A grid with no column template gets one column that can shrink, and grid
+   * items may shrink below their content (wide tables then scroll inside their card).
+   */
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grid > * {
+    min-width: 0;
+  }
   ::selection {
     @apply bg-navy-100 text-navy-900;
   }

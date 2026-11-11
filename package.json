@@ -33,6 +33,7 @@
     "zod": "^3.24.3"
   },
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
     "@types/node": "^20.0.0",
     "@types/pg": "^8.23.1",
     "@types/react": "^18.0.0",

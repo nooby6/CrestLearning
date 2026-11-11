@@ -143,7 +143,7 @@ export async function StaffResourcesPage({ portal, me, kind }: { portal: Portal;
       </div>
 
       <div className="card overflow-hidden">
-        <div className="flex gap-1 border-b border-line px-3 pt-2 sm:px-4">
+        <div className="flex gap-1 overflow-x-auto border-b border-line px-3 pt-2 sm:px-4">
           {tabs.map((t) => {
             const active = t.key === kind || (!t.key && !kind);
             return (
@@ -151,7 +151,7 @@ export async function StaffResourcesPage({ portal, me, kind }: { portal: Portal;
                 key={t.label}
                 href={t.key ? `${base}?kind=${t.key}` : base}
                 className={clsx(
-                  "-mb-px border-b-2 px-3 py-2.5 text-sm transition",
+                  "-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition",
                   active ? "border-gold-500 font-medium text-navy-900" : "border-transparent text-navy-500 hover:text-navy-800",
                 )}
               >

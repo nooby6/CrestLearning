@@ -119,16 +119,16 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
               const slots = [...e.slots].sort((a, b) => weekdayIso(a.weekday) - weekdayIso(b.weekday) || a.startTime.localeCompare(b.startTime));
               const weekly = slots.reduce((a, x) => a + x.durationMinutes, 0);
               return (
-                <section key={e.id} id={`subject-${e.id}`} className="card scroll-mt-24">
-                  <header className="flex flex-col gap-3 border-b border-line bg-ivory px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 items-center gap-4">
+                <section key={e.id} id={`subject-${e.id}`} className="card scroll-mt-24 @container">
+                  <header className="flex flex-col gap-3 border-b border-line bg-ivory px-5 py-3.5 @2xl:flex-row @2xl:items-center @2xl:justify-between">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                       <div className="min-w-0">
                         <h2 className="font-display text-base font-semibold text-navy-900">{e.subject.name}</h2>
                         <p className="text-xs text-navy-500">
                           {[e.level?.name ?? s.level?.name, `since ${formatDate(e.startDate, { year: undefined })}`, `${e._count.sessions} held`].filter(Boolean).join(" · ")}
                         </p>
                       </div>
-                      <span className="hidden h-8 w-px bg-line sm:block" />
+                      <span className="hidden h-8 w-px bg-line @md:block" />
                       <Link href={`/admin/people/${e.teacherId}`} className="flex min-w-0 items-center gap-2 hover:underline hover:underline-offset-4">
                         <Avatar person={e.teacher.user} size="sm" />
                         <span className="min-w-0">
@@ -137,13 +137,13 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                         </span>
                       </Link>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Badge tone={STATUS[e.status].tone}>{STATUS[e.status].label}</Badge>
                       <StatusControls id={e.id} status={e.status} />
                     </div>
                   </header>
-                  <div className="grid gap-0 md:grid-cols-[300px_minmax(0,1fr)]">
-                    <div className="border-b border-line p-5 md:border-b-0 md:border-r">
+                  <div className="grid gap-0 @3xl:grid-cols-[280px_minmax(0,1fr)]">
+                    <div className="border-b border-line p-5 @3xl:border-b-0 @3xl:border-r">
                       <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-navy-400">
                         Weekly times{weekly ? ` · ${hoursLabel(weekly)}` : ""}
                       </p>

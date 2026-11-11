@@ -57,7 +57,8 @@ export function InvoiceDocument({ inv, instructions, staffView = false }: { inv:
         </dl>
       </div>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[30rem] text-sm">
         <thead>
           <tr className="table-head">
             <th className="px-6 py-2.5 sm:px-8">Description</th>
@@ -77,6 +78,7 @@ export function InvoiceDocument({ inv, instructions, staffView = false }: { inv:
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="flex justify-end border-t border-line px-6 py-4 sm:px-8">
         <dl className="w-full max-w-xs space-y-1.5 text-sm">

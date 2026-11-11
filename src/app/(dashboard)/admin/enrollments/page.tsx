@@ -88,9 +88,9 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
         ))}
       </dl>
 
-      <div className="card">
-        <div className="flex flex-col gap-3 border-b border-line px-4 pt-3 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-          <nav className="-mb-px flex gap-1">
+      <div className="card @container">
+        <div className="flex flex-col border-b border-line px-4 pt-3 sm:px-5 @4xl:flex-row @4xl:items-end @4xl:justify-between @4xl:gap-4">
+          <nav className="-mb-px flex min-w-0 gap-1 overflow-x-auto">
             {TABS.map((t) => {
               const active = t.key === tab;
               const qs = new URLSearchParams({ ...(t.key !== "enrolled" && { tab: t.key }), ...(q && { q }) }).toString();
@@ -99,7 +99,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
                   key={t.key}
                   href={`/admin/enrollments${qs ? `?${qs}` : ""}`}
                   className={clsx(
-                    "flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors",
+                    "flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-colors",
                     active ? "border-navy-800 font-medium text-navy-900" : "border-transparent text-navy-400 hover:text-navy-700",
                   )}
                 >
@@ -109,7 +109,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
               );
             })}
           </nav>
-          <div className="pb-3">
+          <div className="order-first pb-3 @4xl:order-none @4xl:shrink-0">
             <SearchInput placeholder="Student, subject or teacher" />
           </div>
         </div>

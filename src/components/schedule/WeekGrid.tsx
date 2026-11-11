@@ -57,7 +57,7 @@ export function WeekNav({ weekKey, basePath, params = {} }: { weekKey: string; b
   };
   const sameMonth = weekKey.slice(0, 7) === end.slice(0, 7);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Link href={href(addDaysKey(weekKey, -7))} className="btn-ghost px-2 py-1.5" aria-label="Previous week">
         <ChevronLeft className="h-4 w-4" />
       </Link>
@@ -104,9 +104,10 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
 
   return (
     <>
-      {/* Desktop grid */}
-      <div className="hidden overflow-x-auto md:block">
-        <div className="min-w-[760px]">
+      <div className="@container">
+      {/* Grid when the box is wide enough; a day-by-day list when it isn't. */}
+      <div className="hidden overflow-x-auto @2xl:block">
+        <div style={{ minWidth: 56 + cols.length * 96 }}>
           <div className="grid border-b border-line" style={{ gridTemplateColumns: `56px repeat(${cols.length}, 1fr)` }}>
             <div />
             {cols.map((d) => {
@@ -187,7 +188,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
       </div>
 
       {/* Mobile agenda */}
-      <ol className="space-y-4 md:hidden">
+      <ol className="space-y-4 @2xl:hidden">
         {days.map((d) => {
           const list = (byDay.get(d.key) ?? []).sort((a, b) => +a.startsAt - +b.startsAt);
           if (!list.length && d.iso === 7) return null;
@@ -202,7 +203,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
               ) : (
                 <ul className="space-y-2">
                   {list.map((s) => (
-                    <li key={s.id} className={clsx("rounded-lg border-l-[3px] px-3 py-2 text-sm", tintFor(s.colorKey), s.status === "CANCELLED" && "opacity-50")}>
+                    <li key={s.id} className={clsx("border-l-[3px] px-3 py-2 text-sm", tintFor(s.colorKey), s.status === "CANCELLED" && "opacity-50")}>
                       <p className="font-semibold">
                         {s.title} {s.status === "CANCELLED" && <span className="text-xs font-normal">(cancelled)</span>}
                       </p>
@@ -218,6 +219,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
           );
         })}
       </ol>
+      </div>
     </>
   );
 }

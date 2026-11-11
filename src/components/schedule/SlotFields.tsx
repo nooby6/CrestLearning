@@ -15,7 +15,8 @@ export const emptySlot = (): SlotDraft => ({ weekday: "MONDAY", startTime: "16:0
 export function SlotFields({ value, onChange }: { value: SlotDraft; onChange: (v: SlotDraft) => void }) {
   const end = /^\d{2}:\d{2}$/.test(value.startTime) ? fromMinutes(toMinutes(value.startTime) + value.durationMinutes) : "—";
   return (
-    <div className="grid grid-cols-[1fr_1fr] gap-2 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-center">
+    <div className="@container">
+    <div className="grid grid-cols-2 items-center gap-2 @lg:grid-cols-[1.2fr_1fr_1fr_auto]">
       <select
         className="input"
         value={value.weekday}
@@ -48,14 +49,15 @@ export function SlotFields({ value, onChange }: { value: SlotDraft; onChange: (v
           </option>
         ))}
       </select>
-      <span className="text-xs tabular-nums text-navy-400 sm:w-20">ends {end}</span>
+      <span className="whitespace-nowrap text-xs tabular-nums text-navy-400 @lg:w-20">ends {end}</span>
+    </div>
     </div>
   );
 }
 
 export function ConflictList({ conflicts }: { conflicts: Conflict[] }) {
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+    <div className="border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
       <p className="flex items-center gap-2 font-medium">
         <AlertTriangle className="h-4 w-4" /> Time clash
       </p>

@@ -89,9 +89,9 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
         }
       />
 
-      <div className="card">
-        <div className="flex flex-col gap-3 border-b border-line px-4 pt-3 sm:flex-row sm:items-end sm:justify-between sm:px-5">
-          <nav className="-mb-px flex gap-1 overflow-x-auto" aria-label="Filter by role">
+      <div className="card @container">
+        <div className="flex flex-col border-b border-line px-4 pt-3 sm:px-5 @4xl:flex-row @4xl:items-end @4xl:justify-between @4xl:gap-4">
+          <nav className="-mb-px flex min-w-0 gap-1 overflow-x-auto" aria-label="Filter by role">
             {TABS.map((t) => {
               const active = t.slug === roleFilter;
               return (
@@ -118,7 +118,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
               );
             })}
           </nav>
-          <div className="pb-3">
+          <div className="order-first pb-3 @4xl:order-none @4xl:shrink-0">
             <SearchInput placeholder="Name, username, email or phone" />
           </div>
         </div>

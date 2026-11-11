@@ -267,7 +267,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
           <Card title="Account">
             <DefinitionList
               items={[
-                { label: "Username", value: <span className="font-mono text-[13px]">@{u.username}</span> },
+                { label: "Username", value: <span className="break-all font-mono text-[13px]">@{u.username}</span> },
                 { label: "Added", value: formatDate(u.createdAt) },
                 {
                   label: "Last sign-in",
