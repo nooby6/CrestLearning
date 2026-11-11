@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateAll } from "@/lib/sessions";
 import { finaliseEndedSessions } from "@/lib/attendance";
 import { removeOrphanFiles } from "@/lib/file-cleanup";
+import { purgeEndedSessions } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,5 +19,6 @@ export async function GET(req: Request) {
   const finalised = await finaliseEndedSessions();
   const result = await generateAll();
   const filesRemoved = await removeOrphanFiles();
-  return NextResponse.json({ ok: true, finalised, ...result, filesRemoved, at: new Date().toISOString() });
+  const signInsEnded = await purgeEndedSessions();
+  return NextResponse.json({ ok: true, finalised, ...result, filesRemoved, signInsEnded, at: new Date().toISOString() });
 }

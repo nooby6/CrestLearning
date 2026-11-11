@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import prisma from "./prisma";
 
@@ -9,14 +10,19 @@ import prisma from "./prisma";
  * so a database leak doesn't expose usable sessions. Suspending a user or changing a password deletes them.
  */
 export const SESSION_COOKIE = "crest_session";
-const DAYS = 30;
-const TOUCH_EVERY_MS = 60 * 60 * 1000; // refresh lastSeenAt at most hourly
+/** Every sign-in lasts this long, however active the person is; then they must sign in again. */
+export const SESSION_HOURS = 3;
+const SESSION_MS = SESSION_HOURS * 3_600_000;
+const TOUCH_EVERY_MS = 10 * 60 * 1000; // refresh lastSeenAt at most every 10 minutes
+
+/** A session ends 3 h after sign-in — also applied to sessions created before this limit existed. */
+const endOf = (s: { createdAt: Date; expiresAt: Date }) => new Date(Math.min(+s.expiresAt, +s.createdAt + SESSION_MS));
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
-  const expiresAt = new Date(Date.now() + DAYS * 86_400_000);
+  const expiresAt = new Date(Date.now() + SESSION_MS);
   await prisma.session.create({
     data: { tokenHash: sha256(token), userId, expiresAt, userAgent: headers().get("user-agent")?.slice(0, 300) ?? null },
   });
@@ -29,20 +35,26 @@ export async function createSession(userId: string) {
   });
 }
 
-/** The user id for the current request's session, or null. */
-export async function sessionUserId(): Promise<string | null> {
+/** The current request's session (id, user, when it ends), or null if signed out or timed out. */
+export const currentSession = cache(async (): Promise<{ userId: string; endsAt: Date } | null> => {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const s = await prisma.session.findUnique({ where: { tokenHash: sha256(token) } });
   if (!s) return null;
-  if (s.expiresAt < new Date()) {
+  const endsAt = endOf(s);
+  if (endsAt <= new Date()) {
     await prisma.session.delete({ where: { id: s.id } }).catch(() => undefined);
     return null;
   }
   if (Date.now() - +s.lastSeenAt > TOUCH_EVERY_MS) {
     await prisma.session.update({ where: { id: s.id }, data: { lastSeenAt: new Date() } }).catch(() => undefined);
   }
-  return s.userId;
+  return { userId: s.userId, endsAt };
+});
+
+/** The user id for the current request's session, or null. */
+export async function sessionUserId(): Promise<string | null> {
+  return (await currentSession())?.userId ?? null;
 }
 
 export async function destroySession() {
@@ -57,4 +69,13 @@ export async function destroyAllSessions(userId: string, keepCurrent = false) {
   await prisma.session.deleteMany({
     where: { userId, ...(token ? { tokenHash: { not: sha256(token) } } : {}) },
   });
+}
+
+/** Delete sign-ins that have ended (daily cron). */
+export async function purgeEndedSessions() {
+  const now = new Date();
+  const { count } = await prisma.session.deleteMany({
+    where: { OR: [{ expiresAt: { lte: now } }, { createdAt: { lte: new Date(+now - SESSION_MS) } }] },
+  });
+  return count;
 }

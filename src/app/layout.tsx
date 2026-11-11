@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { currentSession } from "@/lib/session";
+import { SessionTimeout } from "@/components/shell/SessionTimeout";
 
 // Self-hosted (no runtime call to Google Fonts). Montserrat matches the logo's geometric caps.
 const inter = localFont({
@@ -26,11 +28,13 @@ export const metadata: Metadata = {
 // Everything is per-user; never pre-render at build time.
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await currentSession();
   return (
     <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
       <body className="font-sans">
         {children}
+        {session && <SessionTimeout endsAt={session.endsAt.toISOString()} serverNow={Date.now()} />}
         <ToastContainer
           position="bottom-right"
           theme="light"

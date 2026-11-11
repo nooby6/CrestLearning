@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { normalisePhone } from "@/lib/format";
 import { dummyHash, hashPassword, verifyPassword } from "@/lib/password-hash";
-import { createSession, destroyAllSessions, destroySession } from "@/lib/session";
+import { createSession, currentSession, destroyAllSessions, destroySession } from "@/lib/session";
 import { pendingRecordCount } from "@/lib/attendance";
 import { homePath } from "@/lib/roles";
 
@@ -57,6 +57,17 @@ export async function signIn(_: SignInState, form: FormData): Promise<SignInStat
 }
 
 /** Sign out — teachers can't while lesson records are outstanding. */
+/**
+ * Called by the browser when the 3-hour sign-in runs out. The server decides: if the session
+ * really has ended (or is within a few seconds of it) the person is signed out, whatever else is pending.
+ */
+export async function endTimedOutSession(): Promise<{ endsAt: string } | undefined> {
+  const s = await currentSession();
+  if (s && +s.endsAt - Date.now() > 15_000) return { endsAt: s.endsAt.toISOString() }; // browser clock was ahead
+  await destroySession();
+  redirect("/sign-in?timeout=1");
+}
+
 export async function signOut(): Promise<{ ok: false; pending: number } | undefined> {
   const me = await getCurrentUser();
   if (me?.role === "TEACHER" && me.active) {
