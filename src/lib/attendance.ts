@@ -27,7 +27,8 @@ export async function recordPresence(sessionId: number, userId: string, who: Par
 
   if (!existing) {
     if (event === "leave") return null;
-    return prisma.attendance.create({
+    return prisma.attendance
+      .create({
       data: {
         sessionId,
         userId,
@@ -37,7 +38,12 @@ export async function recordPresence(sessionId: number, userId: string, who: Par
         firstJoinedAt: now,
         lastSeenAt: now,
       },
-    });
+      })
+      .catch(async (err) => {
+        // Two tabs joining at the same moment: the other one created the row first.
+        if ((err as { code?: string }).code !== "P2002") throw err;
+        return prisma.attendance.update({ where: { sessionId_userId: { sessionId, userId } }, data: { lastSeenAt: now } });
+      });
   }
 
   const data: Prisma.AttendanceUpdateInput = {
@@ -71,14 +77,15 @@ export async function finaliseEndedSessions(where: Prisma.SessionInstanceWhereIn
     const teacherAtt = s.attendances.find((a) => a.userId === s.enrollment.teacherId);
     const studentAtt = s.attendances.find((a) => a.userId === s.enrollment.studentId);
     const held = !!teacherAtt && teacherAtt.status !== "ABSENT";
+    const absent = [
+      ...(!teacherAtt ? [{ sessionId: s.id, userId: s.enrollment.teacherId, role: "TEACHER" as const, status: "ABSENT" as const }] : []),
+      ...(!studentAtt ? [{ sessionId: s.id, userId: s.enrollment.studentId, role: "STUDENT" as const, status: "ABSENT" as const }] : []),
+    ];
+    // Safe to run from several page loads at once: the status only changes while still SCHEDULED,
+    // and an ABSENT row is skipped if another request already wrote one.
     await prisma.$transaction([
-      prisma.sessionInstance.update({ where: { id: s.id }, data: { status: held ? "HELD" : "MISSED" } }),
-      ...(!teacherAtt
-        ? [prisma.attendance.create({ data: { sessionId: s.id, userId: s.enrollment.teacherId, role: "TEACHER", status: "ABSENT" } })]
-        : []),
-      ...(!studentAtt
-        ? [prisma.attendance.create({ data: { sessionId: s.id, userId: s.enrollment.studentId, role: "STUDENT", status: "ABSENT" } })]
-        : []),
+      prisma.sessionInstance.updateMany({ where: { id: s.id, status: "SCHEDULED" }, data: { status: held ? "HELD" : "MISSED" } }),
+      ...(absent.length ? [prisma.attendance.createMany({ data: absent, skipDuplicates: true })] : []),
       // Close any dangling "still connected" marker.
       prisma.attendance.updateMany({ where: { sessionId: s.id, lastSeenAt: { not: null } }, data: { lastSeenAt: null } }),
     ]);

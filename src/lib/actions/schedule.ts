@@ -147,6 +147,59 @@ export async function addSlot(enrollmentId: number, input: SlotInputT, force = f
   return { ok: true, message: `Weekly time added · ${n} sessions scheduled` };
 }
 
+const OneOffInput = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date"),
+  startTime: z.string().refine(isHHMM, "Use HH:MM"),
+  durationMinutes: z.number().int().min(15).max(240),
+});
+export type OneOffInputT = z.infer<typeof OneOffInput>;
+
+/**
+ * A single lesson on one date — no weekly time, nothing repeats.
+ * Checked against the teacher's and the student's real lessons that day; "force" books it anyway.
+ */
+export async function addOneOffSession(enrollmentId: number, input: OneOffInputT, force = false): Promise<Result> {
+  await assertRole("admin");
+  const p = OneOffInput.safeParse(input);
+  if (!p.success) return { ok: false, error: "Choose a date, start time and length." };
+  const e = await prisma.enrollment.findUnique({ where: { id: enrollmentId }, include: { subject: true } });
+  if (!e) return { ok: false, error: "Subject not found." };
+  if (e.status !== "ACTIVE") return { ok: false, error: "Reactivate the subject before adding a lesson." };
+
+  const [y, m, d] = p.data.date.split("-").map(Number);
+  const startsAt = zonedToUtc(y, m, d, p.data.startTime);
+  if (startsAt.getTime() < Date.now()) return { ok: false, error: "Pick a time in the future." };
+  const endsAt = new Date(startsAt.getTime() + p.data.durationMinutes * 60_000);
+
+  if (!force) {
+    const clashes = await prisma.sessionInstance.findMany({
+      where: {
+        status: "SCHEDULED",
+        startsAt: { lt: endsAt },
+        endsAt: { gt: startsAt },
+        enrollment: { OR: [{ teacherId: e.teacherId }, { studentId: e.studentId }] },
+      },
+      include: { enrollment: { include: { subject: true, teacher: { include: { user: true } }, student: { include: { user: true } } } } },
+    });
+    if (clashes.length) {
+      const t = (x: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(x);
+      const conflicts: Conflict[] = clashes.map((c) => {
+        const who = c.enrollment.teacherId === e.teacherId ? "teacher" : "student";
+        const person = who === "teacher" ? c.enrollment.teacher.user : c.enrollment.student.user;
+        return { who, name: `${person.firstName} ${person.lastName}`, label: `${c.enrollment.subject.name} ${t(c.startsAt)}–${t(c.endsAt)}` };
+      });
+      return { ok: false, error: "That time clashes with another lesson.", conflicts };
+    }
+  }
+
+  await prisma.sessionInstance.create({
+    data: { enrollmentId, startsAt, endsAt, meetingRoom: meetingRoomName(e.subject.code) },
+  });
+  refresh(enrollmentId);
+  const when = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" }).format(startsAt);
+  return { ok: true, message: `One-off lesson added · ${when} at ${p.data.startTime}` };
+}
+
 export async function removeSlot(slotId: number): Promise<Result> {
   await assertRole("admin");
   const slot = await prisma.sessionSlot.findUnique({ where: { id: slotId } });

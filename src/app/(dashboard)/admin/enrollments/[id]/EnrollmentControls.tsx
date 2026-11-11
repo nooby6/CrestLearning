@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
-import { Loader2, PauseCircle, PlayCircle, Plus, StopCircle, Trash2 } from "lucide-react";
-import { addSlot, removeSlot, setEnrollmentStatus } from "@/lib/actions/schedule";
+import { CalendarPlus, Loader2, PauseCircle, PlayCircle, Plus, StopCircle, Trash2 } from "lucide-react";
+import { addOneOffSession, addSlot, removeSlot, setEnrollmentStatus } from "@/lib/actions/schedule";
 import type { Conflict } from "@/lib/sessions";
-import { formatSlot } from "@/lib/schedule";
-import { ConflictList, SlotFields, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
+import { DURATIONS, formatSlot, fromMinutes, toMinutes } from "@/lib/schedule";
+import { ConflictList, SlotFields, durationLabel, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
 
 type Slot = { id: number; weekday: SlotDraft["weekday"]; startTime: string; durationMinutes: number };
 
@@ -35,12 +35,12 @@ export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: num
   return (
     <div className="space-y-3">
       {slots.length === 0 && !adding && (
-        <p className="rounded-lg border border-dashed border-amber-200 bg-amber-50/50 px-3 py-3 text-sm text-amber-800">
-          No weekly time yet, so no sessions are being created.
+        <p className="border border-dashed border-amber-200 bg-amber-50/50 px-3 py-3 text-sm text-amber-800">
+          No weekly time — nothing repeats. Add one, or book one-off lessons below.
         </p>
       )}
       {slots.length > 0 && (
-        <ul className="divide-y divide-line rounded-lg border border-line">
+        <ul className="divide-y divide-line border border-line">
           {slots.map((s) => (
             <li key={s.id} className="flex items-center justify-between px-3 py-2.5">
               <span className="text-sm font-medium tabular-nums text-navy-900">{formatSlot(s)}</span>
@@ -56,7 +56,7 @@ export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: num
                     r.ok ? toast.success(r.message) : toast.error(r.error);
                   });
                 }}
-                className="rounded-md p-1.5 text-navy-300 hover:bg-rose-50 hover:text-rose-600"
+                className="p-1.5 text-navy-300 hover:bg-rose-50 hover:text-rose-600"
                 aria-label="Remove weekly time"
               >
                 {busy === s.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -68,7 +68,7 @@ export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: num
 
       {active &&
         (adding ? (
-          <div className="space-y-3 rounded-xl border border-gold-200 bg-gold-50/40 p-3">
+          <div className="space-y-3 border border-gold-300 bg-gold-50/40 p-3">
             <SlotFields
               value={draft}
               onChange={(v) => {
@@ -96,6 +96,103 @@ export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: num
             <Plus className="h-4 w-4" /> Add weekly time
           </button>
         ))}
+    </div>
+  );
+}
+
+const nairobiToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+
+/** Book a single lesson on one date. Nothing repeats; weekly times are unaffected. */
+export function OneOffLesson({ enrollmentId, active }: { enrollmentId: number; active: boolean }) {
+  const [pending, start] = useTransition();
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(nairobiToday());
+  const [time, setTime] = useState("16:00");
+  const [length, setLength] = useState(60);
+  const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  const end = /^\d{2}:\d{2}$/.test(time) ? fromMinutes(toMinutes(time) + length) : "—";
+
+  const add = (force: boolean) =>
+    start(async () => {
+      const r = await addOneOffSession(enrollmentId, { date, startTime: time, durationMinutes: length }, force);
+      if (r.ok) {
+        toast.success(r.message);
+        setOpen(false);
+        setConflicts([]);
+      } else if (r.conflicts?.length) setConflicts(r.conflicts);
+      else toast.error(r.error);
+    });
+
+  if (!active) return null;
+  if (!open)
+    return (
+      <button type="button" className="btn-ghost" onClick={() => setOpen(true)}>
+        <CalendarPlus className="h-4 w-4" /> Add one-off lesson
+      </button>
+    );
+  const clear = () => setConflicts([]);
+  return (
+    <div className="space-y-3 border border-gold-300 bg-gold-50/40 p-3">
+      <div className="grid grid-cols-2 gap-2">
+        <label className="col-span-2 block">
+          <span className="label">Date</span>
+          <input
+            type="date"
+            className="input tabular-nums"
+            value={date}
+            min={nairobiToday()}
+            onChange={(e) => {
+              setDate(e.target.value);
+              clear();
+            }}
+          />
+        </label>
+        <label className="block">
+          <span className="label">Starts</span>
+          <input
+            type="time"
+            step={900}
+            className="input tabular-nums"
+            value={time}
+            onChange={(e) => {
+              setTime(e.target.value);
+              clear();
+            }}
+          />
+        </label>
+        <label className="block">
+          <span className="label">Length</span>
+          <select
+            className="input"
+            value={length}
+            onChange={(e) => {
+              setLength(Number(e.target.value));
+              clear();
+            }}
+          >
+            {DURATIONS.map((m) => (
+              <option key={m} value={m}>
+                {durationLabel(m)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <p className="text-xs tabular-nums text-navy-500">Ends {end} · happens once, doesn’t repeat</p>
+      {conflicts.length > 0 && <ConflictList conflicts={conflicts} />}
+      <div className="flex justify-end gap-2">
+        <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+        {conflicts.length > 0 && (
+          <button type="button" className="btn-ghost" disabled={pending} onClick={() => add(true)}>
+            Add anyway
+          </button>
+        )}
+        <button type="button" className="btn-primary" disabled={pending || !date} onClick={() => add(false)}>
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add lesson"}
+        </button>
+      </div>
     </div>
   );
 }

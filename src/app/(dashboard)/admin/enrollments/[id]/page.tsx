@@ -12,7 +12,7 @@ import { SessionRow } from "@/components/schedule/SessionRow";
 import { SessionActions } from "@/components/schedule/SessionActions";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
-import { SlotManager, StatusControls } from "./EnrollmentControls";
+import { OneOffLesson, SlotManager, StatusControls } from "./EnrollmentControls";
 import { FeePlanEditor } from "@/components/finance/FinanceControls";
 import { balanceOf } from "@/lib/finance";
 
@@ -148,12 +148,18 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                         Weekly times{weekly ? ` · ${hoursLabel(weekly)}` : ""}
                       </p>
                       <SlotManager enrollmentId={e.id} active={e.status === "ACTIVE"} slots={slots} />
+                      {e.status === "ACTIVE" && (
+                        <>
+                          <p className="mb-2 mt-5 border-t border-line pt-4 text-[11px] font-semibold uppercase tracking-wider text-navy-400">Single lesson</p>
+                          <OneOffLesson enrollmentId={e.id} active />
+                        </>
+                      )}
                     </div>
                     <div className="p-5">
                       <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-navy-400">Next lessons</p>
                       {e.sessions.length === 0 ? (
                         <p className="flex items-center gap-2 py-3 text-sm text-navy-400">
-                          <CalendarDays className="h-4 w-4" /> {e.status !== "ACTIVE" ? "Paused — no lessons scheduled." : "Add a weekly time to schedule lessons."}
+                          <CalendarDays className="h-4 w-4" /> {e.status !== "ACTIVE" ? "Paused — no lessons scheduled." : "Add a weekly time or a one-off lesson to schedule lessons."}
                         </p>
                       ) : (
                         <div className="divide-y divide-line">
@@ -164,7 +170,7 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                               startsAt={x.startsAt}
                               endsAt={x.endsAt}
                               title={formatDate(x.startsAt, { weekday: "long", month: "long", year: undefined })}
-                              subtitle={x.status === "CANCELLED" ? x.cancelReason ?? "Cancelled" : x.slotId ? undefined : "Moved from its usual time"}
+                              subtitle={x.status === "CANCELLED" ? x.cancelReason ?? "Cancelled" : x.slotId ? undefined : x.rescheduledFromId ? "Moved from its usual time" : "One-off lesson"}
                               colorKey={e.subject.code}
                               status={x.status}
                               action={
