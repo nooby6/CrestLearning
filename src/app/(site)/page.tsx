@@ -65,9 +65,8 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="-mx-2 sm:mx-0">
-            <ContourPeak className="hidden h-auto w-full sm:block" />
-            <ContourPeak labels={false} className="mx-auto h-auto w-[86%] sm:hidden" />
+          <div className="overflow-hidden sm:overflow-visible">
+            <ContourPeak className="h-auto w-[142%] max-w-none sm:w-full sm:max-w-full" />
           </div>
         </div>
         <div className="border-t border-white/10 bg-navy-900/50">

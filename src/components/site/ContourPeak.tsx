@@ -26,7 +26,7 @@ function ringPoints(i: number): Pt[] {
   const ry = 22 + t * 220;
   const cx = CX + 40 * (1 - t);
   const cy = CY - 46 * (1 - t);
-  const N = 96;
+  const N = 44;
   return Array.from({ length: N }, (_, k) => {
     const a = (k / N) * Math.PI * 2;
     const w = 1 + 0.07 * Math.sin(3 * a + i * 0.6) + 0.05 * Math.sin(5 * a - i * 0.9) + 0.03 * Math.cos(7 * a + i * 1.7) + 0.05 * t * Math.sin(2 * a + 1.2);
@@ -38,7 +38,7 @@ function ringPoints(i: number): Pt[] {
 function smooth(pts: Pt[]) {
   const N = pts.length;
   const p = (n: number) => pts[(n + N) % N];
-  const f = (v: number) => v.toFixed(1);
+  const f = (v: number) => String(Math.round(v));
   let d = `M${f(p(0)[0])},${f(p(0)[1])}`;
   for (let k = 0; k < N; k++) {
     const [x0, y0] = p(k - 1);
@@ -55,7 +55,7 @@ function rightAt(pts: Pt[], y: number, cx: number): Pt {
   return pts.filter((q) => q[0] > cx).reduce((m, q) => (Math.abs(q[1] - y) < Math.abs(m[1] - y) ? q : m));
 }
 
-export function ContourPeak({ className, labels = true }: { className?: string; labels?: boolean }) {
+export function ContourPeak({ className }: { className?: string }) {
   const rings = Array.from({ length: RINGS }, (_, i) => {
     const pts = ringPoints(i);
     return { i, pts, d: smooth(pts) };
@@ -65,7 +65,7 @@ export function ContourPeak({ className, labels = true }: { className?: string; 
 
   return (
     <svg
-      viewBox={`0 0 ${labels ? W : 600} ${H}`}
+      viewBox={`0 0 ${W} ${H}`}
       className={className}
       role="img"
       aria-label="A contour map of a peak. Its rings mark the stages from Primary up to A Level and the IB Diploma."
@@ -88,13 +88,12 @@ export function ContourPeak({ className, labels = true }: { className?: string; 
         );
       })}
 
-      {labels &&
-        STAGES.map((s, n) => {
+      {STAGES.map((s, n) => {
           const ring = rings[s.ring];
           const cx = CX + 40 * (1 - s.ring / (RINGS - 1));
           const [x, y] = rightAt(ring.pts, s.y, cx);
           return (
-            <g key={s.ring} className="contour-label" style={{ animationDelay: `${950 + n * 110}ms` }}>
+            <g key={s.ring} className="contour-label max-sm:hidden" style={{ animationDelay: `${950 + n * 110}ms` }}>
               <line x1={x} y1={y} x2={LABEL_X - 10} y2={y} stroke="#C69A3A" strokeOpacity={0.55} strokeWidth={1} />
               <rect x={x - 3.5} y={y - 3.5} width={7} height={7} fill="#C69A3A" />
               <text x={LABEL_X} y={y + 6} fill="#FFFFFF" fontSize={18} fontWeight={600} fontFamily="var(--font-montserrat), sans-serif">
