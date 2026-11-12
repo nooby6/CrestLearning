@@ -1,75 +1,80 @@
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { PageIntro } from "@/components/site/PageIntro";
+import { PageHero, SectionHead } from "@/components/site/blocks";
 import { EnquiryForm } from "@/components/site/EnquiryForm";
 import { getSiteContact, telLink, whatsappLink } from "@/lib/site";
 
 export const metadata = {
   title: "Contact",
-  description: "Contact the Crest Learning office in Nairobi by phone, WhatsApp or email, or send an enquiry.",
+  description: "Contact Crest Learning in Nairobi by phone, WhatsApp or email, or send us a message.",
 };
 
 export default async function ContactPage() {
   const c = await getSiteContact();
   const wa = c.whatsapp || c.phone;
-  const items = [
-    c.phone && { icon: Phone, label: "Call", value: c.phone, href: telLink(c.phone) },
+  const cards = [
+    c.phone && { icon: Phone, label: "Call us", value: c.phone, href: telLink(c.phone) },
     wa && { icon: MessageCircle, label: "WhatsApp", value: c.whatsapp || c.phone, href: whatsappLink(wa), external: true },
     c.email && { icon: Mail, label: "Email", value: c.email, href: `mailto:${c.email}` },
-    c.address && { icon: MapPin, label: "Centre", value: c.address, href: c.mapUrl || undefined, external: true, cta: c.mapUrl ? "Open in Google Maps" : undefined },
+    c.address && { icon: MapPin, label: "Visit our centre", value: c.address, href: c.mapUrl || undefined, external: true },
     c.hours && { icon: Clock, label: "Office hours", value: c.hours },
-  ].filter(Boolean) as { icon: typeof Phone; label: string; value: string; href?: string; external?: boolean; cta?: string }[];
+  ].filter(Boolean) as { icon: typeof Phone; label: string; value: string; href?: string; external?: boolean }[];
 
   return (
     <>
-      <PageIntro title="Contact">
-        <p>Questions about lessons, fees or an existing student? The office is here to help.</p>
-      </PageIntro>
-      <section className="bg-white py-16 sm:py-20">
+      <PageHero photo="westlands" kicker="Contact" title="We’d love to hear from you">
+        <p>Questions about lessons, fees or an existing learner? Our office is here to help.</p>
+      </PageHero>
+
+      {cards.length > 0 && (
+        <section className="relative z-10 -mt-[calc(5vw+40px)]">
+          <ul className="site-wrap grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {cards.slice(0, 4).map((it) => {
+              const inner = (
+                <>
+                  <span className="grid h-12 w-12 place-items-center bg-navy-800 text-gold-400">
+                    <it.icon className="h-6 w-6" />
+                  </span>
+                  <p className="mt-5 text-sm font-semibold text-navy-500">{it.label}</p>
+                  <p className="mt-1 whitespace-pre-line break-words font-display text-lg font-extrabold text-navy-900">{it.value}</p>
+                </>
+              );
+              return (
+                <li key={it.label}>
+                  {it.href ? (
+                    <a
+                      href={it.href}
+                      {...(it.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                      className="block h-full border border-line border-t-[4px] border-t-gold-500 bg-white p-6 shadow-[0_30px_60px_-34px_rgba(10,29,79,0.6)] transition-colors hover:border-navy-800"
+                    >
+                      {inner}
+                    </a>
+                  ) : (
+                    <div className="h-full border border-line border-t-[4px] border-t-gold-500 bg-white p-6 shadow-[0_30px_60px_-34px_rgba(10,29,79,0.6)]">{inner}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
           <div>
-            <h2 className="site-h2">Reach the office</h2>
-            {items.length ? (
-              <ul className="mt-8 divide-y divide-line border-y border-line">
-                {items.map((it) => (
-                  <li key={it.label} className="grid grid-cols-[40px_minmax(0,1fr)] gap-x-3 py-4">
-                    <span className="grid h-10 w-10 place-items-center bg-navy-800 text-white">
-                      <it.icon className="h-[18px] w-[18px]" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm text-navy-500">{it.label}</p>
-                      {it.href && !it.cta ? (
-                        <a
-                          href={it.href}
-                          {...(it.external ? { target: "_blank", rel: "noreferrer" } : {})}
-                          className="break-words font-medium text-navy-900 underline-offset-4 hover:underline"
-                        >
-                          {it.value}
-                        </a>
-                      ) : (
-                        <p className="whitespace-pre-line font-medium text-navy-900">{it.value}</p>
-                      )}
-                      {it.cta && it.href && (
-                        <a href={it.href} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-medium text-gold-700 underline-offset-4 hover:underline">
-                          {it.cta}
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-6 text-[16px] leading-[1.65] text-navy-700">Send us a message with the form and the office will reply by phone or email.</p>
+            <SectionHead kicker="Send a message" title="How can we help?">
+              <p>Send us a message and our office will reply by phone or email.</p>
+            </SectionHead>
+            {c.hours && cards.length > 4 && (
+              <p className="mt-6 flex items-center gap-2 text-[15px] text-navy-700">
+                <Clock className="h-4 w-4 text-gold-600" /> {c.hours}
+              </p>
             )}
-            <p className="mt-8 text-[15px] leading-relaxed text-navy-700">
-              Already a Crest family? Messages about a current student are quickest through the office, and lesson details are always in the parent
-              portal.
+            <p className="mt-8 border-l-[3px] border-gold-500 bg-canvas p-5 text-[15px] leading-relaxed text-navy-800">
+              Already a Crest family? Lesson details, reports and invoices are always in your parent portal.
             </p>
           </div>
-          <div>
-            <h2 className="site-h2">Send a message</h2>
-            <div className="mt-8 border border-line border-t-[3px] border-t-navy-800 bg-white p-5 shadow-[0_18px_40px_-28px_rgba(10,29,79,0.4)] sm:p-8">
-              <EnquiryForm />
-            </div>
+          <div className="cut-corner border border-line border-t-[4px] border-t-navy-800 bg-white p-6 shadow-[0_30px_60px_-36px_rgba(10,29,79,0.55)] sm:p-9">
+            <EnquiryForm />
           </div>
         </div>
       </section>

@@ -8,7 +8,12 @@ const nextConfig = {
     },
   },
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+      // Website photography (Unsplash licence), resized and cached by Vercel.
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+    ],
+    formats: ["image/avif", "image/webp"],
   },
 };
 

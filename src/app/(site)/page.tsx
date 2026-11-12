@@ -1,277 +1,259 @@
 import Link from "next/link";
-import { Building2, House, MonitorPlay } from "lucide-react";
-import { ContourPeak } from "@/components/site/ContourPeak";
+import {
+  BookOpenCheck,
+  Building2,
+  CalendarCheck2,
+  ClipboardList,
+  GraduationCap,
+  House,
+  Layers3,
+  MapPin,
+  MonitorPlay,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from "lucide-react";
+import { AudienceTiles, CurriculaStrip, NextSteps, Photo, ProgrammeCards, SectionHead } from "@/components/site/blocks";
 import { ReportPreview } from "@/components/site/ReportPreview";
 
 export const metadata = {
-  title: { absolute: "Crest Learning — tuition and homeschooling in Nairobi" },
-  description: "One-to-one tuition and homeschooling in Nairobi across Cambridge, Pearson Edexcel, CBE and IB, from Primary to A Level and the IB Diploma. At our centre, at home or live online.",
+  title: { absolute: "Crest Learning — Homeschooling and tuition in Nairobi" },
+  description:
+    "Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level. At our centre, in your home or live online.",
 };
 
+const FACTS = [
+  { icon: Layers3, title: "4 curricula", body: "Cambridge, Pearson Edexcel, CBE and IB" },
+  { icon: GraduationCap, title: "Ages 5 to 18", body: "Primary through to A Level and the IB Diploma" },
+  { icon: MapPin, title: "3 ways to learn", body: "At our centre, in your home or live online" },
+  { icon: ClipboardList, title: "Weekly reports", body: "Written progress for every subject, every week" },
+];
+
+const WHY = [
+  { icon: UserRound, title: "Truly one-to-one", body: "Every lesson is planned for one learner, at their pace, with nobody to wait for and nowhere to hide." },
+  { icon: Users, title: "A specialist for every subject", body: "Each subject has its own teacher who knows the syllabus and the exams inside out." },
+  { icon: CalendarCheck2, title: "A timetable that fits", body: "Regular weekly lessons at times agreed with your family, at the centre, at home or online." },
+  { icon: BookOpenCheck, title: "Every lesson recorded", body: "Teachers log attendance, topics covered and homework after each lesson, the same day." },
+  { icon: ClipboardList, title: "Weekly progress reports", body: "Strengths, progress and next week’s focus, written by each teacher and ready to print." },
+  { icon: ShieldCheck, title: "A secure parent portal", body: "Timetables, reports, schoolwork, invoices and payments in one private place for your family." },
+];
+
 const WAYS = [
-  {
-    icon: Building2,
-    title: "At the Crest centre",
-    body: "A calm, supervised place to work with your teacher, away from the distractions of home.",
-  },
-  {
-    icon: House,
-    title: "At home in Nairobi",
-    body: "Your teacher comes to you, so lessons fit around the family’s week without the commute.",
-  },
-  {
-    icon: MonitorPlay,
-    title: "Live online",
-    body: "Face-to-face lessons on Google Meet from anywhere, with the same records and reports as every other lesson.",
-  },
-];
-
-/** Stage names as each curriculum uses them. Blank where a curriculum doesn’t have that stage. */
-const MATRIX: { curriculum: string; stages: (string | null)[] }[] = [
-  { curriculum: "Cambridge", stages: ["Cambridge Primary", "Lower Secondary", "IGCSE", "AS and A Level"] },
-  { curriculum: "Pearson Edexcel", stages: [null, null, "International GCSE", "International A Level"] },
-  { curriculum: "CBE", stages: ["Grades 1–6", "Junior School, Grades 7–9", null, null] },
-  { curriculum: "IB", stages: [null, null, null, "IB Diploma"] },
-];
-const LEVELS = ["Primary", "Lower secondary", "IGCSE and GCSE", "A Level and IB"];
-
-const STEPS = [
-  { title: "Tell us about your student", body: "Send an enquiry or call the office. We ask about their curriculum, level, subjects and what they’re aiming for." },
-  { title: "We plan the teaching", body: "We match a teacher to each subject and agree a weekly timetable with you, at the centre, at home or online." },
-  { title: "Lessons begin, and every one is recorded", body: "After each lesson the teacher records attendance, the topics covered and any homework, the same day." },
-  { title: "You hear from us every week", body: "Each subject’s teacher writes a short report: progress, strengths and the focus for the week ahead." },
+  { icon: Building2, title: "At our Nairobi centre", body: "A calm, supervised study space where learners work with their teachers away from home distractions." },
+  { icon: House, title: "Home tuition across Nairobi", body: "Our teachers come to you, so lessons fit around family life without the commute." },
+  { icon: MonitorPlay, title: "Live online lessons", body: "Face-to-face lessons on Google Meet from anywhere, with the same records and weekly reports." },
 ];
 
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-navy-800 text-white">
-        <div className="site-wrap grid items-center gap-10 py-16 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-6 lg:py-24">
-          <div className="max-w-xl">
-            <h1 className="font-display text-[clamp(30px,9.4vw,38px)] font-bold leading-[1.08] tracking-[-0.02em] sm:text-[50px]">
-              Tuition and homeschooling, planned around one student at a time.
+      {/* ---------------------------------------------------------------- hero */}
+      <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
+        <Photo k="nairobi" sizes="100vw" priority position="center 40%" className="-z-20" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-900/80 to-navy-900/20" />
+        <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-navy-950/70 to-transparent" />
+        <div className="site-wrap grid items-end gap-12 pb-[calc(5vw+150px)] pt-20 sm:pt-28 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+          <div className="hero-rise max-w-2xl">
+            <p className="inline-flex items-center gap-2 border border-white/25 bg-white/10 px-3 py-1.5 text-sm font-medium backdrop-blur">
+              <MapPin className="h-4 w-4 text-gold-400" /> Nairobi, Kenya
+            </p>
+            <h1 className="mt-6 font-display text-[clamp(38px,7.4vw,72px)] font-extrabold leading-[1.02] tracking-[-0.03em]">
+              Homeschooling and tuition in Nairobi
             </h1>
-            <p className="mt-6 max-w-[52ch] text-[17px] leading-[1.65] text-navy-100 sm:text-lg">
-              Every Crest student has their own teachers and their own timetable, for Cambridge, Pearson Edexcel, CBE and IB, from Primary to A Level and
-              the IB Diploma. Learn at our Nairobi centre, at home, or live online.
+            <p className="mt-6 max-w-[54ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
+              One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level. At our centre, in your home or live
+              online.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/admissions#enquire" className="btn-gold px-6 py-3 text-[15px]">
-                Enquire about a place
+              <Link href="/admissions#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
+                Enquire now
               </Link>
-              <Link href="/programmes" className="btn border-white/40 px-6 py-3 text-[15px] text-white hover:border-white hover:bg-white/10">
+              <Link href="/programmes" className="btn border-white/50 px-7 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
                 Explore programmes
               </Link>
             </div>
           </div>
-          <div className="overflow-hidden sm:overflow-visible">
-            <ContourPeak className="h-auto w-[142%] max-w-none sm:w-full sm:max-w-full" />
-          </div>
-        </div>
-        <div className="border-t border-white/10 bg-navy-900/50">
-          <ul className="site-wrap grid gap-x-8 gap-y-2 py-4 text-sm text-navy-100 sm:grid-cols-3">
-            <li>Our centre in Nairobi</li>
-            <li>Home tuition across Nairobi</li>
-            <li>Live online lessons, anywhere</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Ways to learn */}
-      <section className="bg-white py-20">
-        <div className="site-wrap">
-          <div>
-            <div className="max-w-3xl">
-              <h2 className="site-h2">Three ways to learn, one standard of teaching</h2>
-              <p className="site-lead mt-4">
-                Choose what suits your student and your week. Whichever you choose, lessons come with the same records and weekly reports.
-              </p>
-            </div>
-            <ul className="mt-10 grid border-t-[3px] border-navy-800 md:grid-cols-3">
-              {WAYS.map((w, i) => (
-                <li key={w.title} className={`py-7 md:px-7 md:first:pl-0 ${i > 0 ? "border-t border-line md:border-l md:border-t-0" : ""}`}>
-                  <w.icon className="h-7 w-7 text-gold-600" strokeWidth={1.6} />
-                  <h3 className="mt-4 font-display text-xl font-semibold text-navy-900">{w.title}</h3>
-                  <p className="mt-2 max-w-[38ch] text-[15px] leading-relaxed text-navy-700">{w.body}</p>
+          <aside className="hero-rise hidden border border-white/20 bg-navy-950/55 p-7 backdrop-blur-md lg:block">
+            <p className="font-display text-xl font-extrabold">Speak to our admissions team</p>
+            <p className="mt-2 text-[15px] leading-relaxed text-navy-100">We’ll help you choose the right curriculum, subjects and way of learning for your learner.</p>
+            <ul className="mt-5 space-y-3 text-[15px]">
+              {["Advice on curriculum and level", "Matched subject teachers", "A weekly timetable that fits"].map((t) => (
+                <li key={t} className="flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 bg-gold-500" aria-hidden /> {t}
                 </li>
               ))}
             </ul>
-          </div>
+            <Link href="/admissions#enquire" className="btn mt-6 w-full border-white bg-white py-3 font-bold text-navy-900 hover:bg-gold-500 hover:text-navy-950">
+              Book a conversation
+            </Link>
+          </aside>
         </div>
       </section>
 
-      {/* Curricula × levels */}
-      <section className="border-y border-line bg-canvas py-20">
-        <div className="site-wrap">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="site-h2">Four curricula, Primary to A Level</h2>
-              <p className="site-lead mt-4">Each student is taught to their own curriculum and exam board, at the stage they’re at now.</p>
+      {/* Key facts, lifted over the angled edge */}
+      <section className="relative z-10 -mt-[calc(5vw+96px)]">
+        <ul className="site-wrap grid grid-cols-2 lg:grid-cols-4">
+          {FACTS.map((f, i) => (
+            <li
+              key={f.title}
+              className={`flex flex-col gap-3 border border-line bg-white p-4 sm:flex-row sm:gap-4 sm:p-6 shadow-[0_30px_60px_-34px_rgba(10,29,79,0.6)] ${i === 0 ? "border-t-[4px] border-t-gold-500" : "border-t-[4px] border-t-navy-800"}`}
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center bg-navy-800 text-gold-400 sm:h-12 sm:w-12">
+                <f.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </span>
+              <div>
+                <p className="font-display text-base font-extrabold text-navy-900 sm:text-lg">{f.title}</p>
+                <p className="mt-1 text-[13px] leading-snug text-navy-600 sm:text-sm">{f.body}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ---------------------------------------------------------------- why */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="site-wrap grid gap-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
+          <div className="lg:sticky lg:top-40 lg:self-start">
+            <SectionHead kicker="Why Crest Learning" title="Why families choose Crest">
+              <p>
+                Every learner is different, so we don’t teach classes. We build a plan around one learner — their curriculum, their subjects and their
+                goals — and give their family a clear view of progress every week.
+              </p>
+            </SectionHead>
+            <div className="relative mt-10 hidden aspect-[4/3] overflow-hidden lg:block">
+              <div className="cut-right absolute inset-0">
+                <Photo k="classroom" sizes="40vw" />
+              </div>
+              <div className="absolute bottom-0 right-0 h-2/3 w-3 bg-gold-500" aria-hidden />
             </div>
-            <Link href="/programmes" className="btn-ghost self-start lg:self-auto">
-              See programmes in detail
-            </Link>
           </div>
-          {/* Phones: one block per curriculum. */}
-          <ul className="mt-8 grid gap-3 md:hidden">
-            {MATRIX.map((row) => (
-              <li key={row.curriculum} className="border border-line border-t-[3px] border-t-navy-800 bg-white p-4">
-                <p className="font-display text-lg font-semibold text-navy-900">{row.curriculum}</p>
-                <dl className="mt-2 grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-x-3 gap-y-1.5 text-sm">
-                  {row.stages.map((st, i) =>
-                    st ? (
-                      <div key={i} className="contents">
-                        <dt className="text-navy-500">{LEVELS[i]}</dt>
-                        <dd className="text-navy-900">{st}</dd>
-                      </div>
-                    ) : null,
-                  )}
-                </dl>
+          <ul className="grid gap-x-10 gap-y-12 sm:grid-cols-2">
+            {WHY.map((w) => (
+              <li key={w.title}>
+                <span className="grid h-14 w-14 place-items-center border-2 border-navy-800 text-navy-800">
+                  <w.icon className="h-7 w-7" strokeWidth={1.7} />
+                </span>
+                <h3 className="mt-5 font-display text-xl font-extrabold text-navy-900">{w.title}</h3>
+                <p className="mt-2 text-[16px] leading-relaxed text-navy-700">{w.body}</p>
               </li>
             ))}
           </ul>
-          <div className="mt-10 hidden overflow-x-auto border border-line bg-white md:block">
-            <table className="w-full min-w-[720px] border-collapse text-left text-[15px]">
-              <thead>
-                <tr className="bg-navy-800 text-white">
-                  <th scope="col" className="w-[19%] px-5 py-3.5 font-display text-sm font-semibold">
-                    Curriculum
-                  </th>
-                  {LEVELS.map((l) => (
-                    <th key={l} scope="col" className="border-l border-white/10 px-5 py-3.5 font-display text-sm font-semibold">
-                      {l}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {MATRIX.map((row) => (
-                  <tr key={row.curriculum} className="border-t border-line">
-                    <th scope="row" className="px-5 py-4 font-display font-semibold text-navy-900">
-                      {row.curriculum}
-                    </th>
-                    {row.stages.map((s, i) => (
-                      <td key={i} className="border-l border-line px-5 py-4">
-                        {s ? (
-                          <span className="flex items-start gap-2.5 text-navy-800">
-                            <span className="mt-[7px] h-2 w-2 shrink-0 bg-gold-500" aria-hidden />
-                            {s}
-                          </span>
-                        ) : (
-                          <span className="text-navy-200" aria-label="Not offered at this stage">
-                            —
-                          </span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-4 text-sm text-navy-600">Moving between curricula, or not sure which suits? Tell us when you enquire and we’ll talk it through.</p>
         </div>
       </section>
 
-      {/* How it starts */}
-      <section className="bg-white py-20">
+      {/* ---------------------------------------------------------------- programmes */}
+      <section className="angle-both bg-canvas py-[calc(5vw+64px)]">
         <div className="site-wrap">
-          <h2 className="site-h2 max-w-2xl">From first call to first report</h2>
-          <ol className="mt-12 grid gap-px border border-line bg-line md:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="bg-white p-6">
-                <span className="font-display text-[44px] font-bold leading-none text-gold-500" aria-hidden>
-                  {i + 1}
-                </span>
-                <h3 className="mt-5 font-display text-lg font-semibold leading-snug text-navy-900">{s.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-navy-700">{s.body}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <SectionHead kicker="What we offer" title="Programmes for every stage">
+              <p>From first readers to university applicants, each stage is taught to the learner’s own curriculum and exam board.</p>
+            </SectionHead>
+            <Link href="/programmes" className="btn-primary self-start px-6 py-3 lg:self-auto">
+              View all programmes
+            </Link>
+          </div>
+          <div className="mt-12">
+            <ProgrammeCards />
+          </div>
         </div>
       </section>
 
-      {/* For parents */}
-      <section className="border-y border-line bg-canvas py-20">
-        <div className="site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+      {/* ---------------------------------------------------------------- ways to learn */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="relative aspect-[5/4] lg:aspect-[4/5]">
+            <div className="cut-right absolute inset-0 overflow-hidden bg-navy-100">
+              <Photo k="onlineLesson" sizes="(min-width:1024px) 50vw, 100vw" />
+            </div>
+            <div className="absolute -bottom-6 left-6 right-[22%] bg-navy-800 p-6 text-white shadow-[0_30px_60px_-30px_rgba(10,29,79,0.8)] sm:left-10">
+              <p className="font-display text-lg font-extrabold">The same standard, wherever they learn</p>
+              <p className="mt-1 text-sm text-navy-100">Every lesson is recorded and reported in the same way.</p>
+            </div>
+          </div>
           <div>
-            <h2 className="site-h2">Always know how your student is doing</h2>
-            <p className="site-lead mt-4">
-              Parents have their own sign-in to the Crest portal. Everything the teachers record is there, for every student in the family.
-            </p>
-            <ul className="mt-8 space-y-4">
-              {[
-                ["Attendance for every lesson", "Joined, late or missed — recorded automatically for online lessons and confirmed by the teacher."],
-                ["Topics, homework and schoolwork", "What was covered, what’s due, and the worksheets your student has handed in."],
-                ["A written report every week", "Progress, strengths and next week’s focus, from each subject’s teacher. Easy to print."],
-                ["Timetable, invoices and payments", "Upcoming lessons, invoices and payments confirmed by the office, in one place."],
-              ].map(([t, b]) => (
-                <li key={t} className="grid grid-cols-[14px_minmax(0,1fr)] gap-x-4">
-                  <span className="mt-[9px] h-2.5 w-2.5 bg-navy-800" aria-hidden />
+            <SectionHead kicker="Learn your way" title="At our centre, at home or online">
+              <p>Choose the setting that suits your learner and your week. Talk to us about mixing settings across subjects.</p>
+            </SectionHead>
+            <ul className="mt-10 space-y-4">
+              {WAYS.map((w) => (
+                <li key={w.title} className="group flex gap-5 border border-line p-5 transition-colors hover:border-navy-800">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center bg-gold-500 text-navy-950 transition-colors group-hover:bg-navy-800 group-hover:text-gold-400">
+                    <w.icon className="h-6 w-6" />
+                  </span>
                   <div>
-                    <p className="font-semibold text-navy-900">{t}</p>
-                    <p className="mt-0.5 text-[15px] leading-relaxed text-navy-700">{b}</p>
+                    <h3 className="font-display text-lg font-extrabold text-navy-900">{w.title}</h3>
+                    <p className="mt-1 text-[15px] leading-relaxed text-navy-700">{w.body}</p>
                   </div>
                 </li>
               ))}
             </ul>
-            <Link href="/parents" className="btn-ghost mt-9">
-              More about the parent portal
-            </Link>
           </div>
-          <ReportPreview />
         </div>
       </section>
 
-      {/* Homeschooling */}
-      <section className="bg-white py-20">
-        <div className="site-wrap grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+      {/* ---------------------------------------------------------------- homeschooling for */}
+      <section className="bg-navy-950 py-20 text-white sm:py-24">
+        <div className="site-wrap">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="site-kicker text-gold-400">Homeschooling for…</p>
+              <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
+                No matter the journey, we’re here to help them thrive
+              </h2>
+            </div>
+            <Link href="/homeschooling" className="btn-gold self-start px-6 py-3 font-semibold lg:self-auto">
+              How homeschooling works
+            </Link>
+          </div>
+          <div className="mt-12">
+            <AudienceTiles />
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- parent portal */}
+      <section className="relative overflow-hidden bg-canvas py-20 sm:py-28">
+        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-navy-800 lg:block" style={{ clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0 100%)" }} aria-hidden />
+        <div className="site-wrap relative grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <div>
-            <h2 className="site-h2">Homeschooling, with a school’s structure</h2>
-            <p className="site-lead mt-4">
-              For families who homeschool full time, we build the whole week: a teacher for each subject, a fixed timetable, and one place to follow
-              progress across everything your student studies.
-            </p>
-            <Link href="/homeschooling" className="btn-primary mt-8">
-              How homeschooling works at Crest
-            </Link>
+            <SectionHead kicker="For parents" title="Always know how your learner is doing">
+              <p>Every Crest family has a private parent portal. Whatever the teachers record, you can see — for every learner in your family.</p>
+            </SectionHead>
+            <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+              {["Attendance for every lesson", "Topics covered and homework", "A written report every week", "Invoices and payments"].map((t) => (
+                <li key={t} className="flex items-center gap-3 border-l-[3px] border-gold-500 bg-white px-4 py-3 font-semibold text-navy-900">
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/parents" className="btn-primary px-6 py-3">
+                Explore the parent portal
+              </Link>
+              <Link href="/portal" className="btn-ghost px-6 py-3">
+                Parent portal login
+              </Link>
+            </div>
           </div>
-          <dl className="grid content-start gap-px border border-line bg-line sm:grid-cols-2">
-            {[
-              ["A full weekly timetable", "Every subject at agreed times, so the week has a rhythm."],
-              ["Subject specialists", "Each subject taught by its own teacher, not one tutor for everything."],
-              ["Records after every lesson", "Topics and homework logged as you go, ready for exam preparation."],
-              ["Weekly reports", "Progress across all subjects, gathered in the parent portal."],
-            ].map(([t, b]) => (
-              <div key={t} className="bg-white p-5">
-                <dt className="font-display font-semibold text-navy-900">{t}</dt>
-                <dd className="mt-1.5 text-[15px] leading-relaxed text-navy-700">{b}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="lg:-rotate-2">
+            <ReportPreview />
+          </div>
         </div>
       </section>
 
-      {/* Enquire */}
-      <section className="bg-navy-800 text-white">
-        <div className="site-wrap flex flex-col gap-8 py-16 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <h2 className="font-display text-[28px] font-bold leading-tight sm:text-[34px]">Tell us about your student</h2>
-            <p className="mt-3 text-[17px] leading-relaxed text-navy-100">
-              A few details are enough to start. The office will come back to you to talk through subjects, teachers and timings.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/admissions#enquire" className="btn-gold px-6 py-3 text-[15px]">
-              Enquire about a place
-            </Link>
-            <Link href="/contact" className="btn border-white/40 px-6 py-3 text-[15px] text-white hover:border-white hover:bg-white/10">
-              Contact the office
-            </Link>
+      {/* ---------------------------------------------------------------- curricula */}
+      <section className="bg-white pt-20 sm:pt-24">
+        <div className="site-wrap">
+          <SectionHead kicker="Curricula" title="Taught to the curriculum your learner follows" center>
+            <p>Moving between curricula, or not sure which suits? Our admissions team will talk it through with you.</p>
+          </SectionHead>
+          <div className="mt-12">
+            <CurriculaStrip />
           </div>
         </div>
       </section>
+
+      <NextSteps />
     </>
   );
 }
