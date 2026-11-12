@@ -12,6 +12,7 @@ import prisma from "@/lib/prisma";
 import { BLOB_LIMITS, blobConfigured } from "@/lib/storage";
 import { UploadModeProvider } from "@/components/work/UploadMode";
 import { SignedInExtras } from "@/components/shell/SignedInExtras";
+import { PortalBackdrop } from "@/components/shell/PortalBackdrop";
 
 /** Pages a teacher may still open while lesson records are outstanding. */
 const RECORDS_PATH = "/teacher/records";
@@ -52,6 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen">
+      <PortalBackdrop />
       <Sidebar items={NAV[slug]} roleLabel={`${ROLE_LABEL[slug]} portal`} badges={badges} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar user={user} portal={slug} portals={portals} />

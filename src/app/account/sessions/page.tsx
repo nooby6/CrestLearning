@@ -23,7 +23,7 @@ export default async function SessionsPage() {
   const when = (d: Date) => `${formatDate(d, { weekday: "short", day: "numeric", month: "short", year: undefined })}, ${formatTime(d)}`;
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-canvas px-4 py-10 sm:px-6">
+    <div className="flex min-h-screen flex-col items-center px-4 py-10 sm:px-6">
       <Wordmark className="mb-8" />
       <div className="card w-full max-w-2xl">
         <div className="border-b border-line px-5 py-5 sm:px-6">

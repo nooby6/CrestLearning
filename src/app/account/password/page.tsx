@@ -18,7 +18,7 @@ export default async function PasswordPage() {
   const first = me.mustChangePassword;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-ivory px-6 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
       <Wordmark className="mb-10" />
       <div className="card w-full max-w-sm p-7">
         {!first && (
