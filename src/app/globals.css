@@ -210,9 +210,55 @@
   }
 }
 
+/* Print backdrop: hidden on screen, faint pencils and a Crest watermark on paper. */
+.print-backdrop {
+  display: none;
+}
+
 @media print {
   body {
     background: #fff;
+  }
+  .print-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .print-watermark {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 58%;
+    max-width: 120mm;
+    transform: translate(-50%, -50%);
+    opacity: 0.06;
+  }
+  .print-pencils {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 19mm;
+    object-fit: cover;
+    object-position: center 82%;
+    opacity: 0.22;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 60%);
+    mask-image: linear-gradient(to bottom, transparent, #000 60%);
+  }
+  /* Let the backdrop show through on paper; borders and text carry the layout. */
+  .card,
+  .bg-white,
+  .bg-ivory,
+  .bg-canvas {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  /* Keep the last lines clear of the pencils. */
+  @page {
+    margin: 14mm 12mm 16mm;
   }
   .page-banner {
     @apply mb-4 border-b border-navy-200 p-0 pb-3 text-navy-900;
