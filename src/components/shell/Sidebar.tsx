@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import {
+  Globe,
+  Inbox,
   BarChart3,
   BookOpen,
   CalendarDays,
@@ -37,6 +39,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   receipt: Receipt,
   chart: BarChart3,
   link: Link2,
+  inbox: Inbox,
+  globe: Globe,
 };
 
 function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?: () => void; badges?: Record<string, number> }) {
@@ -110,7 +114,7 @@ function Panel({ items, roleLabel, onNavigate, badges }: { items: NavItem[]; rol
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 pb-6 pt-6">
-        <Link href="/" onClick={onNavigate}>
+        <Link href="/portal" onClick={onNavigate}>
           <Wordmark tone="light" />
         </Link>
       </div>

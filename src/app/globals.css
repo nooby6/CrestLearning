@@ -113,6 +113,46 @@
   }
 }
 
+/* ------------------------------------------------------------------ public website */
+.site-wrap {
+  @apply mx-auto w-full max-w-[1200px] px-5 sm:px-8;
+}
+/* Section headings on the website: Montserrat, tight, sentence case. */
+.site-h2 {
+  @apply font-display text-[28px] font-bold leading-[1.15] tracking-[-0.01em] text-navy-900 sm:text-[34px];
+}
+.site-lead {
+  @apply max-w-[62ch] text-[17px] leading-[1.65] text-navy-700;
+}
+/* The hero's contour map draws in once; nothing else on the site moves on its own. */
+@keyframes contour-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.contour-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: contour-draw 1.4s cubic-bezier(0.3, 0.1, 0.2, 1) backwards;
+}
+@keyframes contour-label-in {
+  from {
+    opacity: 0;
+  }
+}
+.contour-label {
+  animation: contour-label-in 0.5s ease-out backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .contour-line,
+  .contour-label {
+    animation: none;
+  }
+}
+
 /* ------------------------------------------------------------------ sidebar */
 .sidebar-bg {
   background-color: #0a1d4f;

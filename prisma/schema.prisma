@@ -68,6 +68,7 @@ model User {
 
   sessions Session[]
   passwordResets PasswordReset[]
+  enquiriesHandled Enquiry[] @relation("EnquiryHandledBy")
 
   student Student?
   teacher Teacher?
@@ -808,4 +809,31 @@ model PasswordReset {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// A message from the public website's enquiry form. Worked through by the office.
+model Enquiry {
+  id          Int      @id @default(autoincrement())
+  parentName  String
+  email       String?
+  phone       String?
+  studentName String?
+  level       String?
+  curriculum  String?
+  /// How they'd like lessons: centre, home, online or unsure.
+  delivery    String?
+  subjects    String?
+  message     String?
+  /// NEW → CONTACTED → ENROLLED, or CLOSED.
+  status      String   @default("NEW")
+  notes       String?
+  handledById String?
+  ipHash      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  handledBy User? @relation("EnquiryHandledBy", fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
 }

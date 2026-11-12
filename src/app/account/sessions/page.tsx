@@ -10,6 +10,9 @@ import { formatTime } from "@/lib/schedule";
 import { Wordmark } from "@/components/brand/Logo";
 import { EndOthers, EndSession } from "./SessionButtons";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Signed-in devices" };
 
 export default async function SessionsPage() {

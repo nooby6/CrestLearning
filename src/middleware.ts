@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * Cheap gate only: no session cookie → sign-in page.
  * The real checks (valid session, active account, role) run on the server in requireRole/assertRole.
  */
+/** The public website: anyone can read it. */
+const SITE = ["/", "/programmes", "/homeschooling", "/parents", "/admissions", "/contact", "/robots.txt", "/sitemap.xml"];
 const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth", "/api/health"];
 const SESSION_COOKIE = "crest_session";
 
@@ -14,7 +16,7 @@ export default function middleware(req: NextRequest) {
   const next = NextResponse.next({ request: { headers } });
 
   const devBypass = process.env.NODE_ENV === "development" && !!process.env.DEV_AUTH_USER_ID;
-  if (devBypass || PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) return next;
+  if (devBypass || SITE.includes(path) || PUBLIC.some((p) => path === p || path.startsWith(p + "/"))) return next;
   if (req.cookies.has(SESSION_COOKIE)) return next;
 
   if (path.startsWith("/api/")) return NextResponse.json({ error: "Not signed in" }, { status: 401 });

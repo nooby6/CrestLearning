@@ -11,9 +11,13 @@ import { unreadAnnouncements } from "@/lib/announcements";
 import prisma from "@/lib/prisma";
 import { BLOB_LIMITS, blobConfigured } from "@/lib/storage";
 import { UploadModeProvider } from "@/components/work/UploadMode";
+import { SignedInExtras } from "@/components/shell/SignedInExtras";
 
 /** Pages a teacher may still open while lesson records are outstanding. */
 const RECORDS_PATH = "/teacher/records";
+
+// Per-user pages: always rendered on request.
+export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole();
@@ -23,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const slug = portals.find((p) => path === `/${p}` || path.startsWith(`/${p}/`)) ?? portals[0];
 
   // Every sidebar count is fetched at the same time (one round trip of waiting, not five).
-  const [pending, teacherCounts, studentWork, unread, due] = await Promise.all([
+  const [pending, teacherCounts, studentWork, unread, due, newEnquiries] = await Promise.all([
     slug === "teacher" ? pendingRecordCount(user.id) : 0,
     slug === "teacher" ? staffCounts("teacher", user.id) : null,
     slug === "student" ? workForStudent(user.id) : null,
@@ -31,6 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     slug === "parent"
       ? prisma.invoice.count({ where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: user.id } } } } })
       : 0,
+    slug === "admin" ? prisma.enquiry.count({ where: { status: "NEW" } }) : 0,
   ]);
 
   // Lesson records are mandatory: until they're done, teachers only see the records page.
@@ -43,6 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (todo) badges["/student/work"] = todo;
   if (unread) badges[`/${slug}/announcements`] = unread;
   if (due) badges["/parent/invoices"] = due;
+  if (newEnquiries) badges["/admin/enquiries"] = newEnquiries;
 
   return (
     <div className="flex min-h-screen">
@@ -53,6 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <UploadModeProvider value={{ blob: blobConfigured(), userId: user.id, limits: blobConfigured() ? BLOB_LIMITS : null }}>{children}</UploadModeProvider>
         </main>
       </div>
+      <SignedInExtras />
     </div>
   );
 }

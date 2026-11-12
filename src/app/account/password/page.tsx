@@ -6,6 +6,9 @@ import { homePath } from "@/lib/roles";
 import { Wordmark } from "@/components/brand/Logo";
 import { PasswordForm } from "./PasswordForm";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Password" };
 
 /** Outside the dashboard layout so first-time users can reach it before anything else. */

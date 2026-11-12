@@ -2,6 +2,9 @@ import { ShieldOff } from "lucide-react";
 import { Wordmark } from "@/components/brand/Logo";
 import { signOut } from "@/lib/actions/auth";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Account suspended" };
 
 export default function PendingPage() {

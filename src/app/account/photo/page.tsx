@@ -7,6 +7,9 @@ import { initials } from "@/lib/format";
 import { Wordmark } from "@/components/brand/Logo";
 import { PhotoForm } from "./PhotoForm";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Profile photo" };
 
 export default async function PhotoPage() {

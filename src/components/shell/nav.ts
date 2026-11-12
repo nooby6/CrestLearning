@@ -22,7 +22,9 @@ export type IconName =
   | "file"
   | "receipt"
   | "chart"
-  | "link";
+  | "link"
+  | "inbox"
+  | "globe";
 
 export const NAV: Record<RoleSlug, NavItem[]> = {
   admin: [
@@ -36,6 +38,8 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Teacher payments", href: "/admin/payments", icon: "wallet" },
     { label: "Fees & invoices", href: "/admin/finance", icon: "receipt" },
     { label: "Announcements", href: "/admin/announcements", icon: "megaphone" },
+    { label: "Enquiries", href: "/admin/enquiries", icon: "inbox" },
+    { label: "Website", href: "/admin/website", icon: "globe" },
   ],
   teacher: [
     { label: "Today", href: "/teacher", icon: "home" },

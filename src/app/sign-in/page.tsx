@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { MapPin } from "lucide-react";
@@ -7,6 +8,9 @@ import { Wordmark } from "@/components/brand/Logo";
 import { ensureBootstrapAdmin } from "@/lib/bootstrap";
 import { SignInForm } from "./SignInForm";
 import { googleConfigured } from "@/lib/env";
+
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
 
 const GOOGLE_MSG: Record<string, string> = {
   nomatch: "That Google account’s email isn’t on a Crest account. Sign in with your username, or ask the office to add this email to your account.",
@@ -77,6 +81,11 @@ export default async function SignInPage({ searchParams }: { searchParams: { tim
             </p>
           )}
           <SignInForm google={googleConfigured()} />
+          <p className="mt-6 text-center text-sm">
+            <Link href="/" className="text-navy-500 underline-offset-4 hover:text-navy-900 hover:underline">
+              Back to the website
+            </Link>
+          </p>
           <div className="mt-10 gold-rule" />
           <p className="mt-4 text-center font-display text-[10px] font-semibold tracking-[0.3em] text-navy-300">CREST LEARNING · NAIROBI</p>
         </div>

@@ -4,6 +4,9 @@ import { emailConfigured } from "@/lib/env";
 import { Wordmark } from "@/components/brand/Logo";
 import { ForgotForm } from "./ForgotForm";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Forgot password" };
 
 export default function ForgotPasswordPage() {

@@ -3,8 +3,6 @@ import localFont from "next/font/local";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-import { currentSession } from "@/lib/session";
-import { SessionTimeout } from "@/components/shell/SessionTimeout";
 
 // Self-hosted (no runtime call to Google Fonts). Montserrat matches the logo's geometric caps.
 const inter = localFont({
@@ -22,19 +20,15 @@ const montserrat = localFont({
 
 export const metadata: Metadata = {
   title: { default: "Crest Learning", template: "%s · Crest Learning" },
-  description: "Crest Learning — Cambridge, Edexcel, CBE and IB tuition in Nairobi. Learn. Grow. Excel.",
+  description: "One-to-one tuition and homeschooling in Nairobi across Cambridge, Pearson Edexcel, CBE and IB — at our centre, at home or live online.",
+  metadataBase: new URL(process.env.APP_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")),
 };
 
-// Everything is per-user; never pre-render at build time.
-export const dynamic = "force-dynamic";
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await currentSession();
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-KE" className={`${inter.variable} ${montserrat.variable}`}>
       <body className="font-sans">
         {children}
-        {session && <SessionTimeout endsAt={session.endsAt.toISOString()} serverNow={Date.now()} />}
         <ToastContainer
           position="bottom-right"
           theme="light"

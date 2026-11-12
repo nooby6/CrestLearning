@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand/Logo";
 import { ResetForm } from "./ResetForm";
 
+// Per-user page: always rendered on request.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Choose a new password" };
 
 export default function ResetPasswordPage({ searchParams }: { searchParams: { token?: string } }) {
