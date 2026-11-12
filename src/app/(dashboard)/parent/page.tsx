@@ -16,28 +16,32 @@ export const metadata = { title: "Overview" };
 
 export default async function ParentHome() {
   const me = await requireRole("parent");
-  const news = await announcementsFor(me.id, 5);
-  const owing = (await prisma.invoice.findMany({ where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: me.id } } } }, select: { total: true, amountPaid: true } })).reduce((a, i) => a + Math.max(0, i.total - i.amountPaid), 0);
-
-  // Scoped strictly through the link table — a parent only ever sees their own students.
-  const links = await prisma.parentStudent.findMany({
-    where: { parentId: me.id, student: { user: { active: true } } },
-    include: { student: { include: { user: true, level: true } } },
-    orderBy: { createdAt: "asc" },
-  });
-  const ids = links.map((l) => l.studentId);
-  const [summaries, latestReports] = await Promise.all([
-    lessonSummary(ids),
-    prisma.weeklyReport.groupBy({
-      by: ["enrollmentId"],
-      where: { enrollment: { studentId: { in: ids } } },
-      _max: { weekStart: true },
+  // Everything that only needs the parent's id loads at once.
+  const [news, open, links, workGroups, latestReports] = await Promise.all([
+    announcementsFor(me.id, 5),
+    prisma.invoice.findMany({
+      where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: me.id } } } },
+      select: { total: true, amountPaid: true },
+    }),
+    // Scoped strictly through the link table — a parent only ever sees their own students.
+    prisma.parentStudent.findMany({
+      where: { parentId: me.id, student: { user: { active: true } } },
+      include: { student: { include: { user: true, level: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+    workForParent(me.id),
+    // Newest report per subject, with the student it belongs to.
+    prisma.weeklyReport.findMany({
+      where: { enrollment: { student: { guardians: { some: { parentId: me.id } } } } },
+      distinct: ["enrollmentId"],
+      orderBy: [{ enrollmentId: "asc" }, { weekStart: "desc" }],
+      select: { weekStart: true, enrollment: { select: { studentId: true } } },
     }),
   ]);
-  const enrollmentStudents = latestReports.length
-    ? await prisma.enrollment.findMany({ where: { id: { in: latestReports.map((r) => r.enrollmentId) } }, select: { id: true, studentId: true } })
-    : [];
-  const work = new Map((await workForParent(me.id)).map((g) => [g.student.id, g.items]));
+  const owing = open.reduce((a, i) => a + Math.max(0, i.total - i.amountPaid), 0);
+  const ids = links.map((l) => l.studentId);
+  const summaries = await lessonSummary(ids);
+  const work = new Map(workGroups.map((g) => [g.student.id, g.items]));
   const workLine = (studentId: string) => {
     const items = work.get(studentId) ?? [];
     const todo = items.filter((i) => i.state === "todo" || i.state === "overdue").length;
@@ -48,8 +52,8 @@ export default async function ParentHome() {
   };
   const latestFor = (studentId: string) =>
     latestReports
-      .filter((r) => enrollmentStudents.find((e) => e.id === r.enrollmentId)?.studentId === studentId)
-      .map((r) => r._max.weekStart!)
+      .filter((r) => r.enrollment.studentId === studentId)
+      .map((r) => r.weekStart)
       .sort((a, b) => +b - +a)[0];
 
   return (

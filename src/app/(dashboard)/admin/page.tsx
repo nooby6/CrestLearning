@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardX, GraduationCap, HeartHandshake, Link2Off, Presentation, UserPlus, UsersRound, VideoOff, type LucideIcon } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { finaliseEndedSessions } from "@/lib/attendance";
+import { finaliseEndedSessionsThrottled } from "@/lib/attendance";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { ROLE_LABEL, curriculumLabel, toSlug } from "@/lib/roles";
@@ -18,7 +18,7 @@ export const metadata = { title: "Overview" };
 export default async function AdminOverview() {
   const me = await requireRole("admin");
 
-  await finaliseEndedSessions();
+  await finaliseEndedSessionsThrottled();
   const insightsP = adminInsights();
   const payPeriod = lastEndedPeriod();
   const payP = periodSummary(payPeriod);

@@ -65,6 +65,17 @@ export async function recordPresence(sessionId: number, userId: string, who: Par
  *   • anyone with no attendance record gets ABSENT (AUTO)
  * Idempotent and cheap; called from pages and the daily cron.
  */
+let lastSweep = 0;
+/**
+ * The whole-school sweep, at most once a minute per server instance — pages that show
+ * everything call this, and it shouldn't add a database round trip to every visit.
+ */
+export async function finaliseEndedSessionsThrottled() {
+  if (Date.now() - lastSweep < 60_000) return 0;
+  lastSweep = Date.now();
+  return finaliseEndedSessions();
+}
+
 export async function finaliseEndedSessions(where: Prisma.SessionInstanceWhereInput = {}) {
   const cutoff = new Date(Date.now() - FINALISE_AFTER_MIN * 60_000);
   const due = await prisma.sessionInstance.findMany({

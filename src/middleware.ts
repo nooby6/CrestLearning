@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Cheap gate only: no session cookie → sign-in page.
  * The real checks (valid session, active account, role) run on the server in requireRole/assertRole.
  */
-const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth"];
+const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth", "/api/health"];
 const SESSION_COOKIE = "crest_session";
 
 export default function middleware(req: NextRequest) {

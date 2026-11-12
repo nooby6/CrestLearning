@@ -117,24 +117,33 @@ function statusFor(p: PayPeriod, owed: number, paid: number, lessons: number): T
   return dateKey(new Date()) > p.due ? "overdue" : "due";
 }
 
-/** Every teacher with lessons or payments in a period (or just one teacher). */
-export async function periodSummary(p: PayPeriod, teacherId?: string): Promise<TeacherPeriod[]> {
-  const [lessons, payouts, teachers] = await Promise.all([
-    heldLessons(p, teacherId),
-    prisma.teacherPayout.findMany({
-      where: { periodStart: new Date(p.start), status: "PAID", ...(teacherId ? { teacherId } : {}) },
-      include: { confirmedBy: { select: { firstName: true, lastName: true } } },
-      orderBy: { paidAt: "asc" },
-    }),
-    prisma.teacher.findMany({
-      where: teacherId ? { id: teacherId } : {},
-      select: { id: true, hourlyRate: true, currency: true, user: { select: { firstName: true, lastName: true, active: true } } },
-    }),
-  ]);
+type PayoutRow = Awaited<ReturnType<typeof payoutsBetween>>[number];
+type TeacherRow = Awaited<ReturnType<typeof teachersFor>>[number];
+
+const payoutsBetween = (startKeys: string[], teacherId?: string) =>
+  prisma.teacherPayout.findMany({
+    where: { periodStart: { in: startKeys.map((k) => new Date(k)) }, status: "PAID", ...(teacherId ? { teacherId } : {}) },
+    include: { confirmedBy: { select: { firstName: true, lastName: true } } },
+    orderBy: { paidAt: "asc" },
+  });
+
+const teachersFor = (teacherId?: string) =>
+  prisma.teacher.findMany({
+    where: teacherId ? { id: teacherId } : {},
+    select: { id: true, hourlyRate: true, currency: true, user: { select: { firstName: true, lastName: true, active: true } } },
+  });
+
+/** Builds one period's summaries from rows already fetched (no database access). */
+function summarise(p: PayPeriod, lessons: PaidLesson[], payouts: PayoutRow[], teachers: TeacherRow[], teacherId?: string): TeacherPeriod[] {
+  const inPeriod = lessons.filter((l) => {
+    const k = dateKey(l.startsAt);
+    return k >= p.start && k <= p.end;
+  });
+  const periodPayouts = payouts.filter((x) => dbDay(x.periodStart) === p.start);
   return teachers
     .map((t) => {
-      const mine = lessons.filter((l) => l.teacherId === t.id);
-      const pays = payouts.filter((x) => x.teacherId === t.id);
+      const mine = inPeriod.filter((l) => l.teacherId === t.id);
+      const pays = periodPayouts.filter((x) => x.teacherId === t.id);
       const paid = pays.reduce((a, x) => a + x.amount, 0);
       const owed = mine.filter((l) => !l.paid).reduce((a, l) => a + l.amount, 0);
       return {
@@ -164,11 +173,27 @@ export async function periodSummary(p: PayPeriod, teacherId?: string): Promise<T
     .sort((a, b) => b.owed - a.owed || a.name.localeCompare(b.name));
 }
 
+/** A DATE column read back as its YYYY-MM-DD key. */
+const dbDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Every teacher with lessons or payments in a period (or just one teacher). */
+export async function periodSummary(p: PayPeriod, teacherId?: string): Promise<TeacherPeriod[]> {
+  const [lessons, payouts, teachers] = await Promise.all([heldLessons(p, teacherId), payoutsBetween([p.start], teacherId), teachersFor(teacherId)]);
+  return summarise(p, lessons, payouts, teachers, teacherId);
+}
+
 /** A teacher's recent periods, newest first (current period included). */
 export async function teacherHistory(teacherId: string, count = 8) {
   const current = periodContaining();
   const periods = Array.from({ length: count }, (_, i) => shiftPeriod(current, -i));
-  const rows = await Promise.all(periods.map(async (p) => ({ period: p, summary: (await periodSummary(p, teacherId))[0] })));
+  // One query per table for the whole span, then split into periods in memory.
+  const span: PayPeriod = { start: periods[periods.length - 1].start, end: current.end, due: current.due };
+  const [lessons, payouts, teachers] = await Promise.all([
+    heldLessons(span, teacherId),
+    payoutsBetween(periods.map((p) => p.start), teacherId),
+    teachersFor(teacherId),
+  ]);
+  const rows = periods.map((p) => ({ period: p, summary: summarise(p, lessons, payouts, teachers, teacherId)[0] }));
   return rows.filter((r) => r.summary && (r.summary.status !== "none" || r.period.start === current.start));
 }
 

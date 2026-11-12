@@ -16,6 +16,8 @@ generator client {
   provider   = "prisma-client-js"
   // Rust-free client: queries run through the pg driver adapter (src/lib/prisma.ts).
   engineType = "client"
+  // Related records load in the same SQL query (LATERAL joins) instead of one extra round trip per relation.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

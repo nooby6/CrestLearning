@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import type { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import { fullName } from "./format";
@@ -159,7 +160,7 @@ export async function openRequests(portal: Portal, userId: string, take = 20) {
   });
 }
 
-export async function staffCounts(portal: Portal, userId: string) {
+export const staffCounts = cache(async (portal: Portal, userId: string) => {
   const scope = portal === "teacher" ? { enrollment: { teacherId: userId } } : {};
   const [toMark, requests] = await Promise.all([
     prisma.submission.count({ where: { status: "SUBMITTED", ...scope } }),
@@ -168,7 +169,7 @@ export async function staffCounts(portal: Portal, userId: string) {
     }),
   ]);
   return { toMark, requests };
-}
+});
 
 /* ------------------------------------------------------------------ comment threads */
 
@@ -236,7 +237,7 @@ export type StudentWorkItem = ResourceRow & {
 };
 
 /** Everything assigned to a student, newest first, with their own progress. */
-export async function workForStudent(studentId: string, enrollments?: EnrollmentCtx[]): Promise<StudentWorkItem[]> {
+async function loadWorkForStudent(studentId: string, enrollments?: EnrollmentCtx[]): Promise<StudentWorkItem[]> {
   const mine = (enrollments ?? (await studentEnrollments(studentId))).filter((e) => e.studentId === studentId);
   if (!mine.length) return [];
   const [resources, submissions, comments] = await Promise.all([
@@ -287,26 +288,32 @@ export async function workForStudent(studentId: string, enrollments?: Enrollment
   });
 }
 
-export async function workForParent(parentId: string) {
-  const all = await parentEnrollments(parentId);
-  const studentIds = [...new Set(all.map((e) => e.studentId))];
-  const students = await prisma.student.findMany({
-    where: { id: { in: studentIds } },
-    select: {
-      id: true,
-      user: {
-        select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+/** A student's work, fetched once per request (the sidebar badge and the page share it). */
+export const workForStudent = cache((studentId: string) => loadWorkForStudent(studentId));
+
+export const workForParent = cache(async (parentId: string) => {
+  const [all, students] = await Promise.all([
+    parentEnrollments(parentId),
+    prisma.student.findMany({
+      where: { guardians: { some: { parentId } } },
+      select: {
+        id: true,
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+        },
       },
-    },
-    orderBy: { user: { firstName: "asc" } },
-  });
+      orderBy: { user: { firstName: "asc" } },
+    }),
+  ]);
+  // Only students who have enrollments (as before).
+  const withWork = new Set(all.map((e) => e.studentId));
   return Promise.all(
-    students.map(async (s) => ({
+    students.filter((s) => withWork.has(s.id)).map(async (s) => ({
       student: s,
-      items: await workForStudent(s.id, all),
+      items: await loadWorkForStudent(s.id, all),
     })),
   );
-}
+});
 
 /** The student's enrollments, labelled — for "request a worksheet" pickers. */
 export async function labelledEnrollments(where: Prisma.EnrollmentWhereInput) {

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { upload as blobUpload } from "@vercel/blob/client";
 import clsx from "clsx";
 import { AlertCircle, Loader2, UploadCloud, X } from "lucide-react";
 import { formatBytes } from "@/lib/format";
 import { FileChip, type FileInfo } from "./FileChip";
+import { useUploadMode } from "./UploadMode";
 
 const MAX = 4 * 1024 * 1024;
 const COMPRESSIBLE = ["image/jpeg", "image/png", "image/webp"];
@@ -66,6 +66,8 @@ const getMode = () =>
 /** Straight to private Blob storage; files over 20 MB go up in parallel parts with retries. */
 async function uploadLarge(file: File, purpose: string, mode: Mode, onProgress: (p: number) => void): Promise<FileInfo> {
   const safe = file.name.replace(/[^\w.\- ]+/g, "_").replace(/\s+/g, "-").slice(-120) || "file";
+  // Loaded only when a large file is actually uploaded (keeps ~40 KB off every worksheet page).
+  const { upload: blobUpload } = await import("@vercel/blob/client");
   const result = await blobUpload(`${purpose}/${mode.userId}/${safe}`, file, {
     access: "private",
     handleUploadUrl: "/api/uploads/blob",
@@ -111,10 +113,13 @@ export function FileDrop({
   const [over, setOver] = useState(false);
   const current = useRef(value);
   current.current = value;
-  const [mode, setMode] = useState<Mode | null>(null);
+  const provided = useUploadMode();
+  const [fetched, setFetched] = useState<Mode | null>(null);
   useEffect(() => {
-    if (purpose !== "avatar") getMode().then(setMode);
-  }, [purpose]);
+    // Only pages outside the portal layout (none today) need to ask the server.
+    if (!provided && purpose !== "avatar") getMode().then(setFetched);
+  }, [provided, purpose]);
+  const mode = provided ?? fetched;
   const large = !!(mode?.blob && mode.limits?.[purpose]);
   const limit = large ? mode!.limits![purpose] : MAX;
   const hintText =

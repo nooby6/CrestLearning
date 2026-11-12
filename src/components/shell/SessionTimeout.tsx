@@ -30,18 +30,21 @@ export function SessionTimeout({ endsAt, serverNow }: { endsAt: string; serverNo
   }, []);
 
   useEffect(() => {
+    let timer: number | undefined;
+    // Sleep until the warning window, then count down each second.
     const tick = () => {
+      window.clearTimeout(timer);
       const ms = end - (Date.now() + skew.current);
       setLeft(ms);
-      if (ms <= 0) expire();
+      if (ms <= 0) return expire();
+      timer = window.setTimeout(tick, ms > WARN_MS ? Math.min(ms - WARN_MS, 2_000_000_000) : 1000);
     };
     tick();
-    const id = window.setInterval(tick, 1000);
     // Background tabs throttle timers; re-check as soon as the tab is looked at again.
     document.addEventListener("visibilitychange", tick);
     window.addEventListener("focus", tick);
     return () => {
-      window.clearInterval(id);
+      window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", tick);
       window.removeEventListener("focus", tick);
     };
