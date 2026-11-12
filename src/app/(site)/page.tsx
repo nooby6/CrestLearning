@@ -49,8 +49,8 @@ export default function HomePage() {
     <>
       {/* ---------------------------------------------------------------- hero */}
       <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
-        <Photo k="nairobi" sizes="100vw" priority position="center 40%" className="-z-20" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-900/80 to-navy-900/20" />
+        <Photo k="desk" sizes="100vw" priority position="65% center" className="-z-20" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-900/85 to-navy-900/25 lg:via-navy-900/70 lg:to-navy-900/10" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-navy-950/70 to-transparent" />
         <div className="site-wrap grid items-end gap-12 pb-[calc(5vw+150px)] pt-20 sm:pt-28 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
           <div className="hero-rise max-w-2xl">
