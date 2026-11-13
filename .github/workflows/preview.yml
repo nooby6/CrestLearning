@@ -1,0 +1,19 @@
+name: photo-preview-temp
+on:
+  push:
+    branches: [photo-preview-temp]
+    paths: [queries.txt, fetch.sh, .github/workflows/preview.yml]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./fetch.sh
+      - run: |
+          git config user.name "photo-preview"
+          git config user.email "noreply@github.com"
+          git add out
+          git commit -q -m "previews" || echo "nothing"
+          git push
