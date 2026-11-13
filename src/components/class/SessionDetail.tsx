@@ -99,6 +99,7 @@ export async function SessionDetail({
               defaultDate={dateKey(s.startsAt)}
               defaultTime={formatTime(s.startsAt)}
               durationMinutes={(+s.endsAt - +s.startsAt) / 60000}
+              canSwap={office}
             />
           )}
         </div>

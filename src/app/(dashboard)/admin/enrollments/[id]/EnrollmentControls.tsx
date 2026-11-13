@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { CalendarPlus, Loader2, PauseCircle, PlayCircle, Plus, StopCircle, Trash2 } from "lucide-react";
-import { addOneOffSession, addSlot, removeSlot, setEnrollmentStatus } from "@/lib/actions/schedule";
+import { addOneOffSession, addSlot, removeSlot, setEnrollmentStatus, undoSwap } from "@/lib/actions/schedule";
 import type { Conflict } from "@/lib/sessions";
 import { DURATIONS, formatSlot, fromMinutes, toMinutes } from "@/lib/schedule";
 import { ConflictList, SlotFields, durationLabel, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
@@ -225,5 +225,26 @@ export function StatusControls({ id, status }: { id: number; status: "ACTIVE" | 
         </button>
       )}
     </div>
+  );
+}
+
+/** Put a swapped lesson back (only before the replacement has been taught). */
+export function UndoSwap({ originalId }: { originalId: number }) {
+  const [pending, start] = useTransition();
+  return (
+    <button
+      type="button"
+      className="border border-line px-2 py-1 text-xs font-medium text-navy-700 hover:border-navy-400 hover:text-navy-900"
+      disabled={pending}
+      onClick={() =>
+        start(async () => {
+          const r = await undoSwap(originalId);
+          if (r.ok) toast.success(r.message);
+          else toast.error(r.error);
+        })
+      }
+    >
+      {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Undo swap"}
+    </button>
   );
 }

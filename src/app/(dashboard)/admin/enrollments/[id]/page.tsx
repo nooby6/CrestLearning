@@ -12,7 +12,7 @@ import { SessionRow } from "@/components/schedule/SessionRow";
 import { SessionActions } from "@/components/schedule/SessionActions";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
-import { OneOffLesson, SlotManager, StatusControls } from "./EnrollmentControls";
+import { OneOffLesson, SlotManager, StatusControls, UndoSwap } from "./EnrollmentControls";
 import { FeePlanEditor } from "@/components/finance/FinanceControls";
 import { balanceOf } from "@/lib/finance";
 
@@ -51,6 +51,10 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
             where: { endsAt: { gte: now }, status: { in: ["SCHEDULED", "CANCELLED"] } },
             orderBy: { startsAt: "asc" },
             take: 4,
+            include: {
+              rescheduledTo: { select: { id: true, enrollmentId: true } },
+              rescheduledFrom: { select: { enrollmentId: true, enrollment: { select: { subject: { select: { name: true } } } } } },
+            },
           },
           _count: { select: { sessions: { where: { status: "HELD" } } } },
         },
@@ -170,7 +174,17 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                               startsAt={x.startsAt}
                               endsAt={x.endsAt}
                               title={formatDate(x.startsAt, { weekday: "long", month: "long", year: undefined })}
-                              subtitle={x.status === "CANCELLED" ? x.cancelReason ?? "Cancelled" : x.slotId ? undefined : x.rescheduledFromId ? "Moved from its usual time" : "One-off lesson"}
+                              subtitle={
+                                x.status === "CANCELLED"
+                                  ? x.cancelReason ?? "Cancelled"
+                                  : x.slotId
+                                    ? undefined
+                                    : x.rescheduledFrom && x.rescheduledFrom.enrollmentId !== x.enrollmentId
+                                      ? `Swapped in for ${x.rescheduledFrom.enrollment.subject.name}`
+                                      : x.rescheduledFromId
+                                        ? "Moved from its usual time"
+                                        : "One-off lesson"
+                              }
                               colorKey={e.subject.code}
                               status={x.status}
                               action={
@@ -180,7 +194,10 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                                     defaultDate={dateKey(x.startsAt)}
                                     defaultTime={formatTime(x.startsAt)}
                                     durationMinutes={(+x.endsAt - +x.startsAt) / 60000}
+                                    canSwap
                                   />
+                                ) : x.status === "CANCELLED" && x.rescheduledTo && x.rescheduledTo.enrollmentId !== x.enrollmentId && +x.startsAt > Date.now() ? (
+                                  <UndoSwap originalId={x.id} />
                                 ) : undefined
                               }
                             />

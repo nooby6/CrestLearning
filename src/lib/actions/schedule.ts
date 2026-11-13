@@ -318,3 +318,168 @@ export async function setStudentMeetingLink(studentId: string, raw: string | nul
   revalidatePath(`/admin/people/${studentId}`);
   return { ok: true, message: link ? `${link.provider} link saved for all subjects` : "Link removed" };
 }
+
+/* ------------------------------------------------------------------ swap one lesson for another */
+
+export type SwapOption = { subjectId: number; subject: string; current: boolean; teachers: { id: string; name: string; busy: string | null; teachesIt: boolean }[] };
+
+/**
+ * For the swap panel: every subject, with the teachers who could take this lesson's slot.
+ * Each teacher is flagged if they already have a lesson at that time.
+ */
+export async function swapOptions(sessionId: number): Promise<{ ok: true; options: SwapOption[]; current: { subject: string; teacher: string } } | { ok: false; error: string }> {
+  await assertRole("admin");
+  const s = await prisma.sessionInstance.findUnique({
+    where: { id: sessionId },
+    include: { enrollment: { include: { subject: true, teacher: { include: { user: true } } } } },
+  });
+  if (!s || s.status !== "SCHEDULED") return { ok: false, error: "Only upcoming scheduled lessons can be swapped." };
+
+  const [subjects, teachers, busy] = await Promise.all([
+    prisma.subject.findMany({ orderBy: { name: "asc" } }),
+    prisma.teacher.findMany({
+      where: { user: { active: true } },
+      include: { user: { select: { firstName: true, lastName: true } }, subjects: { select: { subjectId: true } } },
+      orderBy: { user: { firstName: "asc" } },
+    }),
+    prisma.sessionInstance.findMany({
+      where: { id: { not: s.id }, status: "SCHEDULED", startsAt: { lt: s.endsAt }, endsAt: { gt: s.startsAt } },
+      include: { enrollment: { include: { subject: true } } },
+    }),
+  ]);
+  const busyFor = (teacherId: string) => {
+    const b = busy.find((x) => x.enrollment.teacherId === teacherId);
+    return b ? `Teaching ${b.enrollment.subject.name} then` : null;
+  };
+  const options: SwapOption[] = subjects.map((sub) => {
+    const list = teachers
+      .map((t) => ({
+        id: t.id,
+        name: `${t.user.firstName} ${t.user.lastName}`,
+        busy: busyFor(t.id),
+        teachesIt: t.subjects.some((x) => x.subjectId === sub.id),
+      }))
+      // Teachers who teach the subject first, then free before busy.
+      .sort((a, b) => Number(b.teachesIt) - Number(a.teachesIt) || Number(!!a.busy) - Number(!!b.busy) || a.name.localeCompare(b.name));
+    return { subjectId: sub.id, subject: sub.name, current: sub.id === s.enrollment.subjectId, teachers: list };
+  });
+  return {
+    ok: true,
+    options,
+    current: { subject: s.enrollment.subject.name, teacher: `${s.enrollment.teacher.user.firstName} ${s.enrollment.teacher.user.lastName}` },
+  };
+}
+
+/**
+ * Replace one lesson with a different subject and/or teacher, at the same time, for that day only.
+ * The original is marked cancelled ("Swapped for …") and linked to its replacement; the weekly timetable is untouched,
+ * so the usual lesson returns next week. The replacement is a normal lesson: join link, attendance, record, pay.
+ */
+export async function swapSession(sessionId: number, input: { subjectId: number; teacherId: string }, force = false): Promise<Result> {
+  await assertRole("admin");
+  const s = await prisma.sessionInstance.findUnique({
+    where: { id: sessionId },
+    include: { enrollment: { include: { subject: true } } },
+  });
+  if (!s || s.status !== "SCHEDULED") return { ok: false, error: "Only upcoming scheduled lessons can be swapped." };
+  if (+s.endsAt < Date.now()) return { ok: false, error: "This lesson has already finished." };
+  if (input.subjectId === s.enrollment.subjectId && input.teacherId === s.enrollment.teacherId) return { ok: false, error: "Choose a different subject or teacher." };
+
+  const [subject, teacher] = await Promise.all([
+    prisma.subject.findUnique({ where: { id: input.subjectId } }),
+    prisma.teacher.findUnique({ where: { id: input.teacherId }, include: { user: true } }),
+  ]);
+  if (!subject || !teacher || !teacher.user.active) return { ok: false, error: "Choose a subject and an active teacher." };
+
+  if (!force) {
+    const clash = await prisma.sessionInstance.findMany({
+      where: { id: { not: s.id }, status: "SCHEDULED", startsAt: { lt: s.endsAt }, endsAt: { gt: s.startsAt }, enrollment: { teacherId: teacher.id } },
+      include: { enrollment: { include: { subject: true, student: { include: { user: true } } } } },
+    });
+    if (clash.length) {
+      const t = (x: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }).format(x);
+      return {
+        ok: false,
+        error: `${teacher.user.firstName} already has a lesson then.`,
+        conflicts: clash.map((c) => ({
+          who: "teacher" as const,
+          name: `${teacher.user.firstName} ${teacher.user.lastName}`,
+          label: `${c.enrollment.subject.name} with ${c.enrollment.student.user.firstName} ${t(c.startsAt)}–${t(c.endsAt)}`,
+        })),
+      };
+    }
+  }
+
+  // The lesson belongs to the student's enrollment for that subject and teacher. If they don't have one, a record is
+  // kept for this lesson only — marked ended, so it never appears as one of the student's regular subjects.
+  let target = await prisma.enrollment.findFirst({
+    where: { studentId: s.enrollment.studentId, teacherId: teacher.id, subjectId: subject.id },
+    orderBy: { status: "asc" }, // ACTIVE before PAUSED before ENDED
+  });
+  if (!target) {
+    const day = new Date(dateKey(s.startsAt));
+    target = await prisma.enrollment.create({
+      data: {
+        studentId: s.enrollment.studentId,
+        teacherId: teacher.id,
+        subjectId: subject.id,
+        curriculum: s.enrollment.curriculum,
+        levelId: s.enrollment.levelId,
+        status: "ENDED",
+        startDate: day,
+        endDate: day,
+      },
+    });
+  }
+
+  const reason = `Swapped for ${subject.name} with ${teacher.user.firstName} ${teacher.user.lastName}`;
+  await prisma.$transaction([
+    prisma.sessionInstance.update({ where: { id: s.id }, data: { status: "CANCELLED", cancelReason: reason } }),
+    prisma.sessionInstance.create({
+      data: {
+        enrollmentId: target.id,
+        startsAt: s.startsAt,
+        endsAt: s.endsAt,
+        location: s.location,
+        rescheduledFromId: s.id,
+        meetingRoom: meetingRoomName(subject.code),
+      },
+    }),
+  ]);
+  refresh(s.enrollmentId);
+  refresh(target.id);
+  revalidatePath("/teacher", "layout");
+  revalidatePath("/student", "layout");
+  revalidatePath("/parent", "layout");
+  return { ok: true, message: `${s.enrollment.subject.name} swapped for ${subject.name} with ${teacher.user.firstName} for this lesson only` };
+}
+
+/** Put a swapped lesson back as it was (only if the replacement hasn't been taught or recorded). */
+export async function undoSwap(originalId: number): Promise<Result> {
+  await assertRole("admin");
+  const s = await prisma.sessionInstance.findUnique({
+    where: { id: originalId },
+    include: { rescheduledTo: { include: { attendances: true, progressNote: true } }, enrollment: true },
+  });
+  const r = s?.rescheduledTo;
+  if (!s || s.status !== "CANCELLED" || !r || r.enrollmentId === s.enrollmentId) return { ok: false, error: "This lesson wasn’t swapped." };
+  if (r.status !== "SCHEDULED" || r.attendances.length || r.progressNote) return { ok: false, error: "The replacement lesson has already started, so it can’t be undone." };
+  await prisma.$transaction([
+    prisma.sessionInstance.delete({ where: { id: r.id } }),
+    prisma.sessionInstance.update({ where: { id: s.id }, data: { status: "SCHEDULED", cancelReason: null } }),
+  ]);
+  // If the swap created a record just for that lesson and nothing else uses it, remove it too.
+  const leftover = await prisma.enrollment.findUnique({
+    where: { id: r.enrollmentId },
+    include: { _count: { select: { sessions: true, slots: true, resources: true, submissions: true, workComments: true, invoiceLines: true, weeklyReports: true } } },
+  });
+  if (leftover && leftover.status === "ENDED" && Object.values(leftover._count).every((n) => n === 0)) {
+    await prisma.enrollment.delete({ where: { id: leftover.id } }).catch(() => undefined);
+  }
+  refresh(s.enrollmentId);
+  refresh(r.enrollmentId);
+  revalidatePath("/teacher", "layout");
+  revalidatePath("/student", "layout");
+  revalidatePath("/parent", "layout");
+  return { ok: true, message: "Swap undone — the original lesson is back" };
+}
