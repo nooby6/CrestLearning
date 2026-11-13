@@ -81,7 +81,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: SP })
       <PageHeader
         eyebrow="Administration"
         title="People"
-        description="All accounts at Crest Learning. Open a profile to link parents and students, reset a password or suspend access."
+        description="All accounts at Crest Learning & STEM Centre. Open a profile to link parents and students, reset a password or suspend access."
         actions={
           <Link href={`/admin/people/new${roleFilter !== "all" ? `?role=${roleFilter}` : ""}`} className="btn-primary">
             <UserPlus className="h-4 w-4" /> Add person

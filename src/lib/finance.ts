@@ -69,7 +69,7 @@ export async function recalcInvoice(tx: Prisma.TransactionClient, invoiceId: num
 
 export const PAYMENT_INSTRUCTIONS_KEY = "payment_instructions";
 export const DEFAULT_PAYMENT_INSTRUCTIONS =
-  "Pay by M-Pesa or bank transfer and use the invoice number as the reference. The Crest Learning office will confirm your payment here.";
+  "Pay by M-Pesa or bank transfer and use the invoice number as the reference. The Crest office will confirm your payment here.";
 
 export async function getSetting(key: string, fallback = ""): Promise<string> {
   return (await prisma.setting.findUnique({ where: { key } }))?.value ?? fallback;

@@ -4,7 +4,7 @@ import { EnquiryForm } from "@/components/site/EnquiryForm";
 
 export const metadata = {
   title: "Admissions",
-  description: "Join Crest Learning at any point in the year: send an enquiry, speak to our admissions team, agree teachers and a timetable, and start lessons.",
+  description: "Join Crest Learning & STEM Centre at any point in the year: send an enquiry, speak to our admissions team, agree teachers and a timetable, and start lessons.",
 };
 
 const STEPS = [

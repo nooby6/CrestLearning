@@ -19,7 +19,7 @@ const montserrat = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Crest Learning", template: "%s · Crest Learning" },
+  title: { default: "Crest Learning & STEM Centre", template: "%s · Crest Learning & STEM Centre" },
   description: "One-to-one tuition and homeschooling in Nairobi across Cambridge, Pearson Edexcel, CBE and IB — at our centre, at home or live online.",
   metadataBase: new URL(process.env.APP_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")),
 };

@@ -22,7 +22,7 @@ export function ForgotForm() {
           <MailCheck className="h-4 w-4 text-emerald-700" /> Check your email
         </p>
         <p className="mt-1">
-          If that account has an email address, a reset link is on its way. It expires in 30 minutes. No email arriving? Check spam, or ask the Crest Learning office.
+          If that account has an email address, a reset link is on its way. It expires in 30 minutes. No email arriving? Check spam, or ask the Crest office.
         </p>
       </div>
     );

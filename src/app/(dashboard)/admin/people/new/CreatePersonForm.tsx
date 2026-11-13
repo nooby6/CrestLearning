@@ -440,7 +440,7 @@ function Credentials({
 }) {
   const [copied, setCopied] = useState(false);
   const text = () =>
-    `Crest Learning sign-in\n${window.location.origin}/sign-in\nUsername: ${done.username}\nPassword: ${done.password}`;
+    `Crest Learning & STEM Centre sign-in\n${window.location.origin}/sign-in\nUsername: ${done.username}\nPassword: ${done.password}`;
   return (
     <div className="card mx-auto max-w-lg overflow-hidden">
       <div className="bg-navy-800 px-6 py-5 text-white">

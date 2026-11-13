@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName } from "@/lib/format";
 import { formatTime } from "@/lib/schedule";
-import { DELIVERY, ENQUIRY_STATUS, telLink, whatsappLink, type EnquiryStatus } from "@/lib/site";
+import { DELIVERY, ENQUIRY_STATUS, interestLabels, telLink, whatsappLink, type EnquiryStatus } from "@/lib/site";
 import { Badge, EmptyState, PageHeader } from "@/components/ui/primitives";
 import { EnquiryControls } from "./EnquiryControls";
 
@@ -117,6 +117,16 @@ export default async function EnquiriesPage({ searchParams }: { searchParams: { 
                       </ul>
                     )}
                     {e.subjects && <p className="mt-3 text-sm text-navy-700">Subjects: {e.subjects}</p>}
+                    {e.interests && (
+                      <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-navy-700">
+                        STEM Centre:
+                        {interestLabels(e.interests).map((l) => (
+                          <span key={l} className="border border-navy-800 bg-navy-800 px-2 py-0.5 text-xs font-medium text-white">
+                            {l}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     {e.message && <p className="mt-2 whitespace-pre-wrap border-l-2 border-gold-500 pl-3 text-sm leading-relaxed text-navy-800">{e.message}</p>}
                     {e.handledBy && <p className="mt-3 text-[11px] text-navy-400">Last updated by {fullName(e.handledBy)}</p>}
                   </div>

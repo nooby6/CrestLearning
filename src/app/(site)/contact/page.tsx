@@ -5,7 +5,7 @@ import { getSiteContact, telLink, whatsappLink } from "@/lib/site";
 
 export const metadata = {
   title: "Contact",
-  description: "Contact Crest Learning in Nairobi by phone, WhatsApp or email, or send us a message.",
+  description: "Contact Crest Learning & STEM Centre in Nairobi by phone, WhatsApp or email, or send us a message.",
 };
 
 export default async function ContactPage() {

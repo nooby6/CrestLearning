@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { submitEnquiry, type EnquiryState } from "@/lib/actions/site";
+import { INTERESTS } from "@/lib/enquiry-options";
 
 const LEVELS = ["Primary", "Lower secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma", "Not sure"];
 const CURRICULA = ["Cambridge", "Pearson Edexcel", "CBE", "IB", "Not sure"];
@@ -41,6 +43,13 @@ function Field({ label, name, error, optional, children }: { label: string; name
 export function EnquiryForm() {
   const [state, action] = useFormState<EnquiryState, FormData>(submitEnquiry, undefined);
   const fe = state?.fieldErrors ?? {};
+  // Links such as /admissions?interest=coding tick the matching STEM box.
+  const [picked, setPicked] = useState<string[]>([]);
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("interest");
+    if (v === "stem") setPicked(INTERESTS.map((i) => i.value));
+    else if (v && INTERESTS.some((i) => i.value === v)) setPicked([v]);
+  }, []);
 
   if (state?.ok)
     return (
@@ -49,7 +58,7 @@ export function EnquiryForm() {
           <CheckCircle2 className="h-5 w-5 text-emerald-700" /> Thank you — your enquiry has been sent
         </p>
         <p className="mt-2 text-[15px] leading-relaxed text-navy-700">
-          The Crest Learning office will get back to you, usually within one working day, to talk about your student and arrange next steps.
+          The Crest office will get back to you, usually within one working day, to talk about your student and arrange next steps.
         </p>
       </div>
     );
@@ -119,8 +128,28 @@ export function EnquiryForm() {
           </div>
         </div>
         <div className="sm:col-span-2">
+          <span className="label">
+            STEM Centre <span className="font-normal text-navy-400">optional</span>
+          </span>
+          <div className="grid gap-px border border-line bg-line sm:grid-cols-2">
+            {INTERESTS.map((i) => (
+              <label key={i.value} className="flex cursor-pointer items-center gap-2.5 bg-white px-3 py-3 text-sm text-navy-800 has-[:checked]:bg-navy-800 has-[:checked]:text-white">
+                <input
+                  type="checkbox"
+                  name="interests"
+                  value={i.value}
+                  checked={picked.includes(i.value)}
+                  onChange={(e) => setPicked((p) => (e.target.checked ? [...p, i.value] : p.filter((x) => x !== i.value)))}
+                  className="h-4 w-4 accent-gold-500"
+                />
+                Interested in {i.label === "Science laboratory" ? "the science lab" : "coding classes"}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="sm:col-span-2">
           <Field label="Subjects" name="subjects" optional>
-            <input id="subjects" name="subjects" className="input" placeholder="e.g. Mathematics, Chemistry, English" />
+            <input id="subjects" name="subjects" className="input" placeholder="e.g. Mathematics, Chemistry, Computer Science" />
           </Field>
         </div>
         <div className="sm:col-span-2">

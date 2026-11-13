@@ -5,7 +5,7 @@
 const u = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=75&w=2400`;
 
 export const PHOTOS = {
-  desk: { src: "/site/hero-desk.jpg", alt: "An open notebook on a wooden desk surrounded by colourful pens, crayons, chalk and a calculator", credit: "Crest Learning" },
+  desk: { src: "/site/hero-desk.jpg", alt: "An open notebook on a wooden desk surrounded by colourful pens, crayons, chalk and a calculator", credit: "Crest Learning & STEM Centre" },
   nairobi: { src: u("photo-1741991110666-88115e724741"), alt: "The Nairobi skyline among green trees on a sunny day", credit: "imsogabriel stock" },
   westlands: { src: u("photo-1693464550496-8a6b114585b8"), alt: "Office towers in Westlands, Nairobi, with a palm tree in front", credit: "Tedd_ M" },
   onlineLesson: { src: u("photo-1598032604570-d65c6680d246"), alt: "A boy following a lesson on a laptop at home", credit: "Thomas Park" },
@@ -19,6 +19,16 @@ export const PHOTOS = {
   primaryWriting: { src: u("photo-1610552254576-9500a3e99999"), alt: "A young girl writing carefully on paper", credit: "Carl Jorgensen" },
   boyWriting: { src: u("photo-1560785496-3c9d27877182"), alt: "A young boy doing his schoolwork", credit: "Annie Spratt" },
   athletics: { src: u("photo-1760115244975-3783bdd30f7a"), alt: "Young athletes training on a running track", credit: "Sincerely Media" },
+  // STEM centre
+  labTeacher: { src: u("photo-1758685734030-a31d96462eec"), alt: "A teacher and a student carrying out a science experiment together", credit: "Vitaly Gariev" },
+  labTeacher2: { src: u("photo-1758685734062-165cc0094e61"), alt: "A teacher guiding a student through a science experiment in class", credit: "Vitaly Gariev" },
+  labGoggles: { src: u("photo-1633828763399-e29f1cd3f4c1"), alt: "A young girl in a white lab coat and safety goggles", credit: "YY TEOH" },
+  labPour: { src: u("photo-1532187643603-ba119ca4109e"), alt: "Purple liquid being poured into a glass beaker", credit: "Louis Reed" },
+  labFlasks: { src: u("photo-1554475900-0a0350e3fc7b"), alt: "Three flasks of coloured liquid on a laboratory bench", credit: "Alex" },
+  codingGirl: { src: u("photo-1653566031285-8e198bca09d5"), alt: "A young girl working on a laptop", credit: "UK Black Tech" },
+  codingClass: { src: u("photo-1778489769184-45868633c527"), alt: "A teacher guiding students working at a computer", credit: "Poddar Group of Institutions" },
+  codingTablet: { src: u("photo-1603354350317-6f7aaa5911c5"), alt: "A student programming a small robot from a tablet", credit: "Robo Wunderkind" },
+  codeScreen: { src: u("photo-1607799279861-4dd421887fb3"), alt: "A laptop screen showing colourful program code", credit: "Mohammad Rahmani" },
   teacherNotes: { src: u("photo-1758874384555-37d50c0ee81a"), alt: "A teacher writing notes at her desk", credit: "Vitaly Gariev" },
 } as const;
 

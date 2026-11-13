@@ -9,7 +9,7 @@ export function Topbar({ user, portal, portals }: { user: CurrentUser; portal: R
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-white print:hidden">
       <div className="flex h-16 items-center justify-end gap-4 px-4 pl-16 sm:px-6 lg:px-8">
-        <Link href="/portal" className="mr-auto lg:hidden" aria-label="Crest Learning home">
+        <Link href="/portal" className="mr-auto lg:hidden" aria-label="Crest Learning & STEM Centre home">
           <Wordmark />
         </Link>
         {dev && (

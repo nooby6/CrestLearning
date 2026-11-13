@@ -4,6 +4,7 @@ import {
   Building2,
   CalendarCheck2,
   ClipboardList,
+  FlaskConical,
   GraduationCap,
   House,
   Layers3,
@@ -15,17 +16,18 @@ import {
 } from "lucide-react";
 import { AudienceTiles, CurriculaStrip, NextSteps, Photo, ProgrammeCards, SectionHead } from "@/components/site/blocks";
 import { ReportPreview } from "@/components/site/ReportPreview";
+import { StemFeature } from "@/components/site/stem";
 
 export const metadata = {
-  title: { absolute: "Crest Learning — Homeschooling and tuition in Nairobi" },
+  title: { absolute: "Crest Learning & STEM Centre — Homeschooling, tuition, science lab and coding in Nairobi" },
   description:
-    "Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level. At our centre, in your home or live online.",
+    "Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory experiments and coding classes.",
 };
 
 const FACTS = [
   { icon: Layers3, title: "4 curricula", body: "Cambridge, Pearson Edexcel, CBE and IB" },
   { icon: GraduationCap, title: "Ages 5 to 18", body: "Primary through to A Level and the IB Diploma" },
-  { icon: MapPin, title: "3 ways to learn", body: "At our centre, in your home or live online" },
+  { icon: FlaskConical, title: "STEM Centre", body: "Laboratory experiments and coding classes" },
   { icon: ClipboardList, title: "Weekly reports", body: "Written progress for every subject, every week" },
 ];
 
@@ -58,18 +60,18 @@ export default function HomePage() {
               <MapPin className="h-4 w-4 text-gold-400" /> Nairobi, Kenya
             </p>
             <h1 className="mt-6 font-display text-[clamp(38px,7.4vw,72px)] font-extrabold leading-[1.02] tracking-[-0.03em]">
-              Homeschooling and tuition in Nairobi
+              Homeschooling, tuition and STEM in Nairobi
             </h1>
             <p className="mt-6 max-w-[54ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
-              One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level. At our centre, in your home or live
-              online.
+              One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory
+              experiments and coding classes.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/admissions#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
                 Enquire now
               </Link>
-              <Link href="/programmes" className="btn border-white/50 px-7 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
-                Explore programmes
+              <Link href="/stem" className="btn border-white/50 px-7 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
+                Discover the STEM Centre
               </Link>
             </div>
           </div>
@@ -110,11 +112,16 @@ export default function HomePage() {
         </ul>
       </section>
 
+      {/* ---------------------------------------------------------------- STEM */}
+      <div className="pt-16 sm:pt-20">
+        <StemFeature />
+      </div>
+
       {/* ---------------------------------------------------------------- why */}
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid gap-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
           <div className="lg:sticky lg:top-40 lg:self-start">
-            <SectionHead kicker="Why Crest Learning" title="Why families choose Crest">
+            <SectionHead kicker="Why Crest" title="Why families choose Crest">
               <p>
                 Every learner is different, so we don’t teach classes. We build a plan around one learner — their curriculum, their subjects and their
                 goals — and give their family a clear view of progress every week.

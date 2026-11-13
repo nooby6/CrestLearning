@@ -32,7 +32,7 @@ export async function SiteFooter() {
         <div>
           <Wordmark tone="light" />
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-navy-200">
-            Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level.
+            Homeschooling, one-to-one tuition and a STEM Centre in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level.
           </p>
           <ul className="mt-6 space-y-2.5 text-sm">
             {c.phone && (
@@ -64,7 +64,15 @@ export async function SiteFooter() {
             )}
           </ul>
         </div>
-        <FooterCol title="Programmes" links={[...programmes.map((p) => ({ href: p.href, label: p.label })), { href: "/homeschooling", label: "Homeschooling" }]} />
+        <FooterCol
+          title="Programmes"
+          links={[
+            ...programmes.map((p) => ({ href: p.href, label: p.label })),
+            { href: "/homeschooling", label: "Homeschooling" },
+            { href: "/stem#lab", label: "Science laboratory" },
+            { href: "/stem#coding", label: "Coding and programming" },
+          ]}
+        />
         <FooterCol
           title="Admissions"
           links={[
@@ -87,7 +95,7 @@ export async function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="site-wrap flex flex-col gap-2 py-6 text-xs text-navy-300 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} Crest Learning, Nairobi, Kenya</p>
+          <p>© {new Date().getFullYear()} Crest Learning & STEM Centre, Nairobi, Kenya</p>
           <p className="font-display font-semibold tracking-[0.35em] text-gold-400">LEARN. GROW. EXCEL.</p>
         </div>
       </div>

@@ -823,6 +823,8 @@ model Enquiry {
   /// How they'd like lessons: centre, home, online or unsure.
   delivery    String?
   subjects    String?
+  /// STEM Centre interests, comma-separated: lab, coding.
+  interests   String?
   message     String?
   /// NEW → CONTACTED → ENROLLED, or CLOSED.
   status      String   @default("NEW")

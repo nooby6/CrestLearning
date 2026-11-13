@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 import { assertRole } from "@/lib/auth";
 import { appUrl, emailConfigured } from "@/lib/env";
 import { brandedEmail, sendEmail } from "@/lib/email";
-import { DELIVERY, EMPTY_CONTACT, SITE_CONTACT_KEY, getSiteContact, type EnquiryStatus } from "@/lib/site";
+import { DELIVERY, EMPTY_CONTACT, INTERESTS, interestLabels, SITE_CONTACT_KEY, getSiteContact, type EnquiryStatus } from "@/lib/site";
 
 /* ------------------------------------------------------------------ public enquiry form */
 
@@ -54,6 +54,7 @@ export async function submitEnquiry(_: EnquiryState, form: FormData): Promise<En
   }
 
   const d = p.data;
+  const interests = form.getAll("interests").map(String).filter((v) => INTERESTS.some((i) => i.value === v));
   const delivery = DELIVERY.find((x) => x.value === d.delivery)?.value ?? null;
   const row = await prisma.enquiry.create({
     data: {
@@ -65,6 +66,7 @@ export async function submitEnquiry(_: EnquiryState, form: FormData): Promise<En
       curriculum: d.curriculum || null,
       delivery,
       subjects: d.subjects || null,
+      interests: interests.length ? Array.from(new Set(interests)).join(",") : null,
       message: d.message || null,
       ipHash,
     },
@@ -78,6 +80,7 @@ export async function submitEnquiry(_: EnquiryState, form: FormData): Promise<En
       d.studentName ? `Student: ${d.studentName}` : "",
       [d.level, d.curriculum, DELIVERY.find((x) => x.value === delivery)?.label].filter(Boolean).join(", "),
       d.subjects ? `Subjects: ${d.subjects}` : "",
+      interests.length ? `STEM Centre: ${interestLabels(interests.join(",")).join(", ")}` : "",
       d.message ? `Message: ${d.message}` : "",
     ].filter(Boolean);
     const mail = brandedEmail({

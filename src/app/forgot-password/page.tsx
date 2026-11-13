@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
             <ForgotForm />
           </>
         ) : (
-          <p className="mt-2 text-sm text-navy-600">The Crest Learning office can reset it for you. They’ll give you a temporary password to sign in with.</p>
+          <p className="mt-2 text-sm text-navy-600">The Crest office can reset it for you. They’ll give you a temporary password to sign in with.</p>
         )}
       </div>
     </div>

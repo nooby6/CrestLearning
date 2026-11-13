@@ -20,7 +20,7 @@ export type ForgotState = { sent?: boolean; error?: string } | undefined;
  * The reply is the same either way, so the form can't be used to discover who has an account.
  */
 export async function requestPasswordReset(_: ForgotState, form: FormData): Promise<ForgotState> {
-  if (!emailConfigured()) return { error: "Password reset by email isn’t switched on yet. Please ask the Crest Learning office." };
+  if (!emailConfigured()) return { error: "Password reset by email isn’t switched on yet. Please ask the Crest office." };
   const identifier = String(form.get("identifier") ?? "").trim().toLowerCase();
   if (!identifier) return { error: "Enter your username or email address." };
 
@@ -39,12 +39,12 @@ export async function requestPasswordReset(_: ForgotState, form: FormData): Prom
         heading: "Reset your password",
         paragraphs: [
           `Hello ${user.firstName},`,
-          `Someone asked to reset the password for the Crest Learning account @${user.username}. If it was you, choose a new password below. The link works once and expires in ${LINK_MINUTES} minutes.`,
+          `Someone asked to reset the password for the Crest Learning & STEM Centre account @${user.username}. If it was you, choose a new password below. The link works once and expires in ${LINK_MINUTES} minutes.`,
         ],
         button: { label: "Choose a new password", url },
         footer: "If you didn’t ask for this, ignore this email — your password stays the same.",
       });
-      await sendEmail({ to: user.email, subject: "Reset your Crest Learning password", ...mail });
+      await sendEmail({ to: user.email, subject: "Reset your Crest password", ...mail });
     }
   }
   return { sent: true };

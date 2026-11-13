@@ -53,7 +53,7 @@ export function SiteHeader({ phone }: { phone?: string }) {
 
       <div className="border-b border-line bg-white shadow-[0_8px_24px_-18px_rgba(10,29,79,0.35)]">
         <div className="site-wrap flex h-[76px] items-center gap-6">
-          <Link href="/" aria-label="Crest Learning — home" className="shrink-0">
+          <Link href="/" aria-label="Crest Learning & STEM Centre — home" className="shrink-0">
             <Wordmark />
           </Link>
 

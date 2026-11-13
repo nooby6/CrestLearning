@@ -13,11 +13,11 @@ function CrestE({ light }: { light: boolean }) {
   );
 }
 
-/** Compact lock-up: emblem + "CREST / LEARNING" set like the official logo. */
+/** Compact lock-up: emblem + "CREST / LEARNING / & STEM CENTRE", set like the official logo. */
 export function Wordmark({ tone = "dark", className }: { tone?: "dark" | "light"; className?: string }) {
   const light = tone === "light";
   return (
-    <span className={clsx("flex items-center gap-2.5", className)} aria-label="Crest Learning">
+    <span className={clsx("flex items-center gap-2.5", className)} aria-label="Crest Learning & STEM Centre">
       <Image
         src={light ? "/brand/crest-mark-light.png" : "/brand/crest-mark.png"}
         alt=""
@@ -37,6 +37,9 @@ export function Wordmark({ tone = "dark", className }: { tone?: "dark" | "light"
         </span>
         <span className="mt-1 font-display text-[8.5px] font-semibold tracking-[0.42em] text-gold-500">
           LEARNING
+        </span>
+        <span className={clsx("mt-[3px] font-display text-[7px] font-bold tracking-[0.2em]", light ? "text-navy-200" : "text-navy-500")}>
+          &amp; STEM CENTRE
         </span>
       </span>
     </span>

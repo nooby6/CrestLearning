@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * The real checks (valid session, active account, role) run on the server in requireRole/assertRole.
  */
 /** The public website: anyone can read it. */
-const SITE = ["/", "/programmes", "/homeschooling", "/parents", "/admissions", "/contact", "/robots.txt", "/sitemap.xml"];
+const SITE = ["/", "/programmes", "/stem", "/homeschooling", "/parents", "/admissions", "/contact", "/robots.txt", "/sitemap.xml"];
 const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth", "/api/health"];
 const SESSION_COOKIE = "crest_session";
 

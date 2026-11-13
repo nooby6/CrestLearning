@@ -58,7 +58,7 @@ export default async function ParentReportsPage({ searchParams }: { searchParams
 
       {/* Print heading */}
       <div className="mb-6 hidden print:block">
-        <p className="font-display text-xl font-semibold text-navy-900">Crest Learning — Weekly report</p>
+        <p className="font-display text-xl font-semibold text-navy-900">Crest Learning & STEM Centre — Weekly report</p>
         <p className="text-sm text-navy-500">
           Week of {formatDate(keyDate(weekKey), { month: "long" })} – {formatDate(keyDate(addDaysKey(weekKey, 6)), { month: "long" })}
         </p>

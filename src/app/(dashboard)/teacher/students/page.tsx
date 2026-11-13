@@ -37,7 +37,7 @@ export default async function TeacherStudents() {
       <PageHeader
         eyebrow="Teacher portal"
         title="My students"
-        description={`${byStudent.size} ${byStudent.size === 1 ? "student" : "students"} · ${enrollments.length} subjects. For anything involving a parent, please contact the Crest Learning office.`}
+        description={`${byStudent.size} ${byStudent.size === 1 ? "student" : "students"} · ${enrollments.length} subjects. For anything involving a parent, please contact the Crest office.`}
       />
       {byStudent.size === 0 ? (
         <EmptyState icon={Users} title="No students yet">

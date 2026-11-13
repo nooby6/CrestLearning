@@ -80,7 +80,7 @@ export default async function ClassPage({ params }: { params: { id: string } }) 
         <VideoOff className="mx-auto h-8 w-8 text-gold-500" />
         <h1 className="mt-3 font-display text-lg font-semibold text-navy-900">The lesson link hasn’t been set up yet</h1>
         <p className="mt-2 text-sm text-navy-500">
-          The Crest Learning office adds the Google Meet link for {e.subject.name}. Please contact the office so the lesson can go ahead.
+          The Crest office adds the Google Meet link for {e.subject.name}. Please contact the office so the lesson can go ahead.
         </p>
         <Link href={portalHref} className="btn-primary mt-6">
           Back to portal

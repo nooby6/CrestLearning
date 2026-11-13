@@ -39,6 +39,8 @@ export type EnquiryStatus = keyof typeof ENQUIRY_STATUS;
 
 export const LEVELS = ["Primary", "Lower secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma"] as const;
 export const CURRICULA = ["Cambridge", "Pearson Edexcel", "CBE", "IB"] as const;
+export { INTERESTS, interestLabels } from "./enquiry-options";
+
 export const DELIVERY = [
   { value: "centre", label: "At the Crest centre" },
   { value: "home", label: "At home in Nairobi" },

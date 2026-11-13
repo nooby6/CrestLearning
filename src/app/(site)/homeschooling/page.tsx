@@ -3,15 +3,15 @@ import { AudienceTiles, NextSteps, PageHero, Photo, SectionHead } from "@/compon
 
 export const metadata = {
   title: "Homeschooling",
-  description: "Structured homeschooling in Nairobi: a specialist teacher for every subject, a weekly timetable, lesson records and weekly reports — at our centre, at home or online.",
+  description: "Structured homeschooling in Nairobi: a specialist teacher for every subject, science practicals in our laboratory, coding classes, lesson records and weekly reports.",
 };
 
 const WEEK = [
   { day: "Monday", items: ["Mathematics", "English"] },
   { day: "Tuesday", items: ["Biology", "History"] },
-  { day: "Wednesday", items: ["Mathematics", "Chemistry"] },
+  { day: "Wednesday", items: ["Mathematics", "Chemistry lab"] },
   { day: "Thursday", items: ["English", "Physics"] },
-  { day: "Friday", items: ["Geography", "Mathematics"] },
+  { day: "Friday", items: ["Geography", "Coding"] },
 ];
 
 const INCLUDED = [
@@ -90,6 +90,13 @@ export default function HomeschoolingPage() {
               ))}
             </div>
             <figcaption className="mt-3 text-sm text-navy-500">An example. Subjects, days and the number of lessons are planned with each family.</figcaption>
+            <p className="mt-6 border-l-[3px] border-navy-800 bg-white p-5 text-[15px] leading-relaxed text-navy-800">
+              <span className="font-bold text-navy-900">Science practicals and coding are part of the week.</span> Homeschooled students do their
+              experiments in the Crest laboratory, and can add coding lessons at any stage.{" "}
+              <Link href="/stem" className="font-semibold text-navy-900 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
+                About the STEM Centre
+              </Link>
+            </p>
           </figure>
         </div>
       </section>

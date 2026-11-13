@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { CurriculaStrip, NextSteps, PROGRAMMES, PageHero, Photo, SectionHead } from "@/components/site/blocks";
+import { SplitPhoto } from "@/components/site/stem";
 
 export const metadata = {
   title: "Programmes",
@@ -77,6 +78,32 @@ export default function ProgrammesPage() {
           </div>
         </section>
       ))}
+
+      <section className="bg-white py-16 sm:py-20">
+        <div className="site-wrap">
+          <div className="relative isolate grid overflow-hidden bg-navy-950 text-white lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <div className="p-8 sm:p-12">
+              <p className="site-kicker text-gold-400">Add STEM to any programme</p>
+              <h2 className="mt-3 font-display text-[clamp(26px,3.6vw,36px)] font-extrabold leading-[1.1]">Laboratory experiments and coding classes</h2>
+              <p className="mt-4 max-w-[52ch] text-[16px] leading-relaxed text-navy-100">
+                At every stage, students can add practical science in the Crest laboratory, or coding lessons from Scratch to IGCSE and A Level Computer
+                Science.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/stem" className="btn-gold px-6 py-3 font-semibold">
+                  Explore the STEM Centre
+                </Link>
+                <Link href="/stem#pathway" className="btn border-white/50 px-6 py-3 font-semibold text-white hover:border-white hover:bg-white/10">
+                  See the coding pathway
+                </Link>
+              </div>
+            </div>
+            <div className="relative min-h-[240px]">
+              <SplitPhoto left="labTeacher2" right="codeScreen" sizes="(min-width:1024px) 45vw, 100vw" />
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="angle-top bg-navy-800 pb-20 pt-[calc(5vw+64px)] text-white">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">

@@ -11,7 +11,7 @@ export default async function StudentAnnouncementsPage() {
   const items = await announcementsFor(me.id);
   return (
     <>
-      <PageHeader eyebrow="Student portal" title="Announcements" description="Notices from the Crest Learning office." />
+      <PageHeader eyebrow="Student portal" title="Announcements" description="Notices from the Crest office." />
       <MarkAnnouncementsRead unread={items.filter((i) => !i.readAt).length} />
       <AnnouncementList items={items} />
     </>

@@ -49,7 +49,7 @@ export async function signIn(_: SignInState, form: FormData): Promise<SignInStat
     }
     return { error: "That username or password is incorrect." };
   }
-  if (!user.active) return { error: "This account is suspended. Please contact the Crest Learning office." };
+  if (!user.active) return { error: "This account is suspended. Please contact the Crest office." };
 
   await prisma.user.update({ where: { id: user.id }, data: { failedSignIns: 0, lockedUntil: null, lastSignInAt: new Date() } });
   await createSession(user.id);

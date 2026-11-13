@@ -36,7 +36,7 @@ export default async function SetupPage() {
       <div className="mx-auto max-w-md">
         <Wordmark className="mb-10" />
         <p className="eyebrow">System status</p>
-        <h1 className="mt-2 font-display text-2xl font-semibold text-navy-900">Crest Learning</h1>
+        <h1 className="mt-2 font-display text-2xl font-semibold text-navy-900">Crest Learning & STEM Centre</h1>
         <ol className="card mt-6 divide-y divide-line">
           {checks.map((c) => (
             <li key={c.label} className="flex items-center gap-3 px-5 py-4 text-sm font-medium text-navy-900">

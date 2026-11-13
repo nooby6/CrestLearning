@@ -13,6 +13,16 @@ export const SITE_NAV: NavGroup[] = [
     ],
   },
   {
+    label: "STEM Centre",
+    href: "/stem",
+    items: [
+      { href: "/stem", label: "About the STEM Centre" },
+      { href: "/stem#lab", label: "Science laboratory" },
+      { href: "/stem#coding", label: "Coding and programming" },
+      { href: "/stem#pathway", label: "The coding pathway" },
+    ],
+  },
+  {
     label: "Homeschooling",
     href: "/homeschooling",
     items: [

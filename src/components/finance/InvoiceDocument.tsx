@@ -16,7 +16,7 @@ export function InvoiceDocument({ inv, instructions, staffView = false }: { inv:
       <header className="flex flex-col gap-6 border-b border-line px-6 py-6 sm:flex-row sm:items-start sm:justify-between sm:px-8">
         <div>
           <Wordmark />
-          <p className="mt-3 text-xs text-navy-500">Crest Learning · Nairobi, Kenya</p>
+          <p className="mt-3 text-xs text-navy-500">Crest Learning & STEM Centre · Nairobi, Kenya</p>
         </div>
         <div className="sm:text-right">
           <p className="font-display text-2xl font-bold tracking-wide text-navy-900">INVOICE</p>

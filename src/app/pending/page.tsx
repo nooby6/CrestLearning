@@ -17,7 +17,7 @@ export default function PendingPage() {
         </span>
         <h1 className="font-display text-lg font-semibold text-navy-900">This account is suspended</h1>
         <p className="mt-2 text-sm text-navy-500">
-          Access to this account has been suspended by the Crest Learning office. Please contact the office if you believe this is an error.
+          Access to this account has been suspended by the Crest office. Please contact the office if you believe this is an error.
         </p>
         <form action={async () => { "use server"; await signOut(); }}>
           <button className="btn-ghost mt-6">Sign out</button>

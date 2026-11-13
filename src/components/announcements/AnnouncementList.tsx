@@ -19,7 +19,7 @@ export function AnnouncementList({ items }: { items: Item[] }) {
   if (!items.length)
     return (
       <EmptyState icon={Megaphone} title="No announcements">
-        Notices from the Crest Learning office appear here.
+        Notices from the Crest office appear here.
       </EmptyState>
     );
   return (
