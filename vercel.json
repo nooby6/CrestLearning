@@ -1,1 +1,1 @@
-{ "git": { "deploymentEnabled": false } }
+{ "framework": null, "installCommand": "echo skip", "buildCommand": "node fetch.mjs", "outputDirectory": "public", "crons": [] }
