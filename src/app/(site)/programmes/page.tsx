@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { CurriculaStrip, NextSteps, PROGRAMMES, PageHero, Photo, SectionHead } from "@/components/site/blocks";
-import { SplitPhoto } from "@/components/site/stem";
+import { PhotoPair } from "@/components/site/stem";
 
 export const metadata = {
   title: "Programmes",
@@ -99,7 +99,7 @@ export default function ProgrammesPage() {
               </div>
             </div>
             <div className="relative min-h-[240px]">
-              <SplitPhoto left="labTeacher2" right="codeScreen" sizes="(min-width:1024px) 45vw, 100vw" />
+              <PhotoPair first="labTeacher2" second="codingClass" sizes="(min-width:1024px) 25vw, 50vw" />
             </div>
           </div>
         </div>

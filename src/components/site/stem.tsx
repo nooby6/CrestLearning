@@ -5,36 +5,36 @@ import { Photo } from "./blocks";
 import type { PhotoKey } from "./photos";
 
 /**
- * Two photos split by an angled gold seam: the laboratory on one side, code on the other.
- * The seam is the STEM Centre's visual signature on the website.
+ * Two photos shown side by side (or stacked), each in full and unobscured, with a thin gold line between them:
+ * the laboratory and the coding class.
  */
-export function SplitPhoto({
-  left = "labTeacher",
-  right = "codingGirl",
+export function PhotoPair({
+  first = "labTeacher",
+  second = "codingClass",
   sizes,
   priority,
+  stacked,
   className,
-  leftPosition,
-  rightPosition,
+  firstPosition,
+  secondPosition,
 }: {
-  left?: PhotoKey;
-  right?: PhotoKey;
+  first?: PhotoKey;
+  second?: PhotoKey;
   sizes: string;
   priority?: boolean;
+  stacked?: boolean;
   className?: string;
-  leftPosition?: string;
-  rightPosition?: string;
+  firstPosition?: string;
+  secondPosition?: string;
 }) {
   return (
-    <div className={clsx("absolute inset-0 overflow-hidden bg-navy-900", className)}>
-      <div className="absolute inset-0" style={{ clipPath: "polygon(0 0, 58% 0, 46% 100%, 0 100%)" }}>
-        <Photo k={left} sizes={sizes} priority={priority} position={leftPosition} />
+    <div className={clsx("absolute inset-0 grid gap-[4px] overflow-hidden bg-gold-500", stacked ? "grid-rows-2" : "grid-cols-2", className)}>
+      <div className="relative overflow-hidden bg-navy-900">
+        <Photo k={first} sizes={sizes} priority={priority} position={firstPosition} />
       </div>
-      <div className="absolute inset-0" style={{ clipPath: "polygon(60% 0, 100% 0, 100% 100%, 48% 100%)" }}>
-        <Photo k={right} sizes={sizes} priority={priority} position={rightPosition} />
+      <div className="relative overflow-hidden bg-navy-900">
+        <Photo k={second} sizes={sizes} priority={priority} position={secondPosition} />
       </div>
-      {/* the gold seam */}
-      <div className="absolute inset-0 bg-gold-500" style={{ clipPath: "polygon(58% 0, 60% 0, 48% 100%, 46% 100%)" }} aria-hidden />
     </div>
   );
 }
@@ -94,9 +94,9 @@ export function StemFeature() {
           </Link>
         </div>
         <div className="relative aspect-[4/3] lg:aspect-[5/6]">
-          <SplitPhoto sizes="(min-width:1024px) 50vw, 100vw" className="cut-corner" leftPosition="35% center" rightPosition="60% center" />
-          <span className="absolute bottom-5 left-0 bg-white px-3 py-1.5 text-[13px] font-bold text-navy-950">In the lab</span>
-          <span className="absolute right-0 top-5 bg-gold-500 px-3 py-1.5 text-[13px] font-bold text-navy-950">Writing code</span>
+          <PhotoPair stacked sizes="(min-width:1024px) 50vw, 100vw" firstPosition="center 30%" secondPosition="80% 35%" />
+          <span className="absolute left-0 top-5 bg-white px-3 py-1.5 text-[13px] font-bold text-navy-950">In the lab</span>
+          <span className="absolute bottom-5 right-0 bg-gold-500 px-3 py-1.5 text-[13px] font-bold text-navy-950">Writing code</span>
         </div>
       </div>
     </section>

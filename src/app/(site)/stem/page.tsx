@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, ClipboardList, FlaskConical, Glasses, MonitorPlay, ShieldCheck, Building2, UserRound } from "lucide-react";
 import { NextSteps, Photo, SectionHead } from "@/components/site/blocks";
-import { CodeCard, SplitPhoto } from "@/components/site/stem";
+import { CodeCard, PhotoPair } from "@/components/site/stem";
 import type { PhotoKey } from "@/components/site/photos";
 
 export const metadata = {
@@ -47,21 +47,21 @@ const PATHWAY: { ages: string; title: string; body: string; topics: string[]; ph
     title: "Block coding",
     body: "Students build animations, stories and simple games by snapping code blocks together in Scratch.",
     topics: ["Sequences and loops", "Events and simple logic", "Planning a project"],
-    photo: "codingTablet",
+    photo: "codingGirl",
   },
   {
     ages: "Ages 10 to 13",
     title: "First text-based code",
     body: "The move to typed code: short Python programs and first web pages with HTML and CSS.",
     topics: ["Variables, conditions and functions", "Finding and fixing bugs", "Building a web page"],
-    photo: "codingGirl",
+    photo: "onlineLesson",
   },
   {
     ages: "Ages 14 to 16",
     title: "IGCSE Computer Science",
     body: "Taught to the Cambridge IGCSE or Pearson Edexcel International GCSE syllabus, with the programming practice the exams expect.",
     topics: ["Algorithms and pseudocode", "Programming in Python", "Data, networks and past papers"],
-    photo: "codeScreen",
+    photo: "codingTablet",
   },
   {
     ages: "Ages 16 to 18",
@@ -83,28 +83,35 @@ export default function StemPage() {
   return (
     <>
       {/* ---------------------------------------------------------------- hero */}
-      <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
-        <SplitPhoto left="labTeacher" right="codingGirl" sizes="100vw" priority className="-z-20" leftPosition="30% center" rightPosition="65% center" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-950/75 to-navy-950/10 max-lg:via-navy-950/85 max-lg:to-navy-950/55" />
-        <div className="hero-rise site-wrap pb-[calc(5vw+80px)] pt-20 sm:pt-28">
-          <p className="site-kicker text-gold-400">Crest STEM Centre</p>
-          <h1 className="mt-4 max-w-2xl font-display text-[clamp(36px,7vw,66px)] font-extrabold leading-[1.03] tracking-[-0.03em]">
-            Science and coding, taught hands-on
-          </h1>
-          <p className="mt-6 max-w-[52ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
-            Laboratory experiments in biology, chemistry and physics, and coding classes from first blocks to Computer Science exams. Here in Nairobi,
-            alongside your student’s tuition or homeschooling.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/admissions?interest=stem#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
-              Enquire about STEM
-            </Link>
-            <a href="#lab" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
-              Science laboratory
-            </a>
-            <a href="#coding" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
-              Coding classes
-            </a>
+      <section className="angle-bottom relative isolate overflow-hidden bg-navy-950 text-white">
+        {/* Photos sit beside the text, in full, with nothing laid over them. */}
+        <div className="absolute inset-y-0 right-0 hidden w-[50%] lg:block" style={{ clipPath: "polygon(9% 0, 100% 0, 100% 100%, 0 100%)" }}>
+          <PhotoPair stacked sizes="50vw" priority firstPosition="center 30%" secondPosition="80% 35%" />
+        </div>
+        <div className="site-wrap pb-[calc(5vw+80px)] pt-20 sm:pt-28">
+          <div className="hero-rise lg:max-w-[46%]">
+            <p className="site-kicker text-gold-400">Crest STEM Centre</p>
+            <h1 className="mt-4 font-display text-[clamp(36px,6vw,62px)] font-extrabold leading-[1.03] tracking-[-0.03em]">
+              Science and coding, taught hands-on
+            </h1>
+            <p className="mt-6 max-w-[52ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
+              Laboratory experiments in biology, chemistry and physics, and coding classes from first blocks to Computer Science exams. Here in
+              Nairobi, alongside your student’s tuition or homeschooling.
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/admissions?interest=stem#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
+                Enquire about STEM
+              </Link>
+              <a href="#lab" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
+                Science laboratory
+              </a>
+              <a href="#coding" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
+                Coding classes
+              </a>
+            </div>
+          </div>
+          <div className="relative mt-12 aspect-[4/5] sm:aspect-[4/3] lg:hidden">
+            <PhotoPair stacked sizes="100vw" priority firstPosition="center 30%" secondPosition="80% 35%" />
           </div>
         </div>
       </section>
@@ -137,7 +144,7 @@ export default function StemPage() {
         <div className="site-wrap grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <div className="relative aspect-[5/4] lg:aspect-[4/5]">
             <div className="cut-right absolute inset-0 overflow-hidden bg-navy-100">
-              <Photo k="labGoggles" sizes="(min-width:1024px) 50vw, 100vw" position="center 30%" />
+              <Photo k="labGoggles" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
             <div className="absolute -bottom-8 right-[6%] aspect-square w-[42%] border-[6px] border-canvas bg-navy-100 shadow-[0_30px_60px_-30px_rgba(10,29,79,0.7)]">
               <div className="relative h-full w-full overflow-hidden">
