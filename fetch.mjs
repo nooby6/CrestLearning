@@ -7,7 +7,7 @@ for (const line of fs.readFileSync("groups.txt", "utf8").split("\n").filter(Bool
   for (const pid of list.split(",").map((s) => s.trim()).filter(Boolean)) {
     let b64 = null;
     try {
-      const r = await fetch(`https://images.unsplash.com/${pid}?auto=format&fit=crop&w=240&h=180&q=50&fm=jpg`);
+      const r = await fetch(`https://images.unsplash.com/${pid}?auto=format&fit=crop&w=480&h=360&q=55&fm=jpg`);
       if (r.ok) b64 = Buffer.from(await r.arrayBuffer()).toString("base64");
     } catch {}
     rows.push({ pid, b64 });
