@@ -92,12 +92,29 @@ export async function availableBalance(): Promise<number> {
   return w ? Math.round(Number(w.available_balance ?? 0) * 100) : 0;
 }
 
+/**
+ * IntaSend accepts only letters, numbers, spaces, underscores and dashes in names and narratives.
+ * Dashes of any kind become "-", accented letters lose their accents, everything else becomes a space.
+ */
+export function intasendText(v: string, max = 60) {
+  return v
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[^A-Za-z0-9 _-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\s*-\s*/g, "-")
+    .trim()
+    .slice(0, max)
+    .trim();
+}
+
 type Invoice = { invoice_id?: string; state?: string; mpesa_reference?: string | null; failed_reason?: string | null; value?: string | number };
 
 /** Sends an M-Pesa prompt to the phone. The money lands in the school's IntaSend account. */
 export async function mpesaStkPush(input: { amountKes: number; phone: string; apiRef: string; narrative: string }) {
   const r = await call<{ invoice?: Invoice; id?: string }>("/api/v1/payment/mpesa-stk-push/", {
-    body: { amount: input.amountKes, phone_number: input.phone, api_ref: input.apiRef, narrative: input.narrative, method: "M-PESA", currency: "KES" },
+    body: { amount: input.amountKes, phone_number: input.phone, api_ref: input.apiRef, narrative: intasendText(input.narrative), method: "M-PESA", currency: "KES" },
   });
   return { invoiceId: r.invoice?.invoice_id ?? r.id ?? null, state: r.invoice?.state ?? "PENDING" };
 }
@@ -115,10 +132,12 @@ type SendBatch = { tracking_id?: string; status?: string; status_code?: string; 
  * `requires_approval: "NO"` because approval already happened in the portal.
  */
 export async function sendMoney(input: { kind: "MPESA"; phone: string; name: string; amountKes: number; narrative: string } | { kind: "BANK"; account: string; bankCode: string; name: string; amountKes: number; narrative: string }) {
+  const name = intasendText(input.name) || "Crest teacher";
+  const narrative = intasendText(input.narrative) || "Crest pay";
   const tx =
     input.kind === "MPESA"
-      ? { name: input.name, account: input.phone, amount: input.amountKes, narrative: input.narrative }
-      : { name: input.name, account: input.account, bank_code: input.bankCode, amount: input.amountKes, narrative: input.narrative };
+      ? { name, account: input.phone, amount: input.amountKes, narrative }
+      : { name, account: input.account.replace(/\s+/g, ""), bank_code: input.bankCode, amount: input.amountKes, narrative };
   const r = await call<SendBatch>("/api/v1/send-money/initiate/", {
     body: { provider: input.kind === "MPESA" ? "MPESA-B2C" : "PESALINK", currency: "KES", requires_approval: "NO", transactions: [tx] },
   });
