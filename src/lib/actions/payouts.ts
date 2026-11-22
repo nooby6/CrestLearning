@@ -71,10 +71,21 @@ export async function confirmPayout(input: z.input<typeof ConfirmInput>): Promis
 
 /** Reverses a confirmation made in error. The lessons become owed again. */
 export async function undoPayout(payoutId: number): Promise<ActionResult> {
-  await assertRole("admin");
-  const x = await prisma.teacherPayout.findUnique({ where: { id: payoutId } });
+  const me = await assertRole("admin");
+  const x = await prisma.teacherPayout.findUnique({ where: { id: payoutId }, include: { walletEntry: true, teacher: { select: { user: { select: { firstName: true, lastName: true } } } } } });
   if (!x) return { ok: false, error: "That payment no longer exists." };
-  await prisma.teacherPayout.delete({ where: { id: payoutId } }); // items cascade
+  await prisma.$transaction(async (tx) => {
+    // A payment taken from the wallet goes back into it.
+    if (x.walletEntry) {
+      await tx.walletEntry.create({
+        data: { kind: "REVERSAL", amount: -x.walletEntry.amount, note: `Reversed: ${x.teacher.user.firstName} ${x.teacher.user.lastName} · ${x.walletEntry.note ?? ""}`.trim(), createdById: me.id },
+      });
+    }
+    await tx.teacherPayout.delete({ where: { id: payoutId } }); // items cascade
+  });
   refresh();
-  return { ok: true, message: `Confirmation of ${formatMoney(x.amount)} removed. Those lessons show as owed again.` };
+  return {
+    ok: true,
+    message: x.walletEntry ? `${formatMoney(x.amount)} returned to the wallet. Those lessons show as owed again.` : `Confirmation of ${formatMoney(x.amount)} removed. Those lessons show as owed again.`,
+  };
 }

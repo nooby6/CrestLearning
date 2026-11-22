@@ -33,7 +33,7 @@ export default async function AdminAnnouncementsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Administration" title="Announcements" description="Send notices to everyone, to teachers, to all parents or to chosen parents. They appear in each person’s portal." />
+      <PageHeader eyebrow="Administration" title="Announcements" description="Send notices to everyone, to teachers, to all parents or to chosen parents. Each one appears as a blinking red alert at the top of the person’s portal until they open it." />
       <Card title="New announcement" className="mb-6">
         <AnnouncementComposer parents={options} />
       </Card>

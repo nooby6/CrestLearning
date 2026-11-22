@@ -20,8 +20,8 @@ export function ConfirmPayout({ teacherId, periodStart, amount, teacherName }: {
 
   if (!open) {
     return (
-      <button type="button" className="btn-primary px-3 py-1.5 text-xs" onClick={() => setOpen(true)}>
-        <CheckCircle2 className="h-3.5 w-3.5" /> Confirm payment
+      <button type="button" className="btn-ghost px-3 py-1.5 text-xs" onClick={() => setOpen(true)}>
+        <CheckCircle2 className="h-3.5 w-3.5" /> Record a payment made elsewhere
       </button>
     );
   }

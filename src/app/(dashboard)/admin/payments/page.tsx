@@ -1,6 +1,9 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { walletBalance } from "@/lib/wallet";
+import { PayAllFromWallet, PayFromWallet } from "@/components/wallet/WalletControls";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney } from "@/lib/format";
 import { formatTime, hoursLabel } from "@/lib/schedule";
@@ -22,8 +25,16 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
   await requireRole("admin");
   const period = searchParams.period && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.period) ? periodContaining(searchParams.period) : lastEndedPeriod();
   const current = periodContaining();
-  const rows = await periodSummary(period);
+  const [rows, balance] = await Promise.all([periodSummary(period), walletBalance()]);
   const ended = isEnded(period);
+  const payTo = new Map(
+    (await prisma.teacher.findMany({ where: { id: { in: rows.map((r) => r.teacherId) } }, select: { id: true, payoutMethod: true, payoutPhone: true, payoutBank: true, payoutAccountNumber: true } })).map((t) => [
+      t.id,
+      t.payoutMethod === "MPESA" ? `M-Pesa ${t.payoutPhone}` : t.payoutMethod === "BANK" ? `${t.payoutBank} · ${t.payoutAccountNumber}` : null,
+    ]),
+  );
+  const payable = rows.filter((r) => r.owed > 0 && r.hourlyRate > 0);
+  const payableTotal = payable.reduce((a, r) => a + r.owed, 0);
 
   const totals = {
     owed: rows.reduce((a, r) => a + r.owed, 0),
@@ -40,7 +51,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
       <PageHeader
         eyebrow="Finance"
         title="Teacher payments"
-        description="Teachers are paid every two weeks for the lessons they held, at their hourly rate. Confirm each payment once it’s made — the teacher sees it straight away."
+        description="Teachers are paid every two weeks for the lessons they held, at their hourly rate. Pay from the school wallet, or record a payment made another way. The teacher sees it straight away."
       />
 
       <div className="mb-6 flex flex-col border border-line bg-white sm:flex-row sm:items-stretch">
@@ -65,6 +76,25 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
         <Link href={href(next)} className="flex items-center justify-end gap-1 border-t border-line px-4 py-3 text-sm text-navy-600 hover:bg-ivory sm:border-l sm:border-t-0">
           Next <ChevronRight className="h-4 w-4" />
         </Link>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-4 border border-navy-900 bg-navy-900 px-5 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center bg-gold-500 text-navy-950">
+            <Wallet className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold text-gold-400">School wallet</p>
+            <p className="font-display text-2xl font-extrabold tabular-nums">{formatMoney(balance)}</p>
+            {ended && payableTotal > balance && <p className="text-xs text-rose-200">Add {formatMoney(payableTotal - balance)} to pay everyone for this period.</p>}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/admin/wallet" className="text-sm font-semibold text-navy-100 underline decoration-gold-500 underline-offset-4 hover:text-white">
+            Add money
+          </Link>
+          {ended && payable.length > 0 && <PayAllFromWallet periodStart={period.start} total={formatMoney(payableTotal)} count={payable.length} enough={balance >= payableTotal} />}
+        </div>
       </div>
 
       <dl className="card mb-6 grid grid-cols-2 sm:grid-cols-4">
@@ -108,6 +138,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                       {r.name}
                     </Link>
                     {r.hourlyRate === 0 && <p className="text-xs font-medium text-rose-700">Hourly rate not set</p>}
+                    <p className={clsx("text-xs", payTo.get(r.teacherId) ? "text-navy-500" : "text-amber-700")}>{payTo.get(r.teacherId) ?? "Payment details not set"}</p>
                   </td>
                   <td className="px-3 py-3 text-right tabular-nums">{r.lessons.length}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{hoursLabel(r.minutes)}</td>
@@ -143,7 +174,16 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                             {r.unpaidLessons} unpaid {r.unpaidLessons === 1 ? "lesson" : "lessons"}
                             {!ended && " so far — the period hasn’t ended yet"}
                           </p>
-                          <ConfirmPayout teacherId={r.teacherId} periodStart={period.start} amount={formatMoney(r.owed, r.currency)} teacherName={r.name} />
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            <ConfirmPayout teacherId={r.teacherId} periodStart={period.start} amount={formatMoney(r.owed, r.currency)} teacherName={r.name} />
+                            <PayFromWallet
+                              teacherId={r.teacherId}
+                              periodStart={period.start}
+                              amount={formatMoney(r.owed, r.currency)}
+                              teacherName={r.name}
+                              disabledReason={r.hourlyRate === 0 ? "Set the hourly rate first" : r.owed > balance ? `The wallet holds ${formatMoney(balance)}` : undefined}
+                            />
+                          </div>
                         </div>
                       )}
                       <details className="group border border-line">

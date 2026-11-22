@@ -268,3 +268,26 @@
     @apply text-navy-500;
   }
 }
+
+/* Announcement alert: a red light that blinks until the announcement is opened. */
+@keyframes crest-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+.crest-blink {
+  animation: crest-blink 1s ease-in-out infinite;
+}
+@keyframes crest-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+.crest-pop {
+  animation: crest-pop 0.2s ease-out;
+}

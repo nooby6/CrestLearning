@@ -13,9 +13,9 @@
 // ------------------------------------------------------------
 
 generator client {
-  provider   = "prisma-client-js"
+  provider        = "prisma-client-js"
   // Rust-free client: queries run through the pg driver adapter (src/lib/prisma.ts).
-  engineType = "client"
+  engineType      = "client"
   // Related records load in the same SQL query (LATERAL joins) instead of one extra round trip per relation.
   previewFeatures = ["relationJoins"]
 }
@@ -66,9 +66,9 @@ model User {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  sessions Session[]
-  passwordResets PasswordReset[]
-  enquiriesHandled Enquiry[] @relation("EnquiryHandledBy")
+  sessions         Session[]
+  passwordResets   PasswordReset[]
+  enquiriesHandled Enquiry[]       @relation("EnquiryHandledBy")
 
   student Student?
   teacher Teacher?
@@ -85,6 +85,7 @@ model User {
   workCommentsResolved  WorkComment[]           @relation("WorkCommentResolver")
   submissionsReviewed   Submission[]
   payoutsConfirmed      TeacherPayout[]         @relation("PayoutConfirmedBy")
+  walletEntries         WalletEntry[]           @relation("WalletEntryBy")
   paymentsRecorded      Payment[]               @relation("PaymentRecordedBy")
   announcementsAuthored Announcement[]
   announcementTargets   AnnouncementRecipient[]
@@ -122,6 +123,12 @@ model Teacher {
   currency            String  @default("KES")
   /// Weekly hours the teacher is available — drives the utilization view.
   weeklyCapacityHours Int     @default(20)
+  /// Where the teacher is paid. Office-only. MPESA or BANK.
+  payoutMethod        String?
+  payoutPhone         String?
+  payoutBank          String?
+  payoutAccountName   String?
+  payoutAccountNumber String?
 
   subjects    TeacherSubject[]
   enrollments Enrollment[]
@@ -672,6 +679,7 @@ enum PaymentProvider {
   FLUTTERWAVE
   BANK_TRANSFER
   CASH
+  WALLET
 }
 
 enum PaymentStatus {
@@ -732,6 +740,7 @@ model TeacherPayout {
   teacher     Teacher             @relation(fields: [teacherId], references: [id])
   confirmedBy User?               @relation("PayoutConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
   items       TeacherPayoutItem[]
+  walletEntry WalletEntry?
 
   /// Several payouts can cover one period (a later payment for lessons recorded after the first).
   @@index([teacherId, periodStart])
@@ -747,6 +756,34 @@ model TeacherPayoutItem {
 
   payout  TeacherPayout   @relation(fields: [payoutId], references: [id], onDelete: Cascade)
   session SessionInstance @relation(fields: [sessionId], references: [id])
+}
+
+enum WalletEntryKind {
+  DEPOSIT
+  TEACHER_PAYMENT
+  REVERSAL
+  WITHDRAWAL
+}
+
+/// The school wallet: money set aside for teacher pay. The balance is the sum of all entries.
+model WalletEntry {
+  id          Int             @id @default(autoincrement())
+  kind        WalletEntryKind
+  /// KES cents: positive goes into the wallet, negative comes out.
+  amount      Int
+  /// How money arrived or left: MPESA, BANK_TRANSFER, CARD, CASH.
+  method      String?
+  reference   String?
+  note        String?
+  occurredAt  DateTime        @default(now())
+  payoutId    Int?            @unique
+  createdById String?
+  createdAt   DateTime        @default(now())
+
+  payout    TeacherPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  createdBy User?          @relation("WalletEntryBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt])
 }
 
 // ============================================================

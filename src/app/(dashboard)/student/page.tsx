@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpenCheck, Video } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { announcementsFor } from "@/lib/announcements";
-import { AnnouncementStrip } from "@/components/announcements/AnnouncementList";
 import { requireRole } from "@/lib/auth";
 import { formatDate, fullName, greeting } from "@/lib/format";
 import { curriculumLabel } from "@/lib/roles";
@@ -26,7 +24,6 @@ function dayLabel(d: Date) {
 
 export default async function StudentHome() {
   const me = await requireRole("student");
-  const news = await announcementsFor(me.id, 5);
   const now = new Date();
   const [s, summaries, next, homework, work] = await Promise.all([
     prisma.student.findUnique({ where: { id: me.id }, include: { level: true } }),
@@ -59,7 +56,6 @@ export default async function StudentHome() {
               : "No more lessons this week."
         }
       />
-      <AnnouncementStrip href="/student/announcements" latest={news.find((n) => !n.readAt)} unread={news.filter((n) => !n.readAt).length} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

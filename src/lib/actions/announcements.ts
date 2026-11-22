@@ -71,6 +71,13 @@ export async function togglePin(id: number): Promise<ActionResult> {
   return { ok: true, message: a.pinned ? "Unpinned" : "Pinned to the top" };
 }
 
+/** Marks one announcement read for the current user: called the moment they open it. */
+export async function markAnnouncementRead(id: number): Promise<void> {
+  const me = await getCurrentUser();
+  if (!me || !Number.isInteger(id)) return;
+  await prisma.announcementRecipient.updateMany({ where: { userId: me.id, announcementId: id, readAt: null }, data: { readAt: new Date() } });
+}
+
 /** Marks everything the current user can see as read (called when they open their announcements). */
 export async function markAllRead(): Promise<void> {
   const me = await getCurrentUser();

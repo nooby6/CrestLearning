@@ -7,15 +7,16 @@ import { PHOTOS, type PhotoKey } from "./photos";
 /** A photo that fills its (positioned) parent. */
 export function Photo({ k, sizes, priority, className, position }: { k: PhotoKey; sizes: string; priority?: boolean; className?: string; position?: string }) {
   const p = PHOTOS[k];
-  return <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} className={clsx("object-cover", className)} style={position ? { objectPosition: position } : undefined} />;
+  return <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} quality={85} className={clsx("object-cover", className)} style={position ? { objectPosition: position } : undefined} />;
 }
 
 /** Inner-page hero: full-width photo under a navy wash, angled bottom edge. */
-export function PageHero({ photo, kicker, title, children, position = "center" }: { photo: PhotoKey; kicker?: string; title: string; children?: React.ReactNode; position?: string }) {
+/** `flip` mirrors the photo so its subject sits on the right, clear of the heading. */
+export function PageHero({ photo, kicker, title, children, position = "center", flip }: { photo: PhotoKey; kicker?: string; title: string; children?: React.ReactNode; position?: string; flip?: boolean }) {
   return (
     <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
-      <Photo k={photo} sizes="100vw" priority position={position} className="-z-20" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-900/80 to-navy-900/35" />
+      <Photo k={photo} sizes="100vw" priority position={position} className={clsx("-z-20", flip && "-scale-x-100")} />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/90 via-navy-950/55 to-navy-950/0 max-md:from-navy-950/85 max-md:via-navy-950/70 max-md:to-navy-950/45" />
       <div className="hero-rise site-wrap pb-[calc(5vw+72px)] pt-20 sm:pt-24">
         {kicker && <p className="site-kicker text-gold-400">{kicker}</p>}
         <h1 className="mt-4 max-w-3xl font-display text-[clamp(34px,7vw,58px)] font-extrabold leading-[1.04] tracking-[-0.025em]">{title}</h1>
@@ -111,7 +112,7 @@ export function AudienceTiles() {
           <div className="photo-zoom absolute inset-0 -z-20">
             <Photo k={a.photo} sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" />
           </div>
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-navy-950 via-navy-950/55 to-transparent" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-navy-950/95 from-10% via-navy-950/65 via-55% to-navy-950/10 sm:from-5% sm:via-navy-950/35 sm:via-45% sm:to-transparent sm:to-75%" />
           <div className="flex h-full flex-col justify-end p-6 text-white">
             <span className="mb-3 h-[3px] w-10 bg-gold-500 transition-all duration-300 group-hover:w-16" aria-hidden />
             <h3 className="font-display text-xl font-extrabold leading-tight">{a.title}</h3>

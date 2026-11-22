@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, FileText, UsersRound } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { announcementsFor } from "@/lib/announcements";
-import { AnnouncementStrip } from "@/components/announcements/AnnouncementList";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney, fullName, greeting } from "@/lib/format";
 import { curriculumLabel, relationshipLabel } from "@/lib/roles";
@@ -17,8 +15,7 @@ export const metadata = { title: "Overview" };
 export default async function ParentHome() {
   const me = await requireRole("parent");
   // Everything that only needs the parent's id loads at once.
-  const [news, open, links, workGroups, latestReports] = await Promise.all([
-    announcementsFor(me.id, 5),
+  const [open, links, workGroups, latestReports] = await Promise.all([
     prisma.invoice.findMany({
       where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: me.id } } } },
       select: { total: true, amountPaid: true },
@@ -74,7 +71,6 @@ export default async function ParentHome() {
           ) : undefined
         }
       />
-      <AnnouncementStrip href="/parent/announcements" latest={news.find((n) => !n.readAt)} unread={news.filter((n) => !n.readAt).length} />
       {owing > 0 && (
         <Link href="/parent/invoices" className="mb-6 flex items-center gap-3 border border-line border-l-4 border-l-navy-800 bg-white px-4 py-3 text-sm shadow-card transition-colors hover:border-navy-400">
           <span className="min-w-0 flex-1">

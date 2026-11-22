@@ -7,7 +7,8 @@ import { requireRole } from "@/lib/auth";
 import { pendingRecordCount } from "@/lib/attendance";
 import { staffCounts, workForStudent } from "@/lib/work-queries";
 import { ROLE_LABEL, portalsFor } from "@/lib/roles";
-import { unreadAnnouncements } from "@/lib/announcements";
+import { unreadAnnouncementItems } from "@/lib/announcements";
+import { AnnouncementAlert } from "@/components/announcements/AnnouncementAlert";
 import prisma from "@/lib/prisma";
 import { BLOB_LIMITS, blobConfigured } from "@/lib/storage";
 import { UploadModeProvider } from "@/components/work/UploadMode";
@@ -32,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     slug === "teacher" ? pendingRecordCount(user.id) : 0,
     slug === "teacher" ? staffCounts("teacher", user.id) : null,
     slug === "student" ? workForStudent(user.id) : null,
-    slug !== "admin" ? unreadAnnouncements(user.id) : 0,
+    slug !== "admin" ? unreadAnnouncementItems(user.id) : [],
     slug === "parent"
       ? prisma.invoice.count({ where: { status: { in: ["ISSUED", "PARTIALLY_PAID"] }, student: { guardians: { some: { parentId: user.id } } } } })
       : 0,
@@ -47,7 +48,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (teacherCounts && teacherCounts.toMark + teacherCounts.requests) badges["/teacher/resources"] = teacherCounts.toMark + teacherCounts.requests;
   const todo = studentWork?.filter((i) => i.state === "todo" || i.state === "overdue").length ?? 0;
   if (todo) badges["/student/work"] = todo;
-  if (unread) badges[`/${slug}/announcements`] = unread;
   if (due) badges["/parent/invoices"] = due;
   if (newEnquiries) badges["/admin/enquiries"] = newEnquiries;
 
@@ -58,6 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar user={user} portal={slug} portals={portals} />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+          {unread.length > 0 && <AnnouncementAlert items={unread} />}
           <UploadModeProvider value={{ blob: blobConfigured(), userId: user.id, limits: blobConfigured() ? BLOB_LIMITS : null }}>{children}</UploadModeProvider>
         </main>
       </div>

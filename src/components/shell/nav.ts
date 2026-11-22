@@ -16,6 +16,7 @@ export type IconName =
   | "calendar"
   | "check"
   | "wallet"
+  | "banknote"
   | "megaphone"
   | "book"
   | "clipboard"
@@ -35,7 +36,8 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Attendance", href: "/admin/attendance", icon: "check" },
     { label: "Weekly reports", href: "/admin/reports", icon: "chart" },
     { label: "Resources", href: "/admin/resources", icon: "book" },
-    { label: "Teacher payments", href: "/admin/payments", icon: "wallet" },
+    { label: "Teacher payments", href: "/admin/payments", icon: "banknote" },
+    { label: "School wallet", href: "/admin/wallet", icon: "wallet" },
     { label: "Fees & invoices", href: "/admin/finance", icon: "receipt" },
     { label: "Announcements", href: "/admin/announcements", icon: "megaphone" },
     { label: "Enquiries", href: "/admin/enquiries", icon: "inbox" },
@@ -49,14 +51,12 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Weekly reports", href: "/teacher/reports", icon: "chart" },
     { label: "Resources", href: "/teacher/resources", icon: "book" },
     { label: "Payments", href: "/teacher/payments", icon: "wallet" },
-    { label: "Announcements", href: "/teacher/announcements", icon: "megaphone" },
   ],
   student: [
     { label: "Home", href: "/student", icon: "home" },
     { label: "Timetable", href: "/student/timetable", icon: "calendar" },
     { label: "Worksheets & files", href: "/student/work", icon: "book" },
     { label: "Homework", href: "/student/homework", icon: "clipboard" },
-    { label: "Announcements", href: "/student/announcements", icon: "megaphone" },
   ],
   parent: [
     { label: "Overview", href: "/parent", icon: "home" },
@@ -64,6 +64,5 @@ export const NAV: Record<RoleSlug, NavItem[]> = {
     { label: "Weekly reports", href: "/parent/reports", icon: "chart" },
     { label: "Schoolwork", href: "/parent/work", icon: "book" },
     { label: "Fees & invoices", href: "/parent/invoices", icon: "receipt" },
-    { label: "Announcements", href: "/parent/announcements", icon: "megaphone" },
   ],
 };

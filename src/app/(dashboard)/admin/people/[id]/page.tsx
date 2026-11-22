@@ -15,6 +15,7 @@ import { EndSessionsButton } from "./EndSessionsButton";
 import { activeSessions } from "@/lib/session";
 import { deviceLabel } from "@/lib/device";
 import { TeacherPayEditor } from "./TeacherPayEditor";
+import { TeacherPayoutDetails } from "@/components/wallet/WalletControls";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 
@@ -251,6 +252,15 @@ export default async function PersonPage({ params }: { params: { id: string } })
               <div className="mt-4">
                 <TeacherPayEditor teacherId={u.id} rateKes={Math.round(u.teacher.hourlyRate / 100)} capacity={u.teacher.weeklyCapacityHours} />
               </div>
+            </Card>
+          )}
+
+          {u.teacher && (
+            <Card title="Where pay is sent">
+              <TeacherPayoutDetails
+                teacherId={u.id}
+                details={{ method: u.teacher.payoutMethod, phone: u.teacher.payoutPhone, bank: u.teacher.payoutBank, accountName: u.teacher.payoutAccountName, accountNumber: u.teacher.payoutAccountNumber }}
+              />
             </Card>
           )}
 

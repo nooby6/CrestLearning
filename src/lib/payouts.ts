@@ -208,4 +208,5 @@ export const PAYMENT_METHODS = [
   { value: "CASH", label: "Cash" },
 ] as const;
 
-export const methodLabel = (m: string | null) => PAYMENT_METHODS.find((x) => x.value === m)?.label ?? (m ? m : "—");
+const METHOD_LABELS: Record<string, string> = { MPESA: "M-Pesa", BANK_TRANSFER: "Bank transfer", CASH: "Cash", WALLET: "School wallet", FLUTTERWAVE: "Flutterwave" };
+export const methodLabel = (m: string | null) => (m ? METHOD_LABELS[m] ?? m : "—");

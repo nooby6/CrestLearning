@@ -20,6 +20,7 @@ import {
   Receipt,
   Users,
   Wallet,
+  Banknote,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -32,6 +33,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   calendar: CalendarDays,
   check: CheckCircle2,
   wallet: Wallet,
+  banknote: Banknote,
   megaphone: Megaphone,
   book: BookOpen,
   clipboard: ClipboardList,
