@@ -106,7 +106,7 @@ export type TeacherPeriod = {
   paid: number;
   owed: number;
   unpaidLessons: number;
-  payouts: { id: number; amount: number; sessionsHeld: number; method: string | null; reference: string | null; paidAt: Date | null; confirmedBy: string | null }[];
+  payouts: { id: number; sending: boolean; viaProvider: boolean; amount: number; sessionsHeld: number; method: string | null; reference: string | null; paidAt: Date | null; confirmedBy: string | null }[];
   status: "none" | "in-progress" | "due" | "overdue" | "paid";
 };
 
@@ -122,8 +122,8 @@ type TeacherRow = Awaited<ReturnType<typeof teachersFor>>[number];
 
 const payoutsBetween = (startKeys: string[], teacherId?: string) =>
   prisma.teacherPayout.findMany({
-    where: { periodStart: { in: startKeys.map((k) => new Date(k)) }, status: "PAID", ...(teacherId ? { teacherId } : {}) },
-    include: { confirmedBy: { select: { firstName: true, lastName: true } } },
+    where: { periodStart: { in: startKeys.map((k) => new Date(k)) }, status: { in: ["PAID", "APPROVED"] }, ...(teacherId ? { teacherId } : {}) },
+    include: { confirmedBy: { select: { firstName: true, lastName: true } }, walletEntry: { select: { provider: true } } },
     orderBy: { paidAt: "asc" },
   });
 
@@ -144,7 +144,7 @@ function summarise(p: PayPeriod, lessons: PaidLesson[], payouts: PayoutRow[], te
     .map((t) => {
       const mine = inPeriod.filter((l) => l.teacherId === t.id);
       const pays = periodPayouts.filter((x) => x.teacherId === t.id);
-      const paid = pays.reduce((a, x) => a + x.amount, 0);
+      const paid = pays.filter((x) => x.status === "PAID").reduce((a, x) => a + x.amount, 0);
       const owed = mine.filter((l) => !l.paid).reduce((a, l) => a + l.amount, 0);
       return {
         teacherId: t.id,
@@ -159,6 +159,8 @@ function summarise(p: PayPeriod, lessons: PaidLesson[], payouts: PayoutRow[], te
         unpaidLessons: mine.filter((l) => !l.paid).length,
         payouts: pays.map((x) => ({
           id: x.id,
+          sending: x.status === "APPROVED",
+          viaProvider: !!x.walletEntry?.provider,
           amount: x.amount,
           sessionsHeld: x.sessionsHeld,
           method: x.method,

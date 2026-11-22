@@ -129,6 +129,8 @@ model Teacher {
   payoutBank          String?
   payoutAccountName   String?
   payoutAccountNumber String?
+  /// IntaSend/PesaLink bank code for bank payouts.
+  payoutBankCode      String?
 
   subjects    TeacherSubject[]
   enrollments Enrollment[]
@@ -758,6 +760,12 @@ model TeacherPayoutItem {
   session SessionInstance @relation(fields: [sessionId], references: [id])
 }
 
+enum WalletEntryStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 enum WalletEntryKind {
   DEPOSIT
   TEACHER_PAYMENT
@@ -767,7 +775,7 @@ enum WalletEntryKind {
 
 /// The school wallet: money set aside for teacher pay. The balance is the sum of all entries.
 model WalletEntry {
-  id          Int             @id @default(autoincrement())
+  id          Int               @id @default(autoincrement())
   kind        WalletEntryKind
   /// KES cents: positive goes into the wallet, negative comes out.
   amount      Int
@@ -775,15 +783,23 @@ model WalletEntry {
   method      String?
   reference   String?
   note        String?
-  occurredAt  DateTime        @default(now())
-  payoutId    Int?            @unique
+  occurredAt  DateTime          @default(now())
+  /// Money moved through the payment provider stays PENDING until the provider confirms it.
+  status      WalletEntryStatus @default(COMPLETED)
+  /// "intasend" when the provider moved the money; null when the office recorded it.
+  provider    String?
+  /// IntaSend invoice_id (top-ups) or tracking_id (payouts).
+  providerRef String?
+  payoutId    Int?              @unique
   createdById String?
-  createdAt   DateTime        @default(now())
+  createdAt   DateTime          @default(now())
 
   payout    TeacherPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
   createdBy User?          @relation("WalletEntryBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([occurredAt])
+  @@index([status])
+  @@index([providerRef])
 }
 
 // ============================================================

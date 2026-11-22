@@ -74,6 +74,11 @@ export async function undoPayout(payoutId: number): Promise<ActionResult> {
   const me = await assertRole("admin");
   const x = await prisma.teacherPayout.findUnique({ where: { id: payoutId }, include: { walletEntry: true, teacher: { select: { user: { select: { firstName: true, lastName: true } } } } } });
   if (!x) return { ok: false, error: "That payment no longer exists." };
+  if (x.walletEntry?.provider === "intasend")
+    return {
+      ok: false,
+      error: x.status === "APPROVED" ? "This payment is being sent by IntaSend. Wait for it to finish." : "This payment was sent through IntaSend, so the money has left the account and can’t be undone here.",
+    };
   await prisma.$transaction(async (tx) => {
     // A payment taken from the wallet goes back into it.
     if (x.walletEntry) {

@@ -16,6 +16,7 @@ import { activeSessions } from "@/lib/session";
 import { deviceLabel } from "@/lib/device";
 import { TeacherPayEditor } from "./TeacherPayEditor";
 import { TeacherPayoutDetails } from "@/components/wallet/WalletControls";
+import { cachedBankCodes } from "@/lib/wallet";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
 
@@ -259,7 +260,8 @@ export default async function PersonPage({ params }: { params: { id: string } })
             <Card title="Where pay is sent">
               <TeacherPayoutDetails
                 teacherId={u.id}
-                details={{ method: u.teacher.payoutMethod, phone: u.teacher.payoutPhone, bank: u.teacher.payoutBank, accountName: u.teacher.payoutAccountName, accountNumber: u.teacher.payoutAccountNumber }}
+                details={{ method: u.teacher.payoutMethod, phone: u.teacher.payoutPhone, bank: u.teacher.payoutBank, bankCode: u.teacher.payoutBankCode, accountName: u.teacher.payoutAccountName, accountNumber: u.teacher.payoutAccountNumber }}
+                banks={await cachedBankCodes()}
               />
             </Card>
           )}

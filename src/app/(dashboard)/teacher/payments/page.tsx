@@ -82,7 +82,13 @@ export default async function TeacherPaymentsPage() {
                     <Badge tone={STATUS[s.status].tone}>{STATUS[s.status].label}</Badge>
                     {s.payouts.map((x) => (
                       <p key={x.id} className="mt-1 text-xs text-navy-600">
-                        {formatMoney(x.amount, s.currency)} paid {x.paidAt ? formatDate(x.paidAt, { day: "numeric", month: "short", year: undefined }) : ""} · {methodLabel(x.method)}
+                        {x.sending ? (
+                          <span className="font-medium text-gold-800">{formatMoney(x.amount, s.currency)} on its way</span>
+                        ) : (
+                          <>
+                            {formatMoney(x.amount, s.currency)} paid {x.paidAt ? formatDate(x.paidAt, { day: "numeric", month: "short", year: undefined }) : ""} · {methodLabel(x.method)}
+                          </>
+                        )}
                         {x.reference && <span className="font-mono"> · {x.reference}</span>}
                       </p>
                     ))}

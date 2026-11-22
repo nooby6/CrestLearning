@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 /** The public website: anyone can read it. */
 const SITE = ["/", "/programmes", "/stem", "/homeschooling", "/parents", "/admissions", "/contact", "/robots.txt", "/sitemap.xml"];
-const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth", "/api/health"];
+const PUBLIC = ["/sign-in", "/setup", "/forgot-password", "/reset-password", "/api/cron", "/api/webhooks", "/api/auth", "/api/health", "/api/intasend/webhook"];
 const SESSION_COOKIE = "crest_session";
 
 export default function middleware(req: NextRequest) {

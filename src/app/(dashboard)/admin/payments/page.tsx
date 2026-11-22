@@ -2,7 +2,8 @@ import Link from "next/link";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import prisma from "@/lib/prisma";
-import { walletBalance } from "@/lib/wallet";
+import { walletBalance, walletProvider } from "@/lib/wallet";
+import { syncWallet } from "@/lib/wallet-sync";
 import { PayAllFromWallet, PayFromWallet } from "@/components/wallet/WalletControls";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -25,6 +26,8 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
   await requireRole("admin");
   const period = searchParams.period && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.period) ? periodContaining(searchParams.period) : lastEndedPeriod();
   const current = periodContaining();
+  await syncWallet();
+  const provider = walletProvider();
   const [rows, balance] = await Promise.all([periodSummary(period), walletBalance()]);
   const ended = isEnded(period);
   const payTo = new Map(
@@ -93,7 +96,8 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
           <Link href="/admin/wallet" className="text-sm font-semibold text-navy-100 underline decoration-gold-500 underline-offset-4 hover:text-white">
             Add money
           </Link>
-          {ended && payable.length > 0 && <PayAllFromWallet periodStart={period.start} total={formatMoney(payableTotal)} count={payable.length} enough={balance >= payableTotal} />}
+          {provider.connected && <span className="text-xs text-navy-200">via IntaSend{provider.test ? " · test mode" : ""}</span>}
+          {ended && payable.length > 0 && <PayAllFromWallet viaIntaSend={provider.connected} periodStart={period.start} total={formatMoney(payableTotal)} count={payable.length} enough={balance >= payableTotal} />}
         </div>
       </div>
 
@@ -154,8 +158,15 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                   <td colSpan={8} className="px-5 pb-4">
                     <div className="flex flex-col gap-3">
                       {r.payouts.map((x) => (
-                        <div key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-l-[3px] border-emerald-600 bg-emerald-50/60 px-3 py-2 text-xs text-navy-700">
-                          <span className="font-semibold text-emerald-800">Paid {formatMoney(x.amount, r.currency)}</span>
+                        <div
+                          key={x.id}
+                          className={clsx("flex flex-wrap items-center gap-x-4 gap-y-1 border-l-[3px] px-3 py-2 text-xs text-navy-700", x.sending ? "border-gold-500 bg-gold-50" : "border-emerald-600 bg-emerald-50/60")}
+                        >
+                          {x.sending ? (
+                            <span className="font-semibold text-gold-800">Sending {formatMoney(x.amount, r.currency)} through IntaSend…</span>
+                          ) : (
+                            <span className="font-semibold text-emerald-800">Paid {formatMoney(x.amount, r.currency)}</span>
+                          )}
                           <span>{x.paidAt ? formatDate(x.paidAt, { day: "numeric", month: "short", year: "numeric" }) : ""}</span>
                           <span>{methodLabel(x.method)}</span>
                           {x.reference && <span className="font-mono">{x.reference}</span>}
@@ -164,7 +175,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                           </span>
                           {x.confirmedBy && <span className="text-navy-400">confirmed by {x.confirmedBy}</span>}
                           <span className="ml-auto">
-                            <UndoPayout id={x.id} amount={formatMoney(x.amount, r.currency)} />
+                            {x.viaProvider ? <span className="text-navy-400">Sent by IntaSend</span> : <UndoPayout id={x.id} amount={formatMoney(x.amount, r.currency)} />}
                           </span>
                         </div>
                       ))}
@@ -181,7 +192,16 @@ export default async function PaymentsPage({ searchParams }: { searchParams: { p
                               periodStart={period.start}
                               amount={formatMoney(r.owed, r.currency)}
                               teacherName={r.name}
-                              disabledReason={r.hourlyRate === 0 ? "Set the hourly rate first" : r.owed > balance ? `The wallet holds ${formatMoney(balance)}` : undefined}
+                              destination={provider.connected ? payTo.get(r.teacherId) : undefined}
+                              disabledReason={
+                                r.hourlyRate === 0
+                                  ? "Set the hourly rate first"
+                                  : r.owed > balance
+                                    ? `The wallet holds ${formatMoney(balance)}`
+                                    : provider.connected && !payTo.get(r.teacherId)
+                                      ? "Add where this teacher is paid on their profile"
+                                      : undefined
+                              }
                             />
                           </div>
                         </div>
