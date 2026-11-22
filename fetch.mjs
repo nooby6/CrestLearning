@@ -1,16 +1,19 @@
-// Temporary: small previews of free Unsplash photos, so they can be reviewed before use on the site.
+// Temporary: fetch photos at full quality so they can be reviewed and self-hosted on the site.
 import fs from "node:fs";
 fs.mkdirSync("public", { recursive: true });
-for (const line of fs.readFileSync("groups.txt", "utf8").split("\n").filter(Boolean)) {
-  const [name, list] = line.split(":");
-  const rows = [];
-  for (const pid of list.split(",").map((s) => s.trim()).filter(Boolean)) {
-    let b64 = null;
+const ids = fs.readFileSync("ids.txt", "utf8").split("\n").map((s) => s.trim()).filter(Boolean);
+const meta = [];
+for (const pid of ids) {
+  for (const [tag, q] of [["s", "w=520&h=390&fit=crop&q=60"], ["f", "w=2000&q=85&fit=max"]]) {
     try {
-      const r = await fetch(`https://images.unsplash.com/${pid}?auto=format&fit=crop&w=480&h=360&q=55&fm=jpg`);
-      if (r.ok) b64 = Buffer.from(await r.arrayBuffer()).toString("base64");
-    } catch {}
-    rows.push({ pid, b64 });
+      const r = await fetch(`https://images.unsplash.com/${pid}?auto=format&fm=jpg&${q}`);
+      if (!r.ok) { meta.push(`${pid} ${tag} ${r.status}`); continue; }
+      const b = Buffer.from(await r.arrayBuffer());
+      fs.writeFileSync(`public/${tag}-${pid}.txt`, b.toString("base64"));
+      meta.push(`${pid} ${tag} ${b.length}`);
+    } catch (e) { meta.push(`${pid} ${tag} ${e}`); }
   }
-  fs.writeFileSync(`public/${name.trim()}.txt`, JSON.stringify({ q: name, rows }));
 }
+// Contact sheet data: all small previews in one file.
+fs.writeFileSync("public/all-small.txt", JSON.stringify({ q: "all", rows: ids.filter((p) => fs.existsSync(`public/s-${p}.txt`)).map((pid) => ({ pid, b64: fs.readFileSync(`public/s-${pid}.txt`, "utf8") })) }));
+fs.writeFileSync("public/index.txt", meta.join("\n"));
