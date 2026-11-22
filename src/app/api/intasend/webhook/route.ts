@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { syncWallet } from "@/lib/wallet-sync";
+import { cleanKey } from "@/lib/intasend";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
-  const expected = process.env.INTASEND_WEBHOOK_CHALLENGE;
+  const expected = cleanKey(process.env.INTASEND_WEBHOOK_CHALLENGE);
   if (expected && body.challenge !== expected) return NextResponse.json({ ok: false }, { status: 401 });
 
   const ref = typeof body.invoice_id === "string" ? body.invoice_id : typeof body.tracking_id === "string" ? body.tracking_id : null;

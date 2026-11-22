@@ -6,8 +6,10 @@ import "server-only";
  * Keys come only from environment variables and are never sent to the browser.
  */
 
-const secret = () => process.env.INTASEND_SECRET_KEY ?? "";
-const publishable = () => process.env.INTASEND_PUBLISHABLE_KEY ?? "";
+/** Keys pasted from a dashboard often carry spaces or invisible characters (e.g. a zero-width space); drop them. */
+export const cleanKey = (v: string | undefined) => (v ?? "").replace(/[\s\u200B-\u200D\u2060\uFEFF]/g, "");
+const secret = () => cleanKey(process.env.INTASEND_SECRET_KEY);
+const publishable = () => cleanKey(process.env.INTASEND_PUBLISHABLE_KEY);
 
 export const intasendConfigured = () => !!secret() && !!publishable();
 export const intasendTestMode = () => !secret().startsWith("ISSecretKey_live");
