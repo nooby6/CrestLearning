@@ -15,18 +15,28 @@ export const intasendTestMode = () => !secret().startsWith("ISSecretKey_live");
 const base = () => process.env.INTASEND_BASE_URL || (intasendTestMode() ? "https://sandbox.intasend.com" : "https://payment.intasend.com");
 
 export class IntaSendError extends Error {}
+/** The request never got an answer (DNS, TLS, timeout). The message is a short code, never a key. */
+export class IntaSendNetworkError extends Error {}
 
 async function call<T>(path: string, init: { method?: "GET" | "POST"; body?: Record<string, unknown>; withSecret?: boolean } = {}): Promise<T> {
   const method = init.method ?? "POST";
   const headers: Record<string, string> = { "Content-Type": "application/json", INTASEND_PUBLIC_API_KEY: publishable() };
   if (init.withSecret !== false) headers.Authorization = `Bearer ${secret()}`;
-  const res = await fetch(base() + path, {
-    method,
-    headers,
-    body: method === "POST" ? JSON.stringify({ ...(init.body ?? {}), public_key: publishable() }) : undefined,
-    cache: "no-store",
-    signal: AbortSignal.timeout(20_000),
-  });
+  let res: Response;
+  try {
+    res = await fetch(base() + path, {
+      method,
+      headers,
+      body: method === "POST" ? JSON.stringify({ ...(init.body ?? {}), public_key: publishable() }) : undefined,
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch (err) {
+    const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
+    const why = cause?.code || cause?.message || (err instanceof Error ? err.name + ": " + err.message : "unknown");
+    console.error("[intasend] network", method, path, why);
+    throw new IntaSendNetworkError(why);
+  }
   const text = await res.text();
   let data: unknown = null;
   try {

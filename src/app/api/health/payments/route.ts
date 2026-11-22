@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { IntaSendError, intasendConfigured, intasendTestMode, listWallets } from "@/lib/intasend";
+import { IntaSendError, IntaSendNetworkError, intasendConfigured, intasendTestMode, listWallets } from "@/lib/intasend";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,12 @@ export async function GET() {
     await listWallets();
     reachable = true;
   } catch (e) {
-    problem = e instanceof IntaSendError ? "IntaSend rejected the request (check the keys)" : "Couldn’t reach IntaSend";
+    problem =
+      e instanceof IntaSendError
+        ? `IntaSend rejected the request: ${e.message}`
+        : e instanceof IntaSendNetworkError
+          ? `Couldn’t reach IntaSend (${e.message})`
+          : "Couldn’t reach IntaSend";
   }
   return NextResponse.json({ provider: "intasend", configured: true, mode: intasendTestMode() ? "test" : "live", reachable, problem });
 }
