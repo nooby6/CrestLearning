@@ -3,6 +3,7 @@ import { formatDate } from "@/lib/format";
 import { dbDateKey, formatTime } from "@/lib/schedule";
 import { ATTENDANCE_LABEL } from "@/lib/classroom";
 import type { WeekDigest } from "@/lib/reports";
+import { ModeTag } from "@/components/schedule/ModeTag";
 
 const TONE: Record<string, string> = {
   PRESENT: "text-emerald-700",
@@ -23,6 +24,7 @@ export function WeekSessions({ sessions }: { sessions: WeekDigest["sessions"] })
             <div>
               <p className="font-medium text-navy-800">{formatDate(s.startsAt, { weekday: "short", year: undefined })}</p>
               <p className="text-xs tabular-nums text-navy-400">{formatTime(s.startsAt)}</p>
+              <ModeTag mode={s.mode} compact className="mt-1" />
               <p className={clsx("mt-0.5 text-[11px] font-medium", s.studentAttendance ? TONE[s.studentAttendance] : "text-navy-300")}>
                 {s.status === "CANCELLED"
                   ? "Cancelled"

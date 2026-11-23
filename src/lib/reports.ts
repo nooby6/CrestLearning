@@ -45,6 +45,8 @@ export async function weekDigest(where: Prisma.EnrollmentWhereInput, weekKey: st
       endsAt: s.endsAt,
       status: s.status,
       cancelReason: s.cancelReason,
+      mode: s.mode,
+      room: s.mode === "IN_PERSON" ? s.location : null,
       studentAttendance: s.attendances.find((a) => a.userId === e.studentId)?.status ?? null,
       record: s.progressNote,
     }));

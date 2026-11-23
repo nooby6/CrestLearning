@@ -45,6 +45,8 @@ export async function weekSessions(
       title: e.subject.name,
       subtitle,
       colorKey: e.subject.code,
+      mode: s.mode,
+      room: s.mode === "IN_PERSON" ? s.location : null,
       href: href?.(s),
     };
   });

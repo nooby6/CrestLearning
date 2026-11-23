@@ -7,6 +7,7 @@ import { tintFor } from "@/components/schedule/WeekGrid";
 import { StatusBadge } from "@/components/schedule/SessionRow";
 import { JoinButton } from "./JoinButton";
 import { sessionLink } from "@/lib/meeting";
+import { ModeTag, roomOf } from "@/components/schedule/ModeTag";
 
 /** Today's lessons with times and teachers; lessons left today and this week; the weekly pattern. */
 export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "student" | "parent" }) {
@@ -29,10 +30,13 @@ export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "stude
                 <div className="w-[92px] shrink-0 text-sm font-semibold tabular-nums text-navy-900">{formatTimeRange(x.startsAt, x.endsAt)}</div>
                 <div className="min-w-0 flex-1">
                   <p className={clsx("truncate text-sm font-medium text-navy-900", x.status === "CANCELLED" && "line-through")}>{x.enrollment.subject.name}</p>
-                  <p className="truncate text-xs text-navy-400">with {fullName(x.enrollment.teacher.user)}</p>
+                  <p className="flex min-w-0 items-center gap-1.5 text-xs text-navy-400">
+                    <span className="truncate">with {fullName(x.enrollment.teacher.user)}</span>
+                    {x.mode === "IN_PERSON" && (viewer === "parent" || x.status !== "SCHEDULED") && <ModeTag mode={x.mode} room={roomOf(x)} compact className="shrink-0" />}
+                  </p>
                 </div>
                 {viewer === "student" && x.status === "SCHEDULED" ? (
-                  <JoinButton sessionId={x.id} startsAt={x.startsAt.toISOString()} endsAt={x.endsAt.toISOString()} status={x.status} who="student" size="sm" external={!!sessionLink(x)} />
+                  <JoinButton sessionId={x.id} startsAt={x.startsAt.toISOString()} endsAt={x.endsAt.toISOString()} status={x.status} who="student" size="sm" external={!!sessionLink(x)} mode={x.mode} room={roomOf(x)} />
                 ) : null}
                 {(viewer === "parent" || x.status !== "SCHEDULED") && <StatusBadge status={x.status} startsAt={x.startsAt} endsAt={x.endsAt} />}
               </li>
@@ -50,7 +54,7 @@ export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "stude
         ) : (
           <ul className="space-y-1.5">
             {s.weekly.map((w) => (
-              <li key={w.key} className="grid grid-cols-[96px_96px_1fr] items-center gap-2 text-sm">
+              <li key={w.key} className="grid grid-cols-[96px_96px_1fr_auto] items-center gap-2 text-sm">
                 <span className="font-medium text-navy-800">{weekdayLabel(w.weekday)}</span>
                 <span className="tabular-nums text-navy-500">
                   {w.startTime}–{fromMinutes(toMinutes(w.startTime) + w.durationMinutes)}
@@ -58,6 +62,7 @@ export function LessonOverview({ s, viewer }: { s: LessonSummary; viewer: "stude
                 <span className="truncate text-navy-800">
                   {w.subject} <span className="text-navy-400">· {fullName(w.teacher)}</span>
                 </span>
+                <ModeTag mode={w.mode} room={w.room} compact />
               </li>
             ))}
           </ul>

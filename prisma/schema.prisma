@@ -277,12 +277,21 @@ enum Weekday {
 }
 
 /// A recurring weekly slot. Generates SessionInstances ahead of time.
+/// Where a lesson happens: on a video call, or in person at the centre.
+enum SessionMode {
+  ONLINE
+  IN_PERSON
+}
+
 model SessionSlot {
-  id              Int       @id @default(autoincrement())
+  id              Int         @id @default(autoincrement())
   enrollmentId    Int
   weekday         Weekday
   startTime       String // wall-clock "HH:mm" in `timezone`
-  durationMinutes Int       @default(60)
+  durationMinutes Int         @default(60)
+  mode            SessionMode @default(ONLINE)
+  /// For in-person lessons: the room, e.g. "Lab 1". Copied to each lesson's `location`.
+  room            String?
   timezone        String    @default("Africa/Nairobi")
   validFrom       DateTime  @default(now()) @db.Date
   validUntil      DateTime? @db.Date
@@ -310,9 +319,10 @@ model SessionInstance {
   startsAt          DateTime
   endsAt            DateTime
   status            SessionStatus @default(SCHEDULED)
+  mode              SessionMode   @default(ONLINE)
   /// Video room name (e.g. Jitsi room) — unguessable, generated per session.
   meetingRoom       String        @unique
-  /// Optional override: physical room or external link.
+  /// In person: the room. Online: an optional https link that overrides the student's usual one.
   location          String?
   /// When this session replaces a rescheduled one.
   rescheduledFromId Int?          @unique

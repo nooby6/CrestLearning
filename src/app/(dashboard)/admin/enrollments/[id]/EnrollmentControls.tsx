@@ -3,12 +3,62 @@
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { CalendarPlus, Loader2, PauseCircle, PlayCircle, Plus, StopCircle, Trash2 } from "lucide-react";
-import { addOneOffSession, addSlot, removeSlot, setEnrollmentStatus, undoSwap } from "@/lib/actions/schedule";
+import { addOneOffSession, addSlot, removeSlot, setEnrollmentStatus, setSlotMode, undoSwap } from "@/lib/actions/schedule";
 import type { Conflict } from "@/lib/sessions";
 import { DURATIONS, formatSlot, fromMinutes, toMinutes } from "@/lib/schedule";
-import { ConflictList, SlotFields, durationLabel, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
+import { ConflictList, ModePicker, SlotFields, durationLabel, emptySlot, type SlotDraft } from "@/components/schedule/SlotFields";
+import { ModeTag, type LessonMode } from "@/components/schedule/ModeTag";
 
-type Slot = { id: number; weekday: SlotDraft["weekday"]; startTime: string; durationMinutes: number };
+type Slot = { id: number; weekday: SlotDraft["weekday"]; startTime: string; durationMinutes: number; mode: LessonMode; room: string | null };
+
+/** The weekly time's online / in-person tag; click it to change. Upcoming lessons follow. */
+function SlotMode({ slot }: { slot: Slot }) {
+  const [open, setOpen] = useState(false);
+  const [v, setV] = useState({ mode: slot.mode, room: slot.room ?? "" });
+  const [pending, start] = useTransition();
+  if (!open)
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setV({ mode: slot.mode, room: slot.room ?? "" });
+          setOpen(true);
+        }}
+        className="group inline-flex items-center gap-1.5"
+        title="Change online or in person"
+      >
+        <ModeTag mode={slot.mode} room={slot.room} />
+        <span className="text-[11px] font-medium text-navy-400 group-hover:text-navy-800 group-hover:underline">Change</span>
+      </button>
+    );
+  return (
+    <div className="mt-2 w-full space-y-2">
+      <ModePicker mode={v.mode} room={v.room} onChange={setV} size="sm" />
+      <p className="text-[11px] text-navy-400">Every upcoming lesson at this time changes too. Lessons already taught stay as they were.</p>
+      <div className="flex justify-end gap-2">
+        <button type="button" className="btn-ghost px-3 py-1.5 text-xs" onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="btn-primary px-3 py-1.5 text-xs"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const r = await setSlotMode(slot.id, v);
+              if (r.ok) {
+                toast.success(r.message);
+                setOpen(false);
+              } else toast.error(r.error);
+            })
+          }
+        >
+          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: number; slots: Slot[]; active: boolean }) {
   const [pending, start] = useTransition();
@@ -42,8 +92,11 @@ export function SlotManager({ enrollmentId, slots, active }: { enrollmentId: num
       {slots.length > 0 && (
         <ul className="divide-y divide-line border border-line">
           {slots.map((s) => (
-            <li key={s.id} className="flex items-center justify-between px-3 py-2.5">
-              <span className="text-sm font-medium tabular-nums text-navy-900">{formatSlot(s)}</span>
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2.5">
+              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="text-sm font-medium tabular-nums text-navy-900">{formatSlot(s)}</span>
+                <SlotMode slot={s} />
+              </span>
               <button
                 type="button"
                 disabled={pending}
@@ -109,12 +162,13 @@ export function OneOffLesson({ enrollmentId, active }: { enrollmentId: number; a
   const [date, setDate] = useState(nairobiToday());
   const [time, setTime] = useState("16:00");
   const [length, setLength] = useState(60);
+  const [where, setWhere] = useState<{ mode: LessonMode; room: string }>({ mode: "ONLINE", room: "" });
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const end = /^\d{2}:\d{2}$/.test(time) ? fromMinutes(toMinutes(time) + length) : "—";
 
   const add = (force: boolean) =>
     start(async () => {
-      const r = await addOneOffSession(enrollmentId, { date, startTime: time, durationMinutes: length }, force);
+      const r = await addOneOffSession(enrollmentId, { date, startTime: time, durationMinutes: length, ...where }, force);
       if (r.ok) {
         toast.success(r.message);
         setOpen(false);
@@ -178,6 +232,7 @@ export function OneOffLesson({ enrollmentId, active }: { enrollmentId: number; a
           </select>
         </label>
       </div>
+      <ModePicker mode={where.mode} room={where.room} onChange={setWhere} size="sm" />
       <p className="text-xs tabular-nums text-navy-500">Ends {end} · happens once, doesn’t repeat</p>
       {conflicts.length > 0 && <ConflictList conflicts={conflicts} />}
       <div className="flex justify-end gap-2">

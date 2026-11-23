@@ -32,6 +32,8 @@ export default async function ClassPage({ params }: { params: { id: string } }) 
   const who = s.enrollment.teacherId === me.id ? "teacher" : s.enrollment.studentId === me.id ? "student" : null;
   if (!who) notFound();
   if (s.status === "RESCHEDULED" && s.rescheduledTo) redirect(`/class/${s.rescheduledTo.id}`);
+  // In-person lessons have no class page: the teacher checks in from the lesson page, the student comes to the centre.
+  if (s.mode === "IN_PERSON") redirect(who === "teacher" ? `/teacher/sessions/${s.id}` : "/student");
 
   const e = s.enrollment;
   const other = who === "teacher" ? e.student.user : e.teacher.user;

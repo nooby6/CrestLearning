@@ -259,8 +259,8 @@ export function EnrollmentForm({
           <p className="text-xs text-rose-600">{errors.meetingUrl}</p>
         ) : (
           <p className="text-xs text-navy-400">
-            Each student has one Google Meet link for all their subjects. Optional now, required before the first lesson. Students and teachers
-            reach it through Join, which records attendance.
+            Each student has one Google Meet link for all their subjects. Optional now, required before the first online lesson; in-person
+            lessons don’t need one. Students and teachers reach it through Join, which records attendance.
           </p>
         )}
         </>

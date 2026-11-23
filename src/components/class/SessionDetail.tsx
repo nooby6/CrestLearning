@@ -13,6 +13,7 @@ import { AttendanceEditor, type AttendanceRow } from "./AttendanceEditor";
 import { JoinButton } from "./JoinButton";
 import { LessonRecordForm } from "./LessonRecordForm";
 import { sessionLink } from "@/lib/meeting";
+import { ModeTag, roomOf } from "@/components/schedule/ModeTag";
 
 const mins = (sec: number) => (sec < 60 ? "under a minute" : `${Math.round(sec / 60)} min`);
 
@@ -49,14 +50,22 @@ export async function SessionDetail({
   const e = s.enrollment;
   const started = +s.startsAt <= Date.now();
   const takesPlace = s.status !== "CANCELLED" && s.status !== "RESCHEDULED";
+  const inPerson = s.mode === "IN_PERSON";
+  const room = roomOf(s);
 
   const row = (user: typeof e.student.user, roleLabel: string, editable: boolean): AttendanceRow => {
     const a = s.attendances.find((x) => x.userId === user.id);
     const detail = a?.firstJoinedAt
-      ? `Joined ${formatTime(a.firstJoinedAt)}${a.secondsPresent ? ` · in class ${mins(a.secondsPresent)}` : ""}`
-      : started
-        ? "Did not join online"
-        : "Session hasn’t started";
+      ? inPerson
+        ? `Started the lesson at ${formatTime(a.firstJoinedAt)}`
+        : `Joined ${formatTime(a.firstJoinedAt)}${a.secondsPresent ? ` · in class ${mins(a.secondsPresent)}` : ""}`
+      : !started
+        ? "Session hasn’t started"
+        : inPerson
+          ? user.id === e.teacherId
+            ? "Didn’t press Start lesson"
+            : "In person · marked by the teacher"
+          : "Did not join online";
     return {
       userId: user.id,
       firstName: user.firstName,
@@ -87,11 +96,17 @@ export async function SessionDetail({
             {fullName(e.student.user)} with {fullName(e.teacher.user)}
             {e.level ? ` · ${e.level.name}` : ""}
           </p>
+          <ModeTag mode={s.mode} room={room} className="mt-2" />
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge status={s.status} startsAt={s.startsAt} endsAt={s.endsAt} />
           {isTeacher && (
-            <JoinButton sessionId={s.id} startsAt={s.startsAt.toISOString()} endsAt={s.endsAt.toISOString()} status={s.status} who="teacher" external={!!sessionLink(s)} />
+            <JoinButton sessionId={s.id} startsAt={s.startsAt.toISOString()} endsAt={s.endsAt.toISOString()} status={s.status} who="teacher"
+              external={!!sessionLink(s)}
+              mode={s.mode}
+              room={room}
+              checkedIn={s.attendances.some((a) => a.userId === me.id && a.status !== "ABSENT")}
+            />
           )}
           {s.status === "SCHEDULED" && !started && (
             <SessionActions
@@ -100,6 +115,8 @@ export async function SessionDetail({
               defaultTime={formatTime(s.startsAt)}
               durationMinutes={(+s.endsAt - +s.startsAt) / 60000}
               canSwap={office}
+              mode={s.mode}
+              room={room}
             />
           )}
         </div>
@@ -146,7 +163,11 @@ export async function SessionDetail({
           )}
 
           {takesPlace && (
-            <Card title="Attendance" description="Captured automatically from the online class. Correct it if something went wrong." bodyClassName="px-5 py-1">
+            <Card title="Attendance" description={
+                inPerson
+                  ? "In person: the teacher is marked present on pressing Start lesson, and marks the student in the lesson record."
+                  : "Captured automatically from the online class. Correct it if something went wrong."
+              } bodyClassName="px-5 py-1">
               <AttendanceEditor
                 sessionId={s.id}
                 canEdit={started}

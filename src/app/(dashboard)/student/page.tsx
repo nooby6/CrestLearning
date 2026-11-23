@@ -12,6 +12,7 @@ import { KindIcon, WorkStateBadge, dueLabel } from "@/components/work/bits";
 import { JoinButton } from "@/components/class/JoinButton";
 import { LessonOverview } from "@/components/class/LessonOverview";
 import { sessionLink } from "@/lib/meeting";
+import { roomOf } from "@/components/schedule/ModeTag";
 
 export const metadata = { title: "Home" };
 
@@ -67,8 +68,20 @@ export default async function StudentHome() {
                 {dayLabel(next.startsAt)} · {formatTimeRange(next.startsAt, next.endsAt)} · with {fullName(next.enrollment.teacher.user)}
               </p>
               <div className="mt-5">
-                <JoinButton sessionId={next.id} startsAt={next.startsAt.toISOString()} endsAt={next.endsAt.toISOString()} status={next.status} who="student" external={!!sessionLink(next)} />
+                <JoinButton
+                  sessionId={next.id}
+                  startsAt={next.startsAt.toISOString()}
+                  endsAt={next.endsAt.toISOString()}
+                  status={next.status}
+                  who="student"
+                  external={!!sessionLink(next)}
+                  mode={next.mode}
+                  room={roomOf(next)}
+                />
               </div>
+              {next.mode === "IN_PERSON" && (
+                <p className="mt-3 text-sm text-navy-200">This lesson is at the Crest centre{roomOf(next) ? `, in ${roomOf(next)}` : ""}. Your teacher takes attendance.</p>
+              )}
             </section>
           ) : (
             <Card title="Next lesson">

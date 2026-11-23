@@ -12,6 +12,7 @@ import { SessionRow } from "@/components/schedule/SessionRow";
 import { SessionActions } from "@/components/schedule/SessionActions";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
 import { providerOf } from "@/lib/meeting";
+import { roomOf } from "@/components/schedule/ModeTag";
 import { OneOffLesson, SlotManager, StatusControls, UndoSwap } from "./EnrollmentControls";
 import { FeePlanEditor } from "@/components/finance/FinanceControls";
 import { balanceOf } from "@/lib/finance";
@@ -187,6 +188,8 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                               }
                               colorKey={e.subject.code}
                               status={x.status}
+                              mode={x.mode}
+                              room={roomOf(x)}
                               action={
                                 x.status === "SCHEDULED" && +x.startsAt > Date.now() ? (
                                   <SessionActions
@@ -195,6 +198,8 @@ export default async function StudentEnrollmentPage({ params }: { params: { id: 
                                     defaultTime={formatTime(x.startsAt)}
                                     durationMinutes={(+x.endsAt - +x.startsAt) / 60000}
                                     canSwap
+                                    mode={x.mode}
+                                    room={roomOf(x)}
                                   />
                                 ) : x.status === "CANCELLED" && x.rescheduledTo && x.rescheduledTo.enrollmentId !== x.enrollmentId && +x.startsAt > Date.now() ? (
                                   <UndoSwap originalId={x.id} />

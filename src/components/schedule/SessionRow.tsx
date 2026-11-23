@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Badge } from "@/components/ui/primitives";
 import { formatTimeRange } from "@/lib/schedule";
 import { tintFor } from "./WeekGrid";
+import { ModeTag } from "./ModeTag";
 
 const STATUS: Record<string, { label: string; tone: "navy" | "green" | "rose" | "slate" | "amber" }> = {
   SCHEDULED: { label: "Scheduled", tone: "navy" },
@@ -31,6 +32,8 @@ export function SessionRow({
   dateLabel,
   action,
   href,
+  mode,
+  room,
 }: {
   startsAt: Date;
   endsAt: Date;
@@ -41,6 +44,9 @@ export function SessionRow({
   dateLabel?: string;
   action?: React.ReactNode;
   href?: string;
+  /** Online or in person; shown under the title when given. */
+  mode?: string;
+  room?: string | null;
 }) {
   return (
     <div className="@container">
@@ -66,7 +72,12 @@ export function SessionRow({
             ) : (
               <p className={clsx("truncate text-sm font-medium text-navy-900", status === "CANCELLED" && "line-through")}>{title}</p>
             )}
-            {subtitle && <p className="truncate text-xs text-navy-400">{subtitle}</p>}
+            {(subtitle || mode) && (
+              <div className="mt-0.5 flex min-w-0 items-center gap-2">
+                {mode && <ModeTag mode={mode} room={room} className="shrink-0" />}
+                {subtitle && <p className="truncate text-xs text-navy-400">{subtitle}</p>}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">

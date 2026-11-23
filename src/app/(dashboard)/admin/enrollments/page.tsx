@@ -155,7 +155,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
                             <span className="block truncate text-xs text-navy-400">
                               {[curriculumLabel(s.curriculum), s.level?.name].filter((x) => x && x !== "—").join(" · ") || "Level not set"}
                             </span>
-                            {!s.meetingUrl && s.enrollments.length > 0 && (
+                            {!s.meetingUrl && s.enrollments.some((e) => e.slots.length === 0 || e.slots.some((x) => x.mode === "ONLINE")) && (
                               <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
                                 <VideoOff className="h-3 w-3" /> No lesson link
                               </span>
@@ -184,7 +184,7 @@ export default async function EnrollmentsPage({ searchParams }: { searchParams: 
                                     </span>
                                     <span className="truncate text-navy-600">{fullName(e.teacher.user)}</span>
                                     <span className="truncate text-xs tabular-nums text-navy-500">
-                                      {slots.length ? slots.map((x) => formatSlot(x)).join(" · ") : <span className="text-amber-700">No weekly time</span>}
+                                      {slots.length ? slots.map((x) => formatSlot(x) + (x.mode === "IN_PERSON" ? " (in person)" : "")).join(" · ") : <span className="text-amber-700">No weekly time</span>}
                                     </span>
                                   </Link>
                                 </li>

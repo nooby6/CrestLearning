@@ -1,6 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ModeTag, modeLabel } from "./ModeTag";
 import { WEEKDAYS, addDaysKey, dateKey, formatTimeRange, mondayOf, partsInZone } from "@/lib/schedule";
 
 export type GridSession = {
@@ -12,6 +13,8 @@ export type GridSession = {
   status: "SCHEDULED" | "HELD" | "MISSED" | "RESCHEDULED" | "CANCELLED";
   colorKey: string; // subject code → stable colour
   href?: string;
+  mode?: string;
+  room?: string | null;
 };
 
 const PALETTE = [
@@ -166,9 +169,12 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
                         left: `calc(${(lane / lanes) * 100}% + 2px)`,
                         width: `calc(${100 / lanes}% - 4px)`,
                       }}
-                      title={`${s.title} · ${formatTimeRange(s.startsAt, s.endsAt)}${s.subtitle ? ` · ${s.subtitle}` : ""}${cancelled ? " · cancelled" : ""}`}
+                      title={`${s.title} · ${formatTimeRange(s.startsAt, s.endsAt)}${s.mode ? ` · ${modeLabel(s.mode, s.room)}` : ""}${s.subtitle ? ` · ${s.subtitle}` : ""}${cancelled ? " · cancelled" : ""}`}
                     >
-                      <p className="truncate font-semibold">{s.title}</p>
+                      <p className="flex items-center gap-1 truncate font-semibold">
+                        {s.mode === "IN_PERSON" && <MapPin className="h-3 w-3 shrink-0" aria-label="In person" />}
+                        <span className="truncate">{s.title}</span>
+                      </p>
                       {len >= 40 && <p className="truncate opacity-80">{formatTimeRange(s.startsAt, s.endsAt)}</p>}
                       {len >= 55 && s.subtitle && <p className="truncate opacity-70">{s.subtitle}</p>}
                     </div>
@@ -211,6 +217,7 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
                         {formatTimeRange(s.startsAt, s.endsAt)}
                         {s.subtitle ? ` · ${s.subtitle}` : ""}
                       </p>
+                      {s.mode && <ModeTag mode={s.mode} room={s.room} className="mt-1 bg-white/70" />}
                     </li>
                   ))}
                 </ul>
@@ -219,6 +226,11 @@ export function WeekGrid({ weekKey, sessions }: { weekKey: string; sessions: Gri
           );
         })}
       </ol>
+      {sessions.some((s) => s.mode === "IN_PERSON") && (
+        <p className="mt-3 hidden items-center gap-1.5 text-[11px] text-navy-400 @2xl:flex">
+          <MapPin className="h-3 w-3" aria-hidden /> In person at the centre. All other lessons are online.
+        </p>
+      )}
       </div>
     </>
   );

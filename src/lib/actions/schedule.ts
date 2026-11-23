@@ -8,6 +8,8 @@ import { assertRole } from "@/lib/auth";
 import { clearFutureSessions, findSlotConflicts, generateForSlot, type Conflict } from "@/lib/sessions";
 import { TZ, dateKey, isHHMM, meetingRoomName, zonedToUtc } from "@/lib/schedule";
 import { parseMeetingLink } from "@/lib/meeting";
+import { recordPresence } from "@/lib/attendance";
+import { joinState } from "@/lib/classroom";
 
 type Result<T = undefined> =
   | { ok: true; data?: T; message?: string }
@@ -15,12 +17,20 @@ type Result<T = undefined> =
 
 const WEEKDAY = z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]);
 
+const MODE = z.enum(["ONLINE", "IN_PERSON"]);
+const ROOM = z.string().trim().max(60, "Keep the room name short").optional().nullable();
+
+/** In person keeps a room (or none); online never has one. */
+const roomFor = (mode: "ONLINE" | "IN_PERSON", room?: string | null) => (mode === "IN_PERSON" ? room?.trim() || null : null);
+
 const SlotInput = z.object({
   weekday: WEEKDAY,
   startTime: z.string().refine(isHHMM, "Use HH:MM"),
   durationMinutes: z.number().int().min(15).max(240),
+  mode: MODE.default("ONLINE"),
+  room: ROOM,
 });
-export type SlotInputT = z.infer<typeof SlotInput>;
+export type SlotInputT = z.input<typeof SlotInput>;
 
 const EnrollmentInput = z.object({
   studentId: z.string().min(1, "Choose a student"),
@@ -44,7 +54,7 @@ const refresh = (enrollmentId?: number) => {
 };
 
 /** Slots in the same request must not clash with each other either. */
-function internalClashes(slots: SlotInputT[]) {
+function internalClashes(slots: { weekday: string; startTime: string; durationMinutes: number }[]) {
   for (let i = 0; i < slots.length; i++)
     for (let j = i + 1; j < slots.length; j++) {
       const a = slots[i], b = slots[j];
@@ -109,7 +119,7 @@ export async function createEnrollment(input: EnrollmentInputT): Promise<Result<
         });
     if (d.slots.length) {
       await tx.sessionSlot.createMany({
-        data: d.slots.map((s) => ({ ...s, enrollmentId: e.id, timezone: TZ, validFrom: startDate })),
+        data: d.slots.map((s) => ({ ...s, room: roomFor(s.mode, s.room), enrollmentId: e.id, timezone: TZ, validFrom: startDate })),
       });
     }
     return e;
@@ -136,11 +146,12 @@ export async function addSlot(enrollmentId: number, input: SlotInputT, force = f
   if (e.status !== "ACTIVE") return { ok: false, error: "Reactivate the enrollment before adding times." };
 
   if (!force) {
-    const conflicts = await findSlotConflicts({ teacherId: e.teacherId, studentId: e.studentId, ...s.data });
+    const { weekday, startTime, durationMinutes } = s.data;
+    const conflicts = await findSlotConflicts({ teacherId: e.teacherId, studentId: e.studentId, weekday, startTime, durationMinutes });
     if (conflicts.length) return { ok: false, error: "That time clashes with an existing lesson.", conflicts };
   }
   const slot = await prisma.sessionSlot.create({
-    data: { ...s.data, enrollmentId, timezone: TZ, validFrom: new Date(dateKey(new Date())) },
+    data: { ...s.data, room: roomFor(s.data.mode, s.data.room), enrollmentId, timezone: TZ, validFrom: new Date(dateKey(new Date())) },
   });
   const n = await generateForSlot(slot.id);
   refresh(enrollmentId);
@@ -151,8 +162,10 @@ const OneOffInput = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date"),
   startTime: z.string().refine(isHHMM, "Use HH:MM"),
   durationMinutes: z.number().int().min(15).max(240),
+  mode: MODE.default("ONLINE"),
+  room: ROOM,
 });
-export type OneOffInputT = z.infer<typeof OneOffInput>;
+export type OneOffInputT = z.input<typeof OneOffInput>;
 
 /**
  * A single lesson on one date — no weekly time, nothing repeats.
@@ -193,11 +206,74 @@ export async function addOneOffSession(enrollmentId: number, input: OneOffInputT
   }
 
   await prisma.sessionInstance.create({
-    data: { enrollmentId, startsAt, endsAt, meetingRoom: meetingRoomName(e.subject.code) },
+    data: { enrollmentId, startsAt, endsAt, meetingRoom: meetingRoomName(e.subject.code), mode: p.data.mode, location: roomFor(p.data.mode, p.data.room) },
   });
   refresh(enrollmentId);
   const when = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" }).format(startsAt);
   return { ok: true, message: `One-off lesson added · ${when} at ${p.data.startTime}` };
+}
+
+const ModeInput = z.object({ mode: MODE, room: ROOM });
+const modeMessage = (mode: "ONLINE" | "IN_PERSON", room: string | null) =>
+  mode === "IN_PERSON" ? `In person${room ? ` · ${room}` : ""}` : "Online";
+
+/**
+ * Switch a weekly time between online and in person. Every upcoming lesson from that weekly time follows;
+ * lessons already taught keep how they actually happened.
+ */
+export async function setSlotMode(slotId: number, input: z.input<typeof ModeInput>): Promise<Result> {
+  await assertRole("admin");
+  const p = ModeInput.safeParse(input);
+  if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Choose online or in person." };
+  const slot = await prisma.sessionSlot.findUnique({ where: { id: slotId } });
+  if (!slot || !slot.active) return { ok: false, error: "That weekly time no longer exists." };
+  const room = roomFor(p.data.mode, p.data.room);
+  const n = await prisma.$transaction(async (tx) => {
+    await tx.sessionSlot.update({ where: { id: slotId }, data: { mode: p.data.mode, room } });
+    const r = await tx.sessionInstance.updateMany({
+      where: { slotId, status: "SCHEDULED", startsAt: { gt: new Date() } },
+      data: { mode: p.data.mode, location: room },
+    });
+    return r.count;
+  });
+  refresh(slot.enrollmentId);
+  return { ok: true, message: `${modeMessage(p.data.mode, room)} from now on${n ? ` · ${n} upcoming lessons updated` : ""}` };
+}
+
+/** Switch one lesson between online and in person, without changing the weekly time. */
+export async function setSessionMode(sessionId: number, input: z.input<typeof ModeInput>): Promise<Result> {
+  const me = await assertRole("admin", "teacher");
+  const p = ModeInput.safeParse(input);
+  if (!p.success) return { ok: false, error: p.error.issues[0]?.message ?? "Choose online or in person." };
+  const s = await prisma.sessionInstance.findUnique({ where: { id: sessionId }, include: { enrollment: true, attendances: true } });
+  if (!s || (!hasAdminAccess(me) && s.enrollment.teacherId !== me.id)) return { ok: false, error: "Lesson not found." };
+  if (s.status !== "SCHEDULED" || +s.endsAt < Date.now()) return { ok: false, error: "Only upcoming lessons can be changed." };
+  if (s.attendances.length && p.data.mode !== s.mode) return { ok: false, error: "Someone has already joined this lesson, so it can’t be switched now." };
+  const room = roomFor(p.data.mode, p.data.room);
+  // An online lesson may carry its own link in `location`; keep it unless switching to in person.
+  const location = p.data.mode === "IN_PERSON" ? room : s.mode === "ONLINE" ? s.location : null;
+  await prisma.sessionInstance.update({ where: { id: sessionId }, data: { mode: p.data.mode, location } });
+  refresh(s.enrollmentId);
+  revalidatePath(`/teacher/sessions/${sessionId}`);
+  revalidatePath(`/admin/sessions/${sessionId}`);
+  return { ok: true, message: `This lesson is now ${modeMessage(p.data.mode, room).replace(/^./, (c) => c.toLowerCase())}` };
+}
+
+/**
+ * In-person lessons have no video call to record attendance, so the teacher checks in on the portal.
+ * Same rules as joining online: only the lesson's teacher, only while the lesson is open.
+ */
+export async function startInPersonLesson(sessionId: number): Promise<Result> {
+  const me = await assertRole("teacher");
+  const s = await prisma.sessionInstance.findUnique({ where: { id: sessionId }, include: { enrollment: true } });
+  if (!s || s.enrollment.teacherId !== me.id) return { ok: false, error: "Lesson not found." };
+  if (s.mode !== "IN_PERSON") return { ok: false, error: "This is an online lesson. Use Join lesson instead." };
+  const state = joinState(s, "teacher");
+  if (state !== "open") return { ok: false, error: state === "upcoming" ? "You can start the lesson shortly before it begins." : "This lesson has closed." };
+  await recordPresence(sessionId, me.id, "teacher", "join");
+  refresh(s.enrollmentId);
+  revalidatePath(`/teacher/sessions/${sessionId}`);
+  return { ok: true, message: "Lesson started · you’re marked present" };
 }
 
 export async function removeSlot(slotId: number): Promise<Result> {
@@ -286,6 +362,8 @@ export async function rescheduleSession(sessionId: number, input: z.infer<typeof
         endsAt,
         rescheduledFromId: s.id,
         meetingRoom: meetingRoomName(s.enrollment.subject.code),
+        mode: s.mode,
+        location: s.location,
       },
     }),
   ]);
@@ -440,6 +518,7 @@ export async function swapSession(sessionId: number, input: { subjectId: number;
         enrollmentId: target.id,
         startsAt: s.startsAt,
         endsAt: s.endsAt,
+        mode: s.mode,
         location: s.location,
         rescheduledFromId: s.id,
         meetingRoom: meetingRoomName(subject.code),

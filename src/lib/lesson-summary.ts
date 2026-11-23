@@ -46,6 +46,8 @@ export async function lessonSummary(studentIds: string[]) {
             weekday: sl.weekday,
             startTime: sl.startTime,
             durationMinutes: sl.durationMinutes,
+            mode: sl.mode,
+            room: sl.room,
           })),
         )
         .sort((a, b) => weekdayIso(a.weekday) - weekdayIso(b.weekday) || a.startTime.localeCompare(b.startTime));

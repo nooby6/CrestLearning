@@ -3,11 +3,13 @@
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import clsx from "clsx";
-import { ArrowLeftRight, CalendarClock, Loader2, MoreHorizontal, X } from "lucide-react";
-import { cancelSession, rescheduleSession, swapOptions, swapSession, type SwapOption } from "@/lib/actions/schedule";
+import { ArrowLeftRight, CalendarClock, Loader2, MapPin, MoreHorizontal, Video, X } from "lucide-react";
+import { cancelSession, rescheduleSession, setSessionMode, swapOptions, swapSession, type SwapOption } from "@/lib/actions/schedule";
 import type { Conflict } from "@/lib/sessions";
+import { ModePicker } from "./SlotFields";
+import type { LessonMode } from "./ModeTag";
 
-type Panel = null | "menu" | "move" | "cancel" | "swap";
+type Panel = null | "menu" | "move" | "cancel" | "swap" | "mode";
 
 /** Move, swap or cancel one upcoming lesson. Opens an inline panel under the row. Swapping is for the office only. */
 export function SessionActions({
@@ -16,17 +18,23 @@ export function SessionActions({
   defaultTime,
   durationMinutes,
   canSwap = false,
+  mode,
+  room,
 }: {
   sessionId: number;
   defaultDate: string;
   defaultTime: string;
   durationMinutes: number;
   canSwap?: boolean;
+  /** Pass to offer switching this lesson between online and in person. */
+  mode?: LessonMode;
+  room?: string | null;
 }) {
   const [open, setOpen] = useState<Panel>(null);
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState(defaultTime);
   const [reason, setReason] = useState("");
+  const [where, setWhere] = useState<{ mode: LessonMode; room: string }>({ mode: mode ?? "ONLINE", room: room ?? "" });
   const [pending, start] = useTransition();
 
   // Swap state
@@ -73,7 +81,8 @@ export function SessionActions({
     });
 
   const subject = options?.find((o) => o.subjectId === subjectId);
-  const title = open === "move" ? "Move this lesson" : open === "cancel" ? "Cancel this lesson" : open === "swap" ? "Swap this lesson" : "Lesson";
+  const title =
+    open === "move" ? "Move this lesson" : open === "cancel" ? "Cancel this lesson" : open === "swap" ? "Swap this lesson" : open === "mode" ? "Online or in person" : "Lesson";
 
   return (
     <div className="relative">
@@ -101,6 +110,26 @@ export function SessionActions({
               <button type="button" className="px-2 py-2 text-left text-sm text-navy-800 hover:bg-navy-50" onClick={() => setOpen("move")}>
                 <CalendarClock className="mr-2 inline h-4 w-4 text-gold-500" /> Move to another time
               </button>
+              {mode && (
+                <button
+                  type="button"
+                  className="px-2 py-2 text-left text-sm text-navy-800 hover:bg-navy-50"
+                  onClick={() => {
+                    setWhere({ mode: mode === "ONLINE" ? "IN_PERSON" : "ONLINE", room: room ?? "" });
+                    setOpen("mode");
+                  }}
+                >
+                  {mode === "ONLINE" ? (
+                    <>
+                      <MapPin className="mr-2 inline h-4 w-4 text-gold-500" /> Make it in person
+                    </>
+                  ) : (
+                    <>
+                      <Video className="mr-2 inline h-4 w-4 text-gold-500" /> Make it online
+                    </>
+                  )}
+                </button>
+              )}
               {canSwap && (
                 <button type="button" className="px-2 py-2 text-left text-sm text-navy-800 hover:bg-navy-50" onClick={openSwap}>
                   <ArrowLeftRight className="mr-2 inline h-4 w-4 text-gold-500" /> Swap for another lesson
@@ -223,6 +252,16 @@ export function SessionActions({
                   </div>
                 </>
               )}
+            </div>
+          )}
+
+          {open === "mode" && (
+            <div className="space-y-2">
+              <ModePicker mode={where.mode} room={where.room} onChange={setWhere} size="sm" />
+              <p className="text-[11px] text-navy-400">Only this lesson changes; the weekly time stays as it is.</p>
+              <button type="button" className="btn-primary w-full" disabled={pending} onClick={() => run(() => setSessionMode(sessionId, where))}>
+                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+              </button>
             </div>
           )}
 

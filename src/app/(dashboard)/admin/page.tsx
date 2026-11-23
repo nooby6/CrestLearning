@@ -47,7 +47,7 @@ export default async function AdminOverview() {
       select: { enrollment: { select: { teacher: { select: { user: true } } } } },
     }),
     prisma.student.findMany({
-      where: { meetingUrl: null, user: { active: true }, enrollments: { some: { status: "ACTIVE", slots: { some: { active: true } } } } },
+      where: { meetingUrl: null, user: { active: true }, enrollments: { some: { status: "ACTIVE", slots: { some: { active: true, mode: "ONLINE" } } } } },
       include: { user: true, enrollments: { where: { status: "ACTIVE" }, include: { subject: true }, orderBy: { subject: { name: "asc" } } } },
       take: 8,
     }),

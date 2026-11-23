@@ -10,6 +10,7 @@ import { staffCounts } from "@/lib/work-queries";
 import { SessionRow } from "@/components/schedule/SessionRow";
 import { JoinButton } from "@/components/class/JoinButton";
 import { sessionLink } from "@/lib/meeting";
+import { ModeTag, roomOf } from "@/components/schedule/ModeTag";
 
 export const metadata = { title: "Today" };
 
@@ -25,6 +26,7 @@ export default async function TeacherHome() {
   const sessionInclude = {
     enrollment: { include: { subject: true, student: { include: { user: true } }, level: true } },
     progressNote: { select: { id: true } },
+    attendances: { where: { userId: me.id }, select: { status: true } },
   } as const;
 
   const lastWeek = addDaysKey(weekKey, -7);
@@ -146,6 +148,8 @@ export default async function TeacherHome() {
                   }
                   colorKey={s.enrollment.subject.code}
                   status={s.status}
+                  mode={s.mode}
+                  room={roomOf(s)}
                   action={
                     s.status === "SCHEDULED" ? (
                       <JoinButton
@@ -157,6 +161,9 @@ export default async function TeacherHome() {
                         size="sm"
                         tone="navy"
                         external={!!sessionLink(s)}
+                        mode={s.mode}
+                        room={roomOf(s)}
+                        checkedIn={s.attendances.some((a) => a.status !== "ABSENT")}
                       />
                     ) : undefined
                   }
@@ -187,6 +194,7 @@ export default async function TeacherHome() {
                   <p className="text-sm font-medium text-navy-900">
                     {s.enrollment.subject.name} <span className="font-normal text-navy-500">· {s.enrollment.student.user.firstName}</span>
                   </p>
+                  <ModeTag mode={s.mode} room={roomOf(s)} className="mt-1" />
                 </li>
               ))}
             </ul>

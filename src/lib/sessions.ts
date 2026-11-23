@@ -31,6 +31,8 @@ export async function generateForSlot(slotId: number, db: Tx = prisma, horizonWe
       startsAt: o.startsAt,
       endsAt: o.endsAt,
       meetingRoom: meetingRoomName(slot.enrollment.subject.code),
+      mode: slot.mode,
+      location: slot.mode === "IN_PERSON" ? slot.room : null,
     })),
     skipDuplicates: true,
   });

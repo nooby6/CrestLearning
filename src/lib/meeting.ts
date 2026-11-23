@@ -35,8 +35,9 @@ export function parseMeetingLink(raw: string): MeetingLink | null {
   return null;
 }
 
-/** The link a session should open: a per-session override (location) or the student's standing link. */
-export function sessionLink(s: { location: string | null; enrollment: { student: { meetingUrl: string | null } } }) {
+/** The link a session should open: a per-session override (location) or the student's standing link. In-person lessons have none. */
+export function sessionLink(s: { mode?: string; location: string | null; enrollment: { student: { meetingUrl: string | null } } }) {
+  if (s.mode === "IN_PERSON") return null;
   const override = s.location && /^https:\/\//.test(s.location) ? s.location : null;
   return override ?? s.enrollment.student.meetingUrl ?? null;
 }
