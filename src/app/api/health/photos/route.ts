@@ -10,20 +10,18 @@ export async function GET(req: Request) {
   const ids = url.searchParams.get("ids");
   if (q) {
     const out: unknown[] = [];
-    for (const query of q.split("|")) {
-      const r = await fetch(`https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=30&plus=none`, { headers: UA });
-      if (!r.ok) {
-        out.push({ query, error: r.status });
-        continue;
-      }
-      const j = await r.json();
-      out.push({
-        query,
-        results: (j.results ?? [])
-          .filter((p: any) => !p.premium && !p.plus)
-          .map((p: any) => ({ id: p.urls?.raw?.match(/unsplash\.com\/([^?]+)/)?.[1], slug: p.slug, alt: p.alt_description, desc: p.description, w: p.width, h: p.height, by: p.user?.name })),
-      });
-    }
+    await Promise.all(
+      q.split("|").map(async (query) => {
+        const slug = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const r = await fetch(`https://unsplash.com/s/photos/${slug}?license=free`, { headers: { ...UA, Accept: "text/html" } });
+        if (!r.ok) return void out.push({ query, error: r.status });
+        const html = await r.text();
+        const seen = new Map<string, string>();
+        for (const m of html.matchAll(/<img[^>]*?alt="([^"]*)"[^>]*?src="https:\/\/images\.unsplash\.com\/(photo-[a-z0-9-]+)/g)) if (!seen.has(m[2])) seen.set(m[2], m[1]);
+        for (const m of html.matchAll(/<img[^>]*?src="https:\/\/images\.unsplash\.com\/(photo-[a-z0-9-]+)[^"]*"[^>]*?alt="([^"]*)"/g)) if (!seen.has(m[1])) seen.set(m[1], m[2]);
+        out.push({ query, plusOnPage: (html.match(/plus\.unsplash\.com/g) ?? []).length, results: [...seen].map(([id, alt]) => ({ id, alt })) });
+      }),
+    );
     return Response.json(out);
   }
   if (ids) {
