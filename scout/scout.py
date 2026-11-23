@@ -22,12 +22,33 @@ if os.path.exists("scout/queries.txt"):
             alt = re.search(r'alt="([^"]*)"', tag)
             found.setdefault(m.group(1), html.unescape(alt.group(1)) if alt else "")
         groups.append((q, list(found.items())[:15], ""))
+def resolve(token):
+    """us:<shortid> -> free Unsplash image URL (or reason); px:<id> -> Pexels image URL; photo-... -> Unsplash CDN."""
+    if token.startswith("us:"):
+        sid = token[3:]
+        try:
+            req = urllib.request.Request(f"https://unsplash.com/photos/{sid}/download?force=true", headers=UA)
+            class NoRedirect(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, *a, **k): return None
+            op = urllib.request.build_opener(NoRedirect)
+            try:
+                r = op.open(req, timeout=30); return None, f"no redirect {r.status}"
+            except urllib.error.HTTPError as e:
+                loc = e.headers.get("Location", "")
+                m = re.search(r"images\.unsplash\.com/(photo-[a-z0-9-]+)", loc)
+                if m: return f"https://images.unsplash.com/{m.group(1)}?auto=format&fit=crop&fm=jpg&q=70&w=330&h=240", m.group(1)
+                return None, f"{e.code} {loc[:80]}"
+        except Exception as e:
+            return None, str(e)
+    if token.startswith("px:"):
+        i = token[3:]
+        return f"https://images.pexels.com/photos/{i}/pexels-photo-{i}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=330&h=240", f"pexels-{i}"
+    return f"https://images.unsplash.com/{token}?auto=format&fit=crop&fm=jpg&q=70&w=330&h=240", token
+
 if os.path.exists("scout/ids.txt"):
-    items = []
-    for l in open("scout/ids.txt"):
-        l = l.strip()
-        if l: items.append((l.split()[0], " ".join(l.split()[1:])))
-    groups.append(("picked", items, ""))
+    lines = [l.strip() for l in open("scout/ids.txt") if l.strip() and not l.startswith("#")]
+    for start in range(0, len(lines), 20):
+        groups.append((f"ids {start}", [(l.split()[0], " ".join(l.split()[1:])) for l in lines[start:start + 20]], ""))
 
 index = {}
 for gi, (name, items, err) in enumerate(groups):
@@ -36,8 +57,12 @@ for gi, (name, items, err) in enumerate(groups):
         label = f"{gi}-{ii}"
         index[label] = {"id": pid, "alt": alt, "query": name}
         path = f"/tmp/{label}.jpg"
+        url, info = resolve(pid)
+        index[label]["resolved"] = info
+        if not url:
+            index[label]["error"] = info; continue
         try:
-            open(path, "wb").write(get(f"https://images.unsplash.com/{pid}?auto=format&fit=crop&fm=jpg&q=70&w=330&h=240"))
+            open(path, "wb").write(get(url))
             tiles.append((path, label))
         except Exception as e:
             index[label]["error"] = str(e)
