@@ -17,7 +17,7 @@ const STEPS = [
 export default function AdmissionsPage() {
   return (
     <>
-      <PageHero photo="graduateMan" kicker="Admissions" title="Admissions are open all year round" position="center 25%">
+      <PageHero photo="oneToOne" kicker="Admissions" title="Admissions are open all year round">
         <p>Learners can join at any point in the year. Here’s how it works, from your first enquiry to the first lesson.</p>
       </PageHero>
 
@@ -70,7 +70,7 @@ export default function AdmissionsPage() {
             </SectionHead>
             <div className="relative mt-10 hidden aspect-[4/5] lg:block">
               <div className="cut-right absolute inset-0 overflow-hidden">
-                <Photo k="examPrep" sizes="35vw" />
+                <Photo k="onlineGirl2" sizes="35vw" />
               </div>
               <div className="absolute bottom-8 left-0 right-[20%] bg-gold-500 p-5 text-navy-950">
                 <p className="font-display text-lg font-extrabold">We reply to every enquiry</p>

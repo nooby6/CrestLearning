@@ -26,7 +26,7 @@ const INCLUDED = [
 export default function HomeschoolingPage() {
   return (
     <>
-      <PageHero photo="homeStudy" kicker="Homeschooling" title="Structured homeschooling in Nairobi" position="center 35%">
+      <PageHero photo="tutorHome" kicker="Homeschooling" title="Structured homeschooling in Nairobi">
         <p>Wherever they learn, at a pace that suits them. We plan the whole week, with a specialist teacher for every subject and one place to follow progress.</p>
       </PageHero>
 
@@ -49,7 +49,7 @@ export default function HomeschoolingPage() {
           </div>
           <div className="relative aspect-[4/3]">
             <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(12% 0, 100% 0, 100% 100%, 0 100%)" }}>
-              <Photo k="helping" sizes="(min-width:1024px) 50vw, 100vw" />
+              <Photo k="tutorHome2" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
             <div className="absolute -bottom-5 left-[6%] h-3 w-1/2 bg-gold-500" aria-hidden />
           </div>

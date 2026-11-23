@@ -47,28 +47,28 @@ const PATHWAY: { ages: string; title: string; body: string; topics: string[]; ph
     title: "Block coding",
     body: "Students build animations, stories and simple games by snapping code blocks together in Scratch.",
     topics: ["Sequences and loops", "Events and simple logic", "Planning a project"],
-    photo: "codingGirl",
+    photo: "blockCoding",
   },
   {
     ages: "Ages 10 to 13",
     title: "First text-based code",
     body: "The move to typed code: short Python programs and first web pages with HTML and CSS.",
     topics: ["Variables, conditions and functions", "Finding and fixing bugs", "Building a web page"],
-    photo: "onlineLesson",
+    photo: "roboticsBuild",
   },
   {
     ages: "Ages 14 to 16",
     title: "IGCSE Computer Science",
     body: "Taught to the Cambridge IGCSE or Pearson Edexcel International GCSE syllabus, with the programming practice the exams expect.",
     topics: ["Algorithms and pseudocode", "Programming in Python", "Data, networks and past papers"],
-    photo: "codingTablet",
+    photo: "labCircuitClose",
   },
   {
     ages: "Ages 16 to 18",
     title: "A Level and independent projects",
     body: "Cambridge AS and A Level Computer Science, and larger projects that show universities what a student can build.",
     topics: ["Data structures and object-oriented programming", "Exam-standard problem solving", "A portfolio project"],
-    photo: "codingClass",
+    photo: "roboticsTutor",
   },
 ];
 
@@ -86,7 +86,7 @@ export default function StemPage() {
       <section className="angle-bottom relative isolate overflow-hidden bg-navy-950 text-white">
         {/* Photos sit beside the text, in full, with nothing laid over them. */}
         <div className="absolute inset-y-0 right-0 hidden w-[50%] lg:block" style={{ clipPath: "polygon(9% 0, 100% 0, 100% 100%, 0 100%)" }}>
-          <PhotoPair stacked sizes="50vw" priority firstPosition="center 30%" secondPosition="80% 35%" />
+          <PhotoPair stacked sizes="50vw" priority />
         </div>
         <div className="site-wrap pb-[calc(5vw+80px)] pt-20 sm:pt-28">
           <div className="hero-rise lg:max-w-[46%]">
@@ -111,7 +111,7 @@ export default function StemPage() {
             </div>
           </div>
           <div className="relative mt-12 aspect-[4/5] sm:aspect-[4/3] lg:hidden">
-            <PhotoPair stacked sizes="100vw" priority firstPosition="center 30%" secondPosition="80% 35%" />
+            <PhotoPair stacked sizes="100vw" priority />
           </div>
         </div>
       </section>
@@ -144,11 +144,11 @@ export default function StemPage() {
         <div className="site-wrap grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <div className="relative aspect-[5/4] lg:aspect-[4/5]">
             <div className="cut-right absolute inset-0 overflow-hidden bg-navy-100">
-              <Photo k="labGoggles" sizes="(min-width:1024px) 50vw, 100vw" />
+              <Photo k="labTablet" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
             <div className="absolute -bottom-8 right-[6%] aspect-square w-[42%] border-[6px] border-canvas bg-navy-100 shadow-[0_30px_60px_-30px_rgba(10,29,79,0.7)]">
               <div className="relative h-full w-full overflow-hidden">
-                <Photo k="labPour" sizes="(min-width:1024px) 22vw, 42vw" />
+                <Photo k="labTubes" sizes="(min-width:1024px) 22vw, 42vw" />
               </div>
             </div>
             <span className="absolute left-0 top-6 bg-gold-500 px-4 py-2 font-display text-sm font-extrabold text-navy-950">Ages 5 to 18</span>

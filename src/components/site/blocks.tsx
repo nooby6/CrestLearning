@@ -2,16 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 import { ArrowUpRight, HelpCircle, MessageSquareText } from "lucide-react";
-import { PHOTOS, type PhotoKey } from "./photos";
+import { PHOTOS, photoPosition, type PhotoKey } from "./photos";
 
 /** A photo that fills its (positioned) parent. */
 export function Photo({ k, sizes, priority, className, position }: { k: PhotoKey; sizes: string; priority?: boolean; className?: string; position?: string }) {
   const p = PHOTOS[k];
-  return <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} className={clsx("object-cover", className)} style={position ? { objectPosition: position } : undefined} />;
+  return <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} className={clsx("object-cover", className)} style={(position ?? photoPosition(k)) ? { objectPosition: position ?? photoPosition(k) } : undefined} />;
 }
 
 /** Inner-page hero: full-width photo under a navy wash, angled bottom edge. */
-export function PageHero({ photo, kicker, title, children, position = "center" }: { photo: PhotoKey; kicker?: string; title: string; children?: React.ReactNode; position?: string }) {
+export function PageHero({ photo, kicker, title, children, position }: { photo: PhotoKey; kicker?: string; title: string; children?: React.ReactNode; position?: string }) {
   return (
     <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
       <Photo k={photo} sizes="100vw" priority position={position} className="-z-20" />
@@ -40,7 +40,7 @@ export const PROGRAMMES = [
     id: "primary",
     title: "Primary",
     ages: "Ages 5 to 11",
-    photo: "primaryWriting" as PhotoKey,
+    photo: "boardMaths" as PhotoKey,
     body: "Confident reading, writing and number work, and the study habits that make everything after easier.",
     curricula: ["Cambridge Primary", "CBE Grades 1 to 6"],
   },
@@ -48,7 +48,7 @@ export const PROGRAMMES = [
     id: "lower-secondary",
     title: "Lower Secondary",
     ages: "Ages 11 to 14",
-    photo: "boyWriting" as PhotoKey,
+    photo: "boyNotebook" as PhotoKey,
     body: "A broader timetable and more independent work, with any gaps closed before the exam years begin.",
     curricula: ["Cambridge Lower Secondary", "CBE Junior School, Grades 7 to 9"],
   },
@@ -56,7 +56,7 @@ export const PROGRAMMES = [
     id: "igcse",
     title: "IGCSE and GCSE",
     ages: "Ages 14 to 16",
-    photo: "examPrep" as PhotoKey,
+    photo: "onlineGirl" as PhotoKey,
     body: "Two-year courses taught to the exam board’s syllabus, with past-paper practice built in from the start.",
     curricula: ["Cambridge IGCSE", "Pearson Edexcel International GCSE"],
   },
@@ -64,7 +64,7 @@ export const PROGRAMMES = [
     id: "a-level",
     title: "A Level and IB Diploma",
     ages: "Ages 16 to 18",
-    photo: "graduateWoman" as PhotoKey,
+    photo: "labCircuit" as PhotoKey,
     body: "Specialist teaching in the subjects that matter for university, with the depth and technique top grades need.",
     curricula: ["Cambridge AS and A Level", "Pearson Edexcel International A Level", "IB Diploma"],
   },
@@ -96,11 +96,11 @@ export function ProgrammeCards() {
 
 export const AUDIENCES: { title: string; body: string; photo: PhotoKey }[] = [
   { title: "Athletes and performers", body: "A timetable built around training, rehearsals and competitions.", photo: "athletics" },
-  { title: "Exam candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "examPrep" },
+  { title: "Exam candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "onlineGirl2" },
   { title: "Relocating and international families", body: "Keep the same curriculum through a move, in Nairobi or online.", photo: "westlands" },
-  { title: "Learners who need more support", body: "Patient one-to-one teaching that rebuilds confidence and closes gaps.", photo: "helping" },
+  { title: "Learners who need more support", body: "Patient one-to-one teaching that rebuilds confidence and closes gaps.", photo: "oneToOne" },
   { title: "Curious, able learners", body: "Room to go further and faster than a class can allow.", photo: "reading" },
-  { title: "Families who want flexibility", body: "Learning at home, at our centre or online, as your week requires.", photo: "homeStudy" },
+  { title: "Families who want flexibility", body: "Learning at home, at our centre or online, as your week requires.", photo: "tutorHome" },
 ];
 
 export function AudienceTiles() {

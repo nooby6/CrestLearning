@@ -18,7 +18,7 @@ const FOCUS: Record<string, string[]> = {
 export default function ProgrammesPage() {
   return (
     <>
-      <PageHero photo="classroom" kicker="Programmes" title="A programme for every stage, from Primary to A Level">
+      <PageHero photo="roboticsTutor2" kicker="Programmes" title="A programme for every stage, from Primary to A Level">
         <p>Each learner is taught to their own curriculum and exam board, by a specialist teacher for every subject.</p>
       </PageHero>
 
@@ -99,7 +99,7 @@ export default function ProgrammesPage() {
               </div>
             </div>
             <div className="relative min-h-[240px]">
-              <PhotoPair first="labTeacher2" second="codingClass" sizes="(min-width:1024px) 25vw, 50vw" />
+              <PhotoPair first="labTubes" second="blockCoding" sizes="(min-width:1024px) 25vw, 50vw" />
             </div>
           </div>
         </div>

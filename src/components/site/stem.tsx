@@ -9,8 +9,8 @@ import type { PhotoKey } from "./photos";
  * the laboratory and the coding class.
  */
 export function PhotoPair({
-  first = "labTeacher",
-  second = "codingClass",
+  first = "labCircuit",
+  second = "robotGirl",
   sizes,
   priority,
   stacked,
@@ -30,7 +30,7 @@ export function PhotoPair({
   return (
     <div className={clsx("absolute inset-0 grid gap-[4px] overflow-hidden bg-gold-500", stacked ? "grid-rows-2" : "grid-cols-2", className)}>
       <div className="relative overflow-hidden bg-navy-900">
-        <Photo k={first} sizes={sizes} priority={priority} position={firstPosition} />
+        <Photo k={first} sizes={sizes} priority={priority} position={firstPosition ?? (first === "labCircuit" ? "center 62%" : undefined)} />
       </div>
       <div className="relative overflow-hidden bg-navy-900">
         <Photo k={second} sizes={sizes} priority={priority} position={secondPosition} />
@@ -94,7 +94,7 @@ export function StemFeature() {
           </Link>
         </div>
         <div className="relative aspect-[4/3] lg:aspect-[5/6]">
-          <PhotoPair stacked sizes="(min-width:1024px) 50vw, 100vw" firstPosition="center 30%" secondPosition="80% 35%" />
+          <PhotoPair stacked sizes="(min-width:1024px) 50vw, 100vw" />
           <span className="absolute left-0 top-5 bg-white px-3 py-1.5 text-[13px] font-bold text-navy-950">In the lab</span>
           <span className="absolute bottom-5 right-0 bg-gold-500 px-3 py-1.5 text-[13px] font-bold text-navy-950">Writing code</span>
         </div>

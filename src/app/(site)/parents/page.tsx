@@ -21,7 +21,7 @@ const FEATURES = [
 export default function ParentsPage() {
   return (
     <>
-      <PageHero photo="helping" kicker="For parents" title="Stay close to your learner’s progress" position="center 30%">
+      <PageHero photo="tutorHome2" kicker="For parents" title="Stay close to your learner’s progress">
         <p>Your own sign-in to the Crest parent portal, with everything the teachers record for every learner in your family.</p>
       </PageHero>
 
