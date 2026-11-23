@@ -1,0 +1,20 @@
+name: photo-scout
+on:
+  push:
+    branches: [photo-scout]
+    paths: ["scout/queries.txt", "scout/ids.txt"]
+permissions:
+  contents: write
+jobs:
+  sheets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq imagemagick > /dev/null
+      - run: python3 scout/scout.py
+      - run: |
+          git config user.name "nooby6"
+          git config user.email "noreply@anthropic.com"
+          git add scout/out
+          git commit -m "Scout results [skip ci]" || exit 0
+          git push
