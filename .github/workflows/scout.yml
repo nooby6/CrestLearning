@@ -2,7 +2,7 @@ name: photo-scout
 on:
   push:
     branches: [photo-scout]
-    paths: ["scout/queries.txt", "scout/ids.txt"]
+    paths: ["scout/queries.txt", "scout/ids.txt", "scout/picks.txt"]
 permissions:
   contents: write
 jobs:

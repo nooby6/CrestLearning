@@ -70,3 +70,16 @@ for gi, (name, items, err) in enumerate(groups):
     args += ["-tile", "5x", "-geometry", "330x240+4+4", "-pointsize", "22", "-background", "#ffffff", f"{OUT}/sheet-{gi}.jpg"]
     subprocess.run(args, check=True)
 json.dump({"groups": [{"n": i, "query": g[0], "error": g[2], "count": len(g[1])} for i, g in enumerate(groups)], "index": index}, open(f"{OUT}/index.json", "w"), indent=1)
+
+if os.path.exists("scout/picks.txt"):
+    os.makedirs(f"{OUT}/full", exist_ok=True)
+    args = ["montage"]
+    for l in open("scout/picks.txt"):
+        if not l.strip(): continue
+        name, pid = l.split()
+        data = get(f"https://images.pexels.com/photos/{pid}/pexels-photo-{pid}.jpeg?auto=compress&cs=tinysrgb&w=1800")
+        open(f"{OUT}/full/{name}.jpg", "wb").write(data)
+        subprocess.run(["convert", f"{OUT}/full/{name}.jpg", "-resize", "420x420", f"/tmp/p-{name}.jpg"], check=True)
+        args += ["-label", name, f"/tmp/p-{name}.jpg"]
+    args += ["-tile", "4x", "-geometry", "420x420+4+4", "-pointsize", "20", "-background", "#ffffff", f"{OUT}/picks.jpg"]
+    subprocess.run(args, check=True)
