@@ -116,7 +116,16 @@ export function EnrollmentForm({
                 </option>
               ))}
             </select>
-            {errors.subjectId && <p className="mt-1 text-xs text-rose-600">{errors.subjectId}</p>}
+            {errors.subjectId ? (
+              <p className="mt-1 text-xs text-rose-600">{errors.subjectId}</p>
+            ) : (
+              <p className="mt-1 text-xs text-navy-400">
+                Not in the list?{" "}
+                <a href="/admin/subjects" target="_blank" rel="noreferrer" className="font-medium text-navy-700 underline underline-offset-4">
+                  Add a new subject
+                </a>
+              </p>
+            )}
           </div>
           <div>
             <label className="label">Level</label>
@@ -158,7 +167,11 @@ export function EnrollmentForm({
             <p className="rounded-lg border border-dashed border-line px-3 py-3 text-sm text-navy-400">Choose a subject to see who teaches it.</p>
           ) : eligible.length === 0 ? (
             <p className="rounded-lg border border-dashed border-amber-200 bg-amber-50/50 px-3 py-3 text-sm text-amber-800">
-              No teacher has this subject yet. Add it on a teacher’s profile first.
+              No teacher has this subject yet.{" "}
+              <a href={`/admin/subjects#subject-${subjectId}`} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-4">
+                Choose who teaches it
+              </a>
+              , then pick the subject again.
             </p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">

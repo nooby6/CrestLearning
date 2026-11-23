@@ -25,13 +25,15 @@ export type IconName =
   | "chart"
   | "link"
   | "inbox"
-  | "globe";
+  | "globe"
+  | "library";
 
 export const NAV: Record<RoleSlug, NavItem[]> = {
   admin: [
     { label: "Overview", href: "/admin", icon: "home" },
     { label: "People", href: "/admin/people", icon: "users" },
     { label: "Enrollments", href: "/admin/enrollments", icon: "link" },
+    { label: "Subjects", href: "/admin/subjects", icon: "library" },
     { label: "Schedule", href: "/admin/schedule", icon: "calendar", also: ["/admin/sessions"] },
     { label: "Attendance", href: "/admin/attendance", icon: "check" },
     { label: "Weekly reports", href: "/admin/reports", icon: "chart" },

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import {
+  Library,
   Globe,
   Inbox,
   BarChart3,
@@ -43,6 +44,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   link: Link2,
   inbox: Inbox,
   globe: Globe,
+  library: Library,
 };
 
 function NavList({ items, onNavigate, badges }: { items: NavItem[]; onNavigate?: () => void; badges?: Record<string, number> }) {

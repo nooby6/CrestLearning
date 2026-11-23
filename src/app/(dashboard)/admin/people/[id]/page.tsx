@@ -15,6 +15,7 @@ import { EndSessionsButton } from "./EndSessionsButton";
 import { activeSessions } from "@/lib/session";
 import { deviceLabel } from "@/lib/device";
 import { TeacherPayEditor } from "./TeacherPayEditor";
+import { TeacherSubjectsEditor } from "./TeacherSubjectsEditor";
 import { TeacherPayoutDetails } from "@/components/wallet/WalletControls";
 import { cachedBankCodes } from "@/lib/wallet";
 import { StudentLinkEditor } from "@/components/class/StudentLinkEditor";
@@ -49,6 +50,12 @@ export default async function PersonPage({ params }: { params: { id: string } })
   });
   if (!u) notFound();
   const devices = await activeSessions(u.id);
+  const [allSubjects, teaching] = u.teacher
+    ? await Promise.all([
+        prisma.subject.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+        prisma.enrollment.groupBy({ by: ["subjectId"], where: { teacherId: u.id, status: { in: ["ACTIVE", "PAUSED"] } }, _count: { _all: true } }),
+      ])
+    : [[], []];
 
   const slug = toSlug(u.role);
 
@@ -204,7 +211,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
                 title="Subjects"
                 action={
                   <Link href={`/admin/enrollments/${u.id}`} className="btn-ghost px-3 py-1.5 text-xs">
-                    <CalendarPlus className="h-3.5 w-3.5" /> Manage enrollment
+                    <CalendarPlus className="h-3.5 w-3.5" /> Add or drop subjects
                   </Link>
                 }
                 bodyClassName="px-5 py-1"
@@ -215,7 +222,7 @@ export default async function PersonPage({ params }: { params: { id: string } })
                   <ul className="divide-y divide-line">
                     {u.student.enrollments.map((e) => (
                       <li key={e.id}>
-                        <Link href={`/admin/enrollments/${e.id}`} className="flex items-center justify-between py-3 text-sm hover:text-navy-700">
+                        <Link href={`/admin/enrollments/${u.id}#subject-${e.id}`} className="flex items-center justify-between py-3 text-sm hover:text-navy-700">
                           <span className="font-medium">{e.subject.name}</span>
                           <span className="text-navy-500">
                             {fullName(e.teacher.user)} · {e.slots.map((s) => formatSlot(s)).join(", ") || "no weekly time"}
@@ -251,6 +258,15 @@ export default async function PersonPage({ params }: { params: { id: string } })
                 ]}
               />
               <div className="mt-4">
+                <TeacherSubjectsEditor
+                  teacherId={u.id}
+                  firstName={u.firstName}
+                  subjects={allSubjects}
+                  current={u.teacher.subjects.map((s) => s.subjectId)}
+                  busy={Object.fromEntries(teaching.map((t) => [t.subjectId, t._count._all]))}
+                />
+              </div>
+              <div className="mt-2">
                 <TeacherPayEditor teacherId={u.id} rateKes={Math.round(u.teacher.hourlyRate / 100)} capacity={u.teacher.weeklyCapacityHours} />
               </div>
             </Card>

@@ -269,14 +269,28 @@ export function StatusControls({ id, status }: { id: number; status: "ACTIVE" | 
           <button className="btn-ghost px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("PAUSED", "Pause this subject? Its upcoming lessons are removed until you resume.")}>
             <PauseCircle className="h-4 w-4" /> Pause
           </button>
-          <button className="btn-danger px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("ENDED", "End this subject for the student? Its weekly times stop today and upcoming lessons are removed. History is kept.")}>
-            <StopCircle className="h-4 w-4" /> End
+          <button
+            className="btn-danger px-3 py-1.5 text-xs"
+            disabled={pending}
+            onClick={() =>
+              go(
+                "ENDED",
+                "Drop this subject for the student? Its weekly times stop today and upcoming lessons are removed. Past lessons, attendance and reports are kept, and you can re-enrol them later.",
+              )
+            }
+          >
+            <StopCircle className="h-4 w-4" /> Drop subject
           </button>
         </>
       )}
       {status === "PAUSED" && (
         <button className="btn-primary px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("ACTIVE")}>
           <PlayCircle className="h-4 w-4" /> Resume
+        </button>
+      )}
+      {status === "ENDED" && (
+        <button className="btn-ghost px-3 py-1.5 text-xs" disabled={pending} onClick={() => go("ACTIVE", "Re-enrol the student in this subject with the same teacher? You’ll then add the weekly times.")}>
+          <PlayCircle className="h-4 w-4" /> Re-enrol
         </button>
       )}
     </div>

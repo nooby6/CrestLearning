@@ -298,10 +298,13 @@ export async function setEnrollmentStatus(id: number, status: "ACTIVE" | "PAUSED
   if (!e) return { ok: false, error: "Subject not found." };
 
   if (status === "ACTIVE") {
-    await prisma.enrollment.update({ where: { id }, data: { status, endDate: null } });
+    const teaches = await prisma.teacherSubject.findUnique({ where: { teacherId_subjectId: { teacherId: e.teacherId, subjectId: e.subjectId } } });
+    if (e.status === "ENDED" && !teaches) return { ok: false, error: "That teacher no longer teaches this subject. Use Add a subject to choose another teacher." };
+    await prisma.enrollment.update({ where: { id }, data: { status, endDate: null, ...(e.status === "ENDED" && { startDate: new Date(dateKey(new Date())) }) } });
     let n = 0;
     for (const s of e.slots) n += await generateForSlot(s.id);
     refresh(id);
+    if (e.status === "ENDED") return { ok: true, message: "Re-enrolled · add a weekly time to schedule lessons" };
     return { ok: true, message: n ? `Resumed · ${n} sessions scheduled` : "Resumed" };
   }
 
@@ -314,7 +317,7 @@ export async function setEnrollmentStatus(id: number, status: "ACTIVE" | "PAUSED
     return clearFutureSessions({ enrollmentId: id }, tx);
   });
   refresh(id);
-  const verb = status === "PAUSED" ? "Paused" : "Ended";
+  const verb = status === "PAUSED" ? "Paused" : "Subject dropped";
   return { ok: true, message: n ? `${verb} · ${n} upcoming sessions removed` : verb };
 }
 
