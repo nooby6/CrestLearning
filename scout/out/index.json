@@ -1,0 +1,65 @@
+{
+ "groups": [
+  {
+   "n": 0,
+   "query": "black child science experiment",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 1,
+   "query": "african girl science experiment",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 2,
+   "query": "kids science goggles",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 3,
+   "query": "black teenager chemistry",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 4,
+   "query": "black kid coding",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 5,
+   "query": "african children coding",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 6,
+   "query": "kids robotics",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 7,
+   "query": "black student laptop",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 8,
+   "query": "tutor helping child",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  },
+  {
+   "n": 9,
+   "query": "mother helping child homework",
+   "error": "HTTP Error 401: Unauthorized",
+   "count": 0
+  }
+ ],
+ "index": {}
+}
