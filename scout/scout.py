@@ -10,18 +10,16 @@ def get(url):
 groups = []  # (name, [(id, alt)])
 if os.path.exists("scout/queries.txt"):
     for qi, q in enumerate(l.strip() for l in open("scout/queries.txt") if l.strip()):
-        slug = re.sub(r"[^a-z0-9]+", "-", q.lower()).strip("-")
         try:
-            page = get(f"https://unsplash.com/s/photos/{slug}?license=free").decode("utf8", "ignore")
+            page = get(f"https://www.pexels.com/search/{urllib.parse.quote(q)}/").decode("utf8", "ignore")
         except Exception as e:
             groups.append((q, [], str(e))); continue
         found = {}
-        for tag in re.findall(r"<img[^>]+>", page):
-            m = re.search(r'src="https://images\.unsplash\.com/(photo-[a-z0-9-]+)', tag)
-            if not m or "plus.unsplash" in tag: continue
-            alt = re.search(r'alt="([^"]*)"', tag)
-            found.setdefault(m.group(1), html.unescape(alt.group(1)) if alt else "")
-        groups.append((q, list(found.items())[:15], ""))
+        for m in re.finditer(r'images\.pexels\.com/photos/(\d+)/[^"\s]*', page):
+            found.setdefault("px:" + m.group(1), "")
+        for m in re.finditer(r'href="/(?:[a-z-]+/)?photo/([a-z0-9-]+)-(\d+)/"', page):
+            found["px:" + m.group(2)] = m.group(1).replace("-", " ")
+        groups.append((q, list(found.items())[:20], "" if found else "no results parsed, len %d" % len(page)))
 def resolve(token):
     """us:<shortid> -> free Unsplash image URL (or reason); px:<id> -> Pexels image URL; photo-... -> Unsplash CDN."""
     if token.startswith("us:"):
