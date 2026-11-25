@@ -9,7 +9,7 @@ export const SITE_NAV: NavGroup[] = [
       { href: "/programmes#primary", label: "Primary", note: "Ages 5 to 11" },
       { href: "/programmes#lower-secondary", label: "Lower Secondary", note: "Ages 11 to 14" },
       { href: "/programmes#igcse", label: "IGCSE and GCSE", note: "Ages 14 to 16" },
-      { href: "/programmes#a-level", label: "A Level and IB Diploma", note: "Ages 16 to 18" },
+      { href: "/programmes#a-level", label: "A Level and IB Diploma", note: "Ages 16 to 18" },
     ],
   },
   {

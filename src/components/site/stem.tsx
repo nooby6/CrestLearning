@@ -44,7 +44,7 @@ export const STEM_STRANDS = [
     id: "lab",
     icon: FlaskConical,
     title: "Science Laboratory",
-    body: "Real experiments in biology, chemistry and physics, from first investigations at primary to the practical papers at IGCSE and A Level.",
+    body: "Real experiments in biology, chemistry and physics, from first investigations at primary to the practical papers at IGCSE and A Level.",
     cta: "Inside the Lab",
   },
   {

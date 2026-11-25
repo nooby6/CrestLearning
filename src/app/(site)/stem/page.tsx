@@ -7,7 +7,7 @@ import type { PhotoKey } from "@/components/site/photos";
 export const metadata = {
   title: "STEM Centre: Science Laboratory and Coding",
   description:
-    "The Crest STEM Centre in Nairobi: hands-on laboratory experiments in biology, chemistry and physics, IGCSE and A Level practical preparation, and coding classes from Scratch to Python and Computer Science.",
+    "The Crest STEM Centre in Nairobi: hands-on laboratory experiments in biology, chemistry and physics, IGCSE and A Level practical preparation, and coding classes from Scratch to Python and Computer Science.",
 };
 
 const WHY = [
@@ -19,7 +19,7 @@ const WHY = [
   {
     icon: ClipboardList,
     title: "Practical Exam Preparation",
-    body: "IGCSE and A Level sciences include practical skills. Learners who homeschool or study privately can be ready for them here.",
+    body: "IGCSE and A Level sciences include practical skills. Learners who homeschool or study privately can be ready for them here.",
   },
   {
     icon: MonitorPlay,
@@ -65,8 +65,8 @@ const PATHWAY: { ages: string; title: string; body: string; topics: string[]; ph
   },
   {
     ages: "Ages 16 to 18",
-    title: "A Level and Independent Projects",
-    body: "Cambridge AS and A Level Computer Science, and larger projects that show universities what a learner can build.",
+    title: "A Level and Independent Projects",
+    body: "Cambridge AS and A Level Computer Science, and larger projects that show universities what a learner can build.",
     topics: ["Data structures and object-oriented programming", "Exam-standard problem solving", "A portfolio project"],
     photo: "roboticsTutor",
   },
@@ -141,7 +141,7 @@ export default function StemPage() {
       {/* ---------------------------------------------------------------- lab */}
       <section id="lab" className="angle-both scroll-mt-32 bg-canvas py-[calc(5vw+64px)]">
         <div className="site-wrap grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          <div className="relative aspect-[5/4] lg:aspect-[4/5]">
+          <div className="relative order-last aspect-[5/4] lg:order-first lg:aspect-[4/5]">
             <div className="cut-right absolute inset-0 overflow-hidden bg-navy-100">
               <Photo k="labTablet" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
@@ -171,7 +171,7 @@ export default function StemPage() {
             <div className="mt-8 flex gap-4 border-l-[3px] border-gold-500 bg-white p-5">
               <Glasses className="mt-0.5 h-6 w-6 shrink-0 text-navy-700" />
               <p className="text-[15px] leading-relaxed text-navy-800">
-                <span className="font-bold text-navy-900">Homeschooling or a Private Candidate?</span> Practical skills are part of IGCSE and A Level
+                <span className="font-bold text-navy-900">Homeschooling or a Private Candidate?</span> Practical skills are part of IGCSE and A Level
                 science. Learners without a school lab can learn and rehearse them with us before the exam.
               </p>
             </div>
@@ -212,7 +212,7 @@ export default function StemPage() {
             </h2>
             <p className="mt-5 max-w-[54ch] text-[17px] leading-[1.7] text-navy-100">
               Learners learn by building: games, websites and programs that solve real problems. Each stage prepares them for the next, so a seven-year-old
-              starting with Scratch has a clear route to IGCSE and A Level Computer Science.
+              starting with Scratch has a clear route to IGCSE and A Level Computer Science.
             </p>
             <ul className="mt-8 space-y-3 text-[15px]">
               {["Lessons at the centre or live online", "Learners keep every project they build", "Progress recorded after every lesson"].map((t) => (

@@ -5,7 +5,7 @@ import { PhotoPair } from "@/components/site/stem";
 
 export const metadata = {
   title: "Programmes",
-  description: "One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners in Nairobi: Primary, Lower Secondary, IGCSE and GCSE, A Level and the IB Diploma.",
+  description: "One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners in Nairobi: Primary, Lower Secondary, IGCSE and GCSE, A Level and the IB Diploma.",
 };
 
 const FOCUS: Record<string, string[]> = {
@@ -18,7 +18,7 @@ const FOCUS: Record<string, string[]> = {
 export default function ProgrammesPage() {
   return (
     <>
-      <PageHero photo="roboticsTutor2" kicker="Programmes" title="A Programme for Every Stage, from Primary to A Level">
+      <PageHero photo="roboticsTutor2" kicker="Programmes" title="A Programme for Every Stage, from Primary to A Level">
         <p>Each learner is taught to their own curriculum and exam board, by a specialist teacher for every subject.</p>
       </PageHero>
 
@@ -36,8 +36,9 @@ export default function ProgrammesPage() {
 
       {PROGRAMMES.map((p, i) => (
         <section key={p.id} id={p.id} className={`scroll-mt-32 py-16 sm:py-20 ${i % 2 ? "bg-canvas" : "bg-white"}`}>
-          <div className={`site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
-            <div className="Relative Aspect-[4/3]">
+          <div className="site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+            {/* Text first on phones; on desktop the photo alternates sides. */}
+            <div className={`relative order-last aspect-[4/3] ${i % 2 ? "" : "lg:order-first"}`}>
               <div className={`absolute inset-0 overflow-hidden bg-navy-100 ${i % 2 ? "" : "cut-right"}`} style={i % 2 ? { clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" } : undefined}>
                 <Photo k={p.photo} sizes="(min-width:1024px) 50vw, 100vw" />
               </div>
@@ -86,7 +87,7 @@ export default function ProgrammesPage() {
               <p className="site-kicker text-gold-400">Add STEM to Any Programme</p>
               <h2 className="mt-3 font-display text-[clamp(26px,3.6vw,36px)] font-extrabold leading-[1.1]">Laboratory Experiments and Coding Classes</h2>
               <p className="mt-4 max-w-[52ch] text-[16px] leading-relaxed text-navy-100">
-                At every stage, learners can add practical science in the Crest laboratory, or coding lessons from Scratch to IGCSE and A Level Computer
+                At every stage, learners can add practical science in the Crest laboratory, or coding lessons from Scratch to IGCSE and A Level Computer
                 Science.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">

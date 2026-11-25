@@ -62,11 +62,11 @@ export const PROGRAMMES = [
   },
   {
     id: "a-level",
-    title: "A Level and IB Diploma",
+    title: "A Level and IB Diploma",
     ages: "Ages 16 to 18",
     photo: "labCircuit" as PhotoKey,
     body: "Specialist teaching in the subjects that matter for university, with the depth and technique top grades need.",
-    curricula: ["Cambridge AS and A Level", "Pearson Edexcel International A Level", "IB Diploma"],
+    curricula: ["Cambridge AS and A Level", "Pearson Edexcel International A Level", "IB Diploma"],
   },
 ];
 
@@ -96,7 +96,7 @@ export function ProgrammeCards() {
 
 export const AUDIENCES: { title: string; body: string; photo: PhotoKey }[] = [
   { title: "Athletes and Performers", body: "A timetable built around training, rehearsals and competitions.", photo: "athletics" },
-  { title: "Exam Candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "onlineGirl2" },
+  { title: "Exam Candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "onlineGirl2" },
   { title: "Relocating and International Families", body: "Keep the same curriculum through a move, in Nairobi or online.", photo: "westlands" },
   { title: "Learners Who Need More Support", body: "Patient one-to-one teaching that rebuilds confidence and closes gaps.", photo: "oneToOne" },
   { title: "Curious, Able Learners", body: "Room to go further and faster than a class can allow.", photo: "reading" },
@@ -165,8 +165,8 @@ export function NextSteps() {
 }
 
 const CURRICULA = [
-  { name: "Cambridge", levels: "Primary, Lower Secondary, IGCSE, AS and A Level" },
-  { name: "Pearson Edexcel", levels: "International GCSE and International A Level" },
+  { name: "Cambridge", levels: "Primary, Lower Secondary, IGCSE, AS and A Level" },
+  { name: "Pearson Edexcel", levels: "International GCSE and International A Level" },
   { name: "CBE", levels: "Primary and Junior School, Grades 1 to 9" },
   { name: "International Baccalaureate", levels: "IB Diploma" },
 ];

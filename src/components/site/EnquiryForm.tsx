@@ -6,7 +6,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { submitEnquiry, type EnquiryState } from "@/lib/actions/site";
 import { INTERESTS } from "@/lib/enquiry-options";
 
-const LEVELS = ["Primary", "Lower Secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma", "Not Sure"];
+const LEVELS = ["Primary", "Lower Secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma", "Not Sure"];
 const CURRICULA = ["Cambridge", "Pearson Edexcel", "CBE", "IB", "Not Sure"];
 const DELIVERY = [
   { value: "centre", label: "At the Crest Centre" },

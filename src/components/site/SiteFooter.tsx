@@ -32,7 +32,7 @@ export async function SiteFooter() {
         <div>
           <Wordmark tone="light" />
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-navy-200">
-            Homeschooling, one-to-one tuition and a STEM Centre in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level.
+            Homeschooling, one-to-one tuition and a STEM Centre in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level.
           </p>
           <ul className="mt-6 space-y-2.5 text-sm">
             {c.phone && (

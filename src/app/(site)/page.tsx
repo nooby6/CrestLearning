@@ -21,12 +21,12 @@ import { StemFeature } from "@/components/site/stem";
 export const metadata = {
   title: { absolute: "Crest Learning & STEM Centre — Homeschooling, tuition, science lab and coding in Nairobi" },
   description:
-    "Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory experiments and coding classes.",
+    "Homeschooling and one-to-one tuition in Nairobi for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory experiments and coding classes.",
 };
 
 const FACTS = [
   { icon: Layers3, title: "Four Curricula", body: "Cambridge, Pearson Edexcel, CBE and IB" },
-  { icon: GraduationCap, title: "Ages 5 to 18", body: "From Primary to A Level and the IB Diploma" },
+  { icon: GraduationCap, title: "Ages 5 to 18", body: "From Primary to A Level and the IB Diploma" },
   { icon: FlaskConical, title: "STEM Centre", body: "Laboratory experiments and coding classes" },
   { icon: ClipboardList, title: "Weekly Reports", body: "Written progress for every subject, every week" },
 ];
@@ -63,7 +63,7 @@ export default function HomePage() {
               Homeschooling, Tuition and STEM in Nairobi
             </h1>
             <p className="mt-6 max-w-[54ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
-              One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory
+              One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory
               experiments and coding classes.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
@@ -167,7 +167,7 @@ export default function HomePage() {
       {/* ---------------------------------------------------------------- ways to learn */}
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-          <div className="relative aspect-[5/4] lg:aspect-[4/5]">
+          <div className="relative order-last aspect-[5/4] lg:order-first lg:aspect-[4/5]">
             <div className="cut-right absolute inset-0 overflow-hidden bg-navy-100">
               <Photo k="onlineLesson" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>

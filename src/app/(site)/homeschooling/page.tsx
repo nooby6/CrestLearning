@@ -47,7 +47,7 @@ export default function HomeschoolingPage() {
               ))}
             </ul>
           </div>
-          <div className="Relative Aspect-[4/3]">
+          <div className="relative aspect-[4/3]">
             <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(12% 0, 100% 0, 100% 100%, 0 100%)" }}>
               <Photo k="tutorHome2" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
@@ -129,7 +129,7 @@ export default function HomeschoolingPage() {
           </SectionHead>
           <div className="divide-y divide-line border-y border-line bg-white">
             {[
-              ["Can my learner switch between home, centre and online?", "Lessons can be planned in whichever setting suits each subject. Talk to us about the mix you have in mind."],
+              ["Can My Learner Switch Between Home, Centre and Online?", "Lessons can be planned in whichever setting suits each subject. Talk to us about the mix you have in mind."],
               ["How Long Are Lessons?", "Usually about two hours. We agree lesson lengths and times with you when we plan the timetable."],
               ["How Do Exams Work for Homeschooled Learners?", "Homeschooled learners usually sit exams as private candidates at an exam centre. We’ll explain the steps and timings."],
               ["How Will I Know It’s Working?", "Every lesson record and weekly report is in your parent portal, and our office is a message away."],
