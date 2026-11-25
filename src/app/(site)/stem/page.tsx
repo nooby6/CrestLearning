@@ -5,7 +5,7 @@ import { CodeCard, PhotoPair } from "@/components/site/stem";
 import type { PhotoKey } from "@/components/site/photos";
 
 export const metadata = {
-  title: "STEM Centre: science laboratory and coding",
+  title: "STEM Centre: Science Laboratory and Coding",
   description:
     "The Crest STEM Centre in Nairobi: hands-on laboratory experiments in biology, chemistry and physics, IGCSE and A Level practical preparation, and coding classes from Scratch to Python and Computer Science.",
 };
@@ -13,18 +13,18 @@ export const metadata = {
 const WHY = [
   {
     icon: FlaskConical,
-    title: "Science you can see",
-    body: "Students carry out the experiments they read about, so ideas like rates of reaction or electrical resistance stop being words on a page.",
+    title: "Science You Can See",
+    body: "Learners carry out the experiments they read about, so ideas like rates of reaction or electrical resistance stop being words on a page.",
   },
   {
     icon: ClipboardList,
-    title: "Practical exam preparation",
-    body: "IGCSE and A Level sciences include practical skills. Students who homeschool or study privately can be ready for them here.",
+    title: "Practical Exam Preparation",
+    body: "IGCSE and A Level sciences include practical skills. Learners who homeschool or study privately can be ready for them here.",
   },
   {
     icon: MonitorPlay,
-    title: "Coding as a real skill",
-    body: "Students write and run their own programs from the first lesson, building towards Computer Science exams and projects of their own.",
+    title: "Coding as a Real Skill",
+    body: "Learners write and run their own programs from the first lesson, building towards Computer Science exams and projects of their own.",
   },
 ];
 
@@ -44,14 +44,14 @@ const LAB_SKILLS = [
 const PATHWAY: { ages: string; title: string; body: string; topics: string[]; photo: PhotoKey }[] = [
   {
     ages: "Ages 7 to 10",
-    title: "Block coding",
-    body: "Students build animations, stories and simple games by snapping code blocks together in Scratch.",
+    title: "Block Coding",
+    body: "Learners build animations, stories and simple games by snapping code blocks together in Scratch.",
     topics: ["Sequences and loops", "Events and simple logic", "Planning a project"],
     photo: "blockCoding",
   },
   {
     ages: "Ages 10 to 13",
-    title: "First text-based code",
+    title: "First Text-Based Code",
     body: "The move to typed code: short Python programs and first web pages with HTML and CSS.",
     topics: ["Variables, conditions and functions", "Finding and fixing bugs", "Building a web page"],
     photo: "roboticsBuild",
@@ -65,18 +65,18 @@ const PATHWAY: { ages: string; title: string; body: string; topics: string[]; ph
   },
   {
     ages: "Ages 16 to 18",
-    title: "A Level and independent projects",
-    body: "Cambridge AS and A Level Computer Science, and larger projects that show universities what a student can build.",
+    title: "A Level and Independent Projects",
+    body: "Cambridge AS and A Level Computer Science, and larger projects that show universities what a learner can build.",
     topics: ["Data structures and object-oriented programming", "Exam-standard problem solving", "A portfolio project"],
     photo: "roboticsTutor",
   },
 ];
 
 const HOW = [
-  { icon: UserRound, title: "Specialist teachers", body: "Science practicals are run by science teachers, and coding is taught by teachers who write code." },
-  { icon: Building2, title: "Lab sessions at the centre", body: "Experiments take place in the Crest laboratory. Coding lessons can be at the centre or live online." },
-  { icon: ShieldCheck, title: "Safe, supervised work", body: "A teacher supervises every lab session, with goggles, lab coats and gloves provided." },
-  { icon: ClipboardList, title: "Recorded and reported", body: "Each session is logged in the parent portal with what was covered, and appears in the weekly report." },
+  { icon: UserRound, title: "Specialist Teachers", body: "Science practicals are run by science teachers, and coding is taught by teachers who write code." },
+  { icon: Building2, title: "Lab Sessions at the Centre", body: "Experiments take place in the Crest laboratory. Coding lessons can be at the centre or live online." },
+  { icon: ShieldCheck, title: "Safe, Supervised Work", body: "A teacher supervises every lab session, with goggles, lab coats and gloves provided." },
+  { icon: ClipboardList, title: "Recorded and Reported", body: "Each session is logged in the parent portal with what was covered, and appears in the weekly report." },
 ];
 
 export default function StemPage() {
@@ -92,21 +92,20 @@ export default function StemPage() {
           <div className="hero-rise lg:max-w-[46%]">
             <p className="site-kicker text-gold-400">Crest STEM Centre</p>
             <h1 className="mt-4 font-display text-[clamp(36px,6vw,62px)] font-extrabold leading-[1.03] tracking-[-0.03em]">
-              Science and coding, taught hands-on
+              Science and Coding, Taught Hands-On
             </h1>
             <p className="mt-6 max-w-[52ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
-              Laboratory experiments in biology, chemistry and physics, and coding classes from first blocks to Computer Science exams. Here in
-              Nairobi, alongside your student’s tuition or homeschooling.
+              Laboratory experiments in biology, chemistry and physics, and coding classes from first blocks to Computer Science exams, taught in Nairobi alongside your learner’s tuition or homeschooling.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/admissions?interest=stem#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
-                Enquire about STEM
+                Enquire About STEM
               </Link>
               <a href="#lab" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
-                Science laboratory
+                Science Laboratory
               </a>
               <a href="#coding" className="btn border-white/50 px-6 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
-                Coding classes
+                Coding Classes
               </a>
             </div>
           </div>
@@ -119,9 +118,9 @@ export default function StemPage() {
       {/* ---------------------------------------------------------------- why */}
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap">
-          <SectionHead kicker="Why STEM at Crest" title="Learning by doing, not only by reading">
+          <SectionHead kicker="Why STEM at Crest" title="Learning by Doing, Not Only by Reading">
             <p>
-              Most tuition stops at the textbook. At the STEM Centre students also use the equipment, run the experiment and write the program, so the
+              Most tuition stops at the textbook. At the STEM Centre, learners also use the equipment, run the experiment and write the program, so the
               theory they learn in lessons has something real to hold on to.
             </p>
           </SectionHead>
@@ -154,13 +153,13 @@ export default function StemPage() {
             <span className="absolute left-0 top-6 bg-gold-500 px-4 py-2 font-display text-sm font-extrabold text-navy-950">Ages 5 to 18</span>
           </div>
           <div>
-            <p className="site-kicker">Science laboratory</p>
-            <h2 className="site-h2 mt-3">Real experiments in a working laboratory</h2>
+            <p className="site-kicker">Science Laboratory</p>
+            <h2 className="site-h2 mt-3">Real Experiments in a Working Laboratory</h2>
             <p className="site-lead mt-4">
-              Younger students explore with simple investigations. Older students carry out the practical work their syllabus sets, with the skills
+              Younger learners explore with simple investigations. Older learners carry out the practical work their syllabus sets, with the skills
               examiners look for.
             </p>
-            <h3 className="mt-8 font-display text-base font-extrabold text-navy-900">Skills students practise</h3>
+            <h3 className="mt-8 font-display text-base font-extrabold text-navy-900">Skills Learners Practise</h3>
             <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
               {LAB_SKILLS.map((s) => (
                 <li key={s} className="flex items-start gap-2.5 text-[15px] text-navy-800">
@@ -172,8 +171,8 @@ export default function StemPage() {
             <div className="mt-8 flex gap-4 border-l-[3px] border-gold-500 bg-white p-5">
               <Glasses className="mt-0.5 h-6 w-6 shrink-0 text-navy-700" />
               <p className="text-[15px] leading-relaxed text-navy-800">
-                <span className="font-bold text-navy-900">Homeschooling or a private candidate?</span> Practical skills are part of IGCSE and A Level
-                science. Students without a school lab can learn and rehearse them with us before the exam.
+                <span className="font-bold text-navy-900">Homeschooling or a Private Candidate?</span> Practical skills are part of IGCSE and A Level
+                science. Learners without a school lab can learn and rehearse them with us before the exam.
               </p>
             </div>
           </div>
@@ -182,8 +181,8 @@ export default function StemPage() {
         {/* lab notebook: example experiments */}
         <div className="site-wrap mt-24">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <h3 className="font-display text-2xl font-extrabold text-navy-900 sm:text-[28px]">Experiments students carry out</h3>
-            <p className="text-[15px] text-navy-600">A sample. The full list follows each student’s syllabus.</p>
+            <h3 className="font-display text-2xl font-extrabold text-navy-900 sm:text-[28px]">Experiments Learners Carry Out</h3>
+            <p className="text-[15px] text-navy-600">A sample only: the full list follows each learner’s syllabus.</p>
           </div>
           <ul className="mt-8 grid gap-6 md:grid-cols-3">
             {EXPERIMENTS.map((e) => (
@@ -207,16 +206,16 @@ export default function StemPage() {
       <section id="coding" className="scroll-mt-32 bg-navy-900 py-20 text-white sm:py-24">
         <div className="site-wrap grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-20">
           <div>
-            <p className="site-kicker text-gold-400">Coding and programming</p>
+            <p className="site-kicker text-gold-400">Coding and Programming</p>
             <h2 className="mt-3 font-display text-[clamp(30px,4.6vw,44px)] font-extrabold leading-[1.08] tracking-[-0.02em]">
-              From first blocks to Computer Science exams
+              From First Blocks to Computer Science Exams
             </h2>
             <p className="mt-5 max-w-[54ch] text-[17px] leading-[1.7] text-navy-100">
-              Students learn by building: games, websites and programs that solve real problems. Each stage prepares them for the next, so a seven-year-old
+              Learners learn by building: games, websites and programs that solve real problems. Each stage prepares them for the next, so a seven-year-old
               starting with Scratch has a clear route to IGCSE and A Level Computer Science.
             </p>
             <ul className="mt-8 space-y-3 text-[15px]">
-              {["Lessons at the centre or live online", "Students keep every project they build", "Progress recorded after every lesson"].map((t) => (
+              {["Lessons at the centre or live online", "Learners keep every project they build", "Progress recorded after every lesson"].map((t) => (
                 <li key={t} className="flex items-center gap-3">
                   <span className="h-2.5 w-2.5 bg-gold-500" aria-hidden /> {t}
                 </li>
@@ -230,8 +229,8 @@ export default function StemPage() {
       {/* ---------------------------------------------------------------- pathway */}
       <section id="pathway" className="scroll-mt-32 bg-white py-20 sm:py-24">
         <div className="site-wrap">
-          <SectionHead kicker="The coding pathway" title="Four stages, each building on the last">
-            <p>Students join at the stage that fits their age and experience. We check where they are in the first lesson.</p>
+          <SectionHead kicker="The Coding Pathway" title="Four Stages, Each Building on the Last">
+            <p>Learners join at the stage that fits their age and experience. We check where they are in the first lesson.</p>
           </SectionHead>
           <ol className="mt-14 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {PATHWAY.map((p, i) => (
@@ -258,10 +257,10 @@ export default function StemPage() {
           </ol>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link href="/admissions?interest=coding#enquire" className="btn-primary px-6 py-3">
-              Enquire about coding classes
+              Enquire About Coding Classes
             </Link>
             <Link href="/admissions?interest=lab#enquire" className="btn-ghost px-6 py-3">
-              Enquire about the science lab
+              Enquire About the Science Lab
             </Link>
           </div>
         </div>
@@ -271,8 +270,8 @@ export default function StemPage() {
       <section className="angle-top bg-navy-800 pb-20 pt-[calc(5vw+64px)] text-white">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
           <div>
-            <p className="site-kicker text-gold-400">How STEM lessons work</p>
-            <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">Part of your student’s Crest timetable</h2>
+            <p className="site-kicker text-gold-400">How STEM Lessons Work</p>
+            <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">Part of Your Learner’s Crest Timetable</h2>
             <p className="mt-4 text-[17px] leading-relaxed text-navy-100">
               STEM sessions sit in the same weekly timetable as tuition, so parents see them in one place.
             </p>

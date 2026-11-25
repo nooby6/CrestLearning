@@ -14,15 +14,15 @@ export async function SiteFooter() {
       <div className="site-wrap">
         <div className="relative -top-14 flex flex-col gap-6 bg-gold-500 px-7 py-8 text-navy-950 shadow-[0_30px_60px_-30px_rgba(3,11,36,0.8)] md:flex-row md:items-center md:justify-between md:px-10">
           <div>
-            <p className="font-display text-2xl font-extrabold leading-tight sm:text-[28px]">Your learner’s journey starts here</p>
+            <p className="font-display text-2xl font-extrabold leading-tight sm:text-[28px]">Your Learner’s Journey Starts Here</p>
             <p className="mt-1.5 text-[15px] text-navy-900">Tell us about them and our admissions team will be in touch.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/admissions#enquire" className="btn border-navy-950 bg-navy-950 px-6 py-3 font-semibold text-white hover:bg-navy-800">
-              Enquire now
+              Enquire Now
             </Link>
             <Link href="/contact" className="btn border-navy-950 px-6 py-3 font-semibold text-navy-950 hover:bg-navy-950/10">
-              Contact us
+              Contact Us
             </Link>
           </div>
         </div>
@@ -45,7 +45,7 @@ export async function SiteFooter() {
             {wa && (
               <li>
                 <a href={whatsappLink(wa)} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 text-navy-100 hover:text-white">
-                  <MessageCircle className="h-4 w-4 text-gold-400" /> WhatsApp us
+                  <MessageCircle className="h-4 w-4 text-gold-400" /> WhatsApp Us
                 </a>
               </li>
             )}
@@ -69,27 +69,27 @@ export async function SiteFooter() {
           links={[
             ...programmes.map((p) => ({ href: p.href, label: p.label })),
             { href: "/homeschooling", label: "Homeschooling" },
-            { href: "/stem#lab", label: "Science laboratory" },
-            { href: "/stem#coding", label: "Coding and programming" },
+            { href: "/stem#lab", label: "Science Laboratory" },
+            { href: "/stem#coding", label: "Coding and Programming" },
           ]}
         />
         <FooterCol
           title="Admissions"
           links={[
-            { href: "/admissions", label: "How to join" },
-            { href: "/admissions#fees", label: "Fees and payment" },
-            { href: "/admissions#enquire", label: "Enquire now" },
-            { href: "/parents", label: "For parents" },
-            { href: "/contact", label: "Contact us" },
+            { href: "/admissions", label: "How to Join" },
+            { href: "/admissions#fees", label: "Fees and Payment" },
+            { href: "/admissions#enquire", label: "Enquire Now" },
+            { href: "/parents", label: "For Parents" },
+            { href: "/contact", label: "Contact Us" },
           ]}
         />
         <FooterCol
           title="Portals"
           links={[
-            { href: "/portal", label: "Parent portal login" },
-            { href: "/portal", label: "Student login" },
-            { href: "/portal", label: "Teacher login" },
-            { href: "/forgot-password", label: "Forgot your password?" },
+            { href: "/portal", label: "Parent Portal Login" },
+            { href: "/portal", label: "Student Login" },
+            { href: "/portal", label: "Teacher Login" },
+            { href: "/forgot-password", label: "Forgot Your Password?" },
           ]}
         />
       </div>

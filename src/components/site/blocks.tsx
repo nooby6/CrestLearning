@@ -84,7 +84,7 @@ export function ProgrammeCards() {
               <h3 className="font-display text-xl font-extrabold text-navy-900">{p.title}</h3>
               <p className="mt-2 flex-1 text-[15px] leading-relaxed text-navy-700">{p.body}</p>
               <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-navy-800 group-hover:text-gold-700">
-                Learn more <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                Learn More <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </span>
             </div>
           </Link>
@@ -95,12 +95,12 @@ export function ProgrammeCards() {
 }
 
 export const AUDIENCES: { title: string; body: string; photo: PhotoKey }[] = [
-  { title: "Athletes and performers", body: "A timetable built around training, rehearsals and competitions.", photo: "athletics" },
-  { title: "Exam candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "onlineGirl2" },
-  { title: "Relocating and international families", body: "Keep the same curriculum through a move, in Nairobi or online.", photo: "westlands" },
-  { title: "Learners who need more support", body: "Patient one-to-one teaching that rebuilds confidence and closes gaps.", photo: "oneToOne" },
-  { title: "Curious, able learners", body: "Room to go further and faster than a class can allow.", photo: "reading" },
-  { title: "Families who want flexibility", body: "Learning at home, at our centre or online, as your week requires.", photo: "tutorHome" },
+  { title: "Athletes and Performers", body: "A timetable built around training, rehearsals and competitions.", photo: "athletics" },
+  { title: "Exam Candidates", body: "Focused preparation for IGCSE, A Level and IB exams, subject by subject.", photo: "onlineGirl2" },
+  { title: "Relocating and International Families", body: "Keep the same curriculum through a move, in Nairobi or online.", photo: "westlands" },
+  { title: "Learners Who Need More Support", body: "Patient one-to-one teaching that rebuilds confidence and closes gaps.", photo: "oneToOne" },
+  { title: "Curious, Able Learners", body: "Room to go further and faster than a class can allow.", photo: "reading" },
+  { title: "Families Who Want Flexibility", body: "Learning at home, at our centre or online, as your week requires.", photo: "tutorHome" },
 ];
 
 export function AudienceTiles() {
@@ -127,22 +127,22 @@ export function NextSteps() {
   return (
     <section className="bg-white py-20 sm:py-24">
       <div className="site-wrap">
-        <SectionHead kicker="Get started" title="What’s your next step?" center />
+        <SectionHead kicker="Get Started" title="What’s Your Next Step?" center />
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {[
             {
               icon: HelpCircle,
-              title: "I have a general question about Crest",
+              title: "I Have a General Question About Crest",
               body: "Ask about lessons, timetables, fees or how homeschooling works. We’ll point you in the right direction.",
-              cta: "Get in touch",
+              cta: "Get in Touch",
               href: "/contact",
               dark: false,
             },
             {
               icon: MessageSquareText,
-              title: "I’d like advice for my learner",
+              title: "I’d Like Advice for My Learner",
               body: "Tell us their curriculum, level and goals. Our admissions team will recommend a plan and teachers.",
-              cta: "Submit an enquiry",
+              cta: "Submit an Enquiry",
               href: "/admissions#enquire",
               dark: true,
             },

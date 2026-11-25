@@ -29,7 +29,7 @@ export function SiteHeader({ phone }: { phone?: string }) {
             <span className="h-2 w-2 bg-gold-500" aria-hidden />
             Admissions are open all year round.{" "}
             <Link href="/admissions#enquire" className="font-semibold text-gold-400 hover:text-gold-300 hover:underline">
-              Enquire now
+              Enquire Now
             </Link>
           </p>
           <div className="flex items-center gap-5">
@@ -39,13 +39,13 @@ export function SiteHeader({ phone }: { phone?: string }) {
               </a>
             )}
             <Link href="/portal" className="flex items-center gap-1.5 hover:text-white">
-              <LogIn className="h-3.5 w-3.5 text-gold-400" /> Parent portal login
+              <LogIn className="h-3.5 w-3.5 text-gold-400" /> Parent Portal Login
             </Link>
             <Link href="/portal" className="hover:text-white">
-              Student login
+              Student Login
             </Link>
             <Link href="/portal" className="hover:text-white">
-              Teacher login
+              Teacher Login
             </Link>
           </div>
         </div>
@@ -99,7 +99,7 @@ export function SiteHeader({ phone }: { phone?: string }) {
               Portal login
             </Link>
             <Link href="/admissions#enquire" className="btn-gold hidden px-5 py-2.5 font-semibold sm:inline-flex">
-              Enquire now
+              Enquire Now
             </Link>
             <button
               type="button"
@@ -154,10 +154,10 @@ export function SiteHeader({ phone }: { phone?: string }) {
             </ul>
             <div className="mt-6 grid gap-3">
               <Link href="/admissions#enquire" className="btn-gold py-3 font-semibold">
-                Enquire now
+                Enquire Now
               </Link>
               <Link href="/portal" className="btn-primary py-3">
-                <LogIn className="h-4 w-4" /> Portal login for parents, students and teachers
+                <LogIn className="h-4 w-4" /> Portal Login for Parents, Students and Teachers
               </Link>
               {phone && (
                 <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="btn-ghost py-3">

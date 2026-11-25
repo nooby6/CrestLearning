@@ -43,16 +43,16 @@ export const STEM_STRANDS = [
   {
     id: "lab",
     icon: FlaskConical,
-    title: "Science laboratory",
+    title: "Science Laboratory",
     body: "Real experiments in biology, chemistry and physics, from first investigations at primary to the practical papers at IGCSE and A Level.",
-    cta: "Inside the lab",
+    cta: "Inside the Lab",
   },
   {
     id: "coding",
     icon: Code2,
-    title: "Coding and programming",
+    title: "Coding and Programming",
     body: "A clear path from block coding at seven to Python, web development and Computer Science exams, at our centre or live online.",
-    cta: "The coding pathway",
+    cta: "The Coding Pathway",
   },
 ] as const;
 
@@ -64,10 +64,10 @@ export function StemFeature() {
         <div>
           <p className="site-kicker text-gold-400">Crest STEM Centre</p>
           <h2 className="mt-3 max-w-xl font-display text-[clamp(30px,4.6vw,46px)] font-extrabold leading-[1.06] tracking-[-0.02em]">
-            Laboratory experiments and coding classes, alongside your tuition
+            Laboratory Experiments and Coding Classes, Alongside Your Tuition
           </h2>
           <p className="mt-5 max-w-[54ch] text-[17px] leading-[1.7] text-navy-100">
-            Science makes sense when students see it happen, and coding is learnt by writing code. Our STEM Centre gives Crest students a working
+            Science makes sense when learners see it happen, and coding is learnt by writing code. Our STEM Centre gives Crest learners a working
             laboratory and a coding pathway from age seven, taught by specialists and reported to parents like every other lesson.
           </p>
           <ul className="mt-9 grid gap-4 sm:grid-cols-2">
@@ -95,8 +95,8 @@ export function StemFeature() {
         </div>
         <div className="relative aspect-[4/3] lg:aspect-[5/6]">
           <PhotoPair stacked sizes="(min-width:1024px) 50vw, 100vw" />
-          <span className="absolute left-0 top-5 bg-white px-3 py-1.5 text-[13px] font-bold text-navy-950">In the lab</span>
-          <span className="absolute bottom-5 right-0 bg-gold-500 px-3 py-1.5 text-[13px] font-bold text-navy-950">Writing code</span>
+          <span className="absolute left-0 top-5 bg-white px-3 py-1.5 text-[13px] font-bold text-navy-950">In the Lab</span>
+          <span className="absolute bottom-5 right-0 bg-gold-500 px-3 py-1.5 text-[13px] font-bold text-navy-950">Writing Code</span>
         </div>
       </div>
     </section>

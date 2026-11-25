@@ -12,7 +12,7 @@ export function ReportPreview() {
     <figure className="m-0">
       <div className="border border-line border-t-[3px] border-t-navy-800 bg-white shadow-[0_18px_40px_-24px_rgba(10,29,79,0.45)]">
         <div className="flex items-center justify-between gap-3 bg-navy-800 px-5 py-3 text-white">
-          <span className="font-display text-sm font-semibold">Weekly report</span>
+          <span className="font-display text-sm font-semibold">Weekly Report</span>
           <span className="text-xs text-navy-100">Week of 9 November</span>
         </div>
         <div className="divide-y divide-line">
@@ -38,7 +38,7 @@ export function ReportPreview() {
           </div>
         </div>
       </div>
-      <figcaption className="mt-3 text-xs text-navy-500">An example of the report parents read each week. Every family sees only their own students.</figcaption>
+      <figcaption className="mt-3 text-xs text-navy-500">An example of the report parents read each week. Every family sees only their own learners.</figcaption>
     </figure>
   );
 }

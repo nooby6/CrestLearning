@@ -9,31 +9,31 @@ export const metadata = {
 const WEEK = [
   { day: "Monday", items: ["Mathematics", "English"] },
   { day: "Tuesday", items: ["Biology", "History"] },
-  { day: "Wednesday", items: ["Mathematics", "Chemistry lab"] },
+  { day: "Wednesday", items: ["Mathematics", "Chemistry Lab"] },
   { day: "Thursday", items: ["English", "Physics"] },
   { day: "Friday", items: ["Geography", "Coding"] },
 ];
 
 const INCLUDED = [
-  ["A planned timetable", "We agree the subjects, the weekly slots and where lessons happen: at our centre, at home or online."],
-  ["A teacher for each subject", "Specialists who know the syllabus and the exams your learner is working towards."],
-  ["A record after every lesson", "Attendance, topics covered and homework, logged by the teacher the same day."],
-  ["Worksheets and schoolwork", "Teachers share worksheets in the portal; learners hand work in there and see it marked."],
-  ["A report every week", "Each teacher writes a short report on progress, strengths and the next focus."],
-  ["Clear invoices", "Invoices in the parent portal, paid by M-Pesa or bank transfer and confirmed by our office."],
+  ["A Planned Timetable", "We agree the subjects, the weekly slots and where lessons happen: at our centre, at home or online."],
+  ["A Teacher for Each Subject", "Specialists who know the syllabus and the exams your learner is working towards."],
+  ["A Record After Every Lesson", "Attendance, topics covered and homework, logged by the teacher the same day."],
+  ["Worksheets and Schoolwork", "Teachers share worksheets in the portal; learners hand work in there and see it marked."],
+  ["A Report Every Week", "Each teacher writes a short report on progress, strengths and the next focus."],
+  ["Clear Invoices", "Invoices in the parent portal, paid by M-Pesa or bank transfer and confirmed by our office."],
 ];
 
 export default function HomeschoolingPage() {
   return (
     <>
-      <PageHero photo="tutorHome" kicker="Homeschooling" title="Structured homeschooling in Nairobi">
+      <PageHero photo="tutorHome" kicker="Homeschooling" title="Structured Homeschooling in Nairobi">
         <p>Wherever they learn, at a pace that suits them. We plan the whole week, with a specialist teacher for every subject and one place to follow progress.</p>
       </PageHero>
 
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
-            <SectionHead kicker="Why homeschool with Crest" title="The freedom of homeschooling, with a school’s structure">
+            <SectionHead kicker="Why Homeschool with Crest" title="The Freedom of Homeschooling, with a School’s Structure">
               <p>
                 Homeschooling gives your learner time to go deeper, move faster or slow down where they need to. Crest adds what’s hard to do alone: subject
                 specialists, a dependable timetable and a clear record of progress.
@@ -47,7 +47,7 @@ export default function HomeschoolingPage() {
               ))}
             </ul>
           </div>
-          <div className="relative aspect-[4/3]">
+          <div className="Relative Aspect-[4/3]">
             <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(12% 0, 100% 0, 100% 100%, 0 100%)" }}>
               <Photo k="tutorHome2" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
@@ -58,8 +58,8 @@ export default function HomeschoolingPage() {
 
       <section id="who" className="scroll-mt-32 bg-navy-950 py-20 text-white sm:py-24">
         <div className="site-wrap">
-          <p className="site-kicker text-gold-400">Who it’s for</p>
-          <h2 className="mt-3 max-w-3xl font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">Homeschooling for every kind of learner</h2>
+          <p className="site-kicker text-gold-400">Who It’s For</p>
+          <h2 className="mt-3 max-w-3xl font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">Homeschooling for Every Kind of Learner</h2>
           <div className="mt-12">
             <AudienceTiles />
           </div>
@@ -68,7 +68,7 @@ export default function HomeschoolingPage() {
 
       <section id="week" className="scroll-mt-32 bg-canvas py-20 sm:py-24">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-          <SectionHead kicker="A week at Crest" title="What a homeschool week looks like">
+          <SectionHead kicker="A Week at Crest" title="What a Homeschool Week Looks Like">
             <p>Each subject has regular slots with its own teacher. Here’s an example of one learner’s week; yours is planned around their subjects and your family’s routine.</p>
           </SectionHead>
           <figure className="m-0 min-w-0">
@@ -91,7 +91,7 @@ export default function HomeschoolingPage() {
             </div>
             <figcaption className="mt-3 text-sm text-navy-500">An example. Subjects, days and the number of lessons are planned with each family.</figcaption>
             <p className="mt-6 border-l-[3px] border-navy-800 bg-white p-5 text-[15px] leading-relaxed text-navy-800">
-              <span className="font-bold text-navy-900">Science practicals and coding are part of the week.</span> Homeschooled students do their
+              <span className="font-bold text-navy-900">Science practicals and coding are part of the week.</span> Homeschooled learners do their
               experiments in the Crest laboratory, and can add coding lessons at any stage.{" "}
               <Link href="/stem" className="font-semibold text-navy-900 underline decoration-gold-500 decoration-2 underline-offset-4 hover:text-gold-700">
                 About the STEM Centre
@@ -103,7 +103,7 @@ export default function HomeschoolingPage() {
 
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap">
-          <SectionHead kicker="What’s included" title="Everything a homeschool week needs" center />
+          <SectionHead kicker="What’s Included" title="Everything a Homeschool Week Needs" center />
           <ol className="mt-12 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
             {INCLUDED.map(([t, b], i) => (
               <li key={t} className="bg-white p-7">
@@ -118,11 +118,11 @@ export default function HomeschoolingPage() {
 
       <section className="bg-canvas py-20 sm:py-24">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-          <SectionHead kicker="Questions" title="Questions families ask">
+          <SectionHead kicker="Questions" title="Questions Families Ask">
             <p>
               Something else on your mind?{" "}
               <Link href="/contact" className="font-semibold text-navy-900 underline underline-offset-4">
-                Get in touch
+                Get in Touch
               </Link>
               .
             </p>
@@ -130,9 +130,9 @@ export default function HomeschoolingPage() {
           <div className="divide-y divide-line border-y border-line bg-white">
             {[
               ["Can my learner switch between home, centre and online?", "Lessons can be planned in whichever setting suits each subject. Talk to us about the mix you have in mind."],
-              ["How long are lessons?", "Usually about two hours. We agree lesson lengths and times with you when we plan the timetable."],
-              ["How do exams work for homeschooled learners?", "Homeschooled learners usually sit exams as private candidates at an exam centre. We’ll explain the steps and timings."],
-              ["How will I know it’s working?", "Every lesson record and weekly report is in your parent portal, and our office is a message away."],
+              ["How Long Are Lessons?", "Usually about two hours. We agree lesson lengths and times with you when we plan the timetable."],
+              ["How Do Exams Work for Homeschooled Learners?", "Homeschooled learners usually sit exams as private candidates at an exam centre. We’ll explain the steps and timings."],
+              ["How Will I Know It’s Working?", "Every lesson record and weekly report is in your parent portal, and our office is a message away."],
             ].map(([q, a]) => (
               <details key={q} className="group px-6 py-5 open:bg-ivory">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-extrabold text-navy-900">

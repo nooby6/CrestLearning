@@ -25,25 +25,25 @@ export const metadata = {
 };
 
 const FACTS = [
-  { icon: Layers3, title: "4 curricula", body: "Cambridge, Pearson Edexcel, CBE and IB" },
-  { icon: GraduationCap, title: "Ages 5 to 18", body: "Primary through to A Level and the IB Diploma" },
+  { icon: Layers3, title: "Four Curricula", body: "Cambridge, Pearson Edexcel, CBE and IB" },
+  { icon: GraduationCap, title: "Ages 5 to 18", body: "From Primary to A Level and the IB Diploma" },
   { icon: FlaskConical, title: "STEM Centre", body: "Laboratory experiments and coding classes" },
-  { icon: ClipboardList, title: "Weekly reports", body: "Written progress for every subject, every week" },
+  { icon: ClipboardList, title: "Weekly Reports", body: "Written progress for every subject, every week" },
 ];
 
 const WHY = [
-  { icon: UserRound, title: "Truly one-to-one", body: "Every lesson is planned for one learner, at their pace, with nobody to wait for and nowhere to hide." },
-  { icon: Users, title: "A specialist for every subject", body: "Each subject has its own teacher who knows the syllabus and the exams inside out." },
-  { icon: CalendarCheck2, title: "A timetable that fits", body: "Regular weekly lessons at times agreed with your family, at the centre, at home or online." },
-  { icon: BookOpenCheck, title: "Every lesson recorded", body: "Teachers log attendance, topics covered and homework after each lesson, the same day." },
-  { icon: ClipboardList, title: "Weekly progress reports", body: "Strengths, progress and next week’s focus, written by each teacher and ready to print." },
-  { icon: ShieldCheck, title: "A secure parent portal", body: "Timetables, reports, schoolwork, invoices and payments in one private place for your family." },
+  { icon: UserRound, title: "Truly One-to-One", body: "Every lesson is planned for one learner, at their pace, with nobody to wait for and nowhere to hide." },
+  { icon: Users, title: "A Specialist for Every Subject", body: "Each subject has its own teacher who knows the syllabus and the exams inside out." },
+  { icon: CalendarCheck2, title: "A Timetable That Fits", body: "Regular weekly lessons at times agreed with your family, at the centre, at home or online." },
+  { icon: BookOpenCheck, title: "Every Lesson Recorded", body: "Teachers log attendance, topics covered and homework after each lesson, the same day." },
+  { icon: ClipboardList, title: "Weekly Progress Reports", body: "Strengths, progress and next week’s focus, written by each teacher and ready to print." },
+  { icon: ShieldCheck, title: "A Secure Parent Portal", body: "Timetables, reports, schoolwork, invoices and payments in one private place for your family." },
 ];
 
 const WAYS = [
-  { icon: Building2, title: "At our Nairobi centre", body: "A calm, supervised study space where learners work with their teachers away from home distractions." },
-  { icon: House, title: "Home tuition across Nairobi", body: "Our teachers come to you, so lessons fit around family life without the commute." },
-  { icon: MonitorPlay, title: "Live online lessons", body: "Face-to-face lessons on Google Meet from anywhere, with the same records and weekly reports." },
+  { icon: Building2, title: "At Our Nairobi Centre", body: "A calm, supervised study space where learners work with their teachers away from home distractions." },
+  { icon: House, title: "Home Tuition Across Nairobi", body: "Our teachers come to you, so lessons fit around family life without the commute." },
+  { icon: MonitorPlay, title: "Live Online Lessons", body: "Live lessons on Google Meet from anywhere, with the same lesson records and weekly reports." },
 ];
 
 export default function HomePage() {
@@ -51,7 +51,7 @@ export default function HomePage() {
     <>
       {/* ---------------------------------------------------------------- hero */}
       <section className="angle-bottom relative isolate overflow-hidden bg-navy-900 text-white">
-        <Photo k="roboticsTutor" sizes="100vw" priority position="62% 40%" className="-z-20" />
+        <Photo k="desk" sizes="100vw" priority position="center" className="-z-20" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950/95 via-navy-900/85 to-navy-900/25 lg:via-navy-900/70 lg:to-navy-900/10" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-navy-950/70 to-transparent" />
         <div className="site-wrap grid items-end gap-12 pb-[calc(5vw+150px)] pt-20 sm:pt-28 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
@@ -60,7 +60,7 @@ export default function HomePage() {
               <MapPin className="h-4 w-4 text-gold-400" /> Nairobi, Kenya
             </p>
             <h1 className="mt-6 font-display text-[clamp(38px,7.4vw,72px)] font-extrabold leading-[1.02] tracking-[-0.03em]">
-              Homeschooling, tuition and STEM in Nairobi
+              Homeschooling, Tuition and STEM in Nairobi
             </h1>
             <p className="mt-6 max-w-[54ch] text-lg leading-[1.65] text-navy-100 sm:text-xl">
               One-to-one teaching for Cambridge, Pearson Edexcel, CBE and IB learners, from Primary to A Level, with a STEM Centre for laboratory
@@ -68,7 +68,7 @@ export default function HomePage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/admissions#enquire" className="btn-gold px-7 py-3.5 text-base font-bold">
-                Enquire now
+                Enquire Now
               </Link>
               <Link href="/stem" className="btn border-white/50 px-7 py-3.5 text-base font-semibold text-white hover:border-white hover:bg-white/10">
                 Discover the STEM Centre
@@ -76,7 +76,7 @@ export default function HomePage() {
             </div>
           </div>
           <aside className="hero-rise hidden border border-white/20 bg-navy-950/55 p-7 backdrop-blur-md lg:block">
-            <p className="font-display text-xl font-extrabold">Speak to our admissions team</p>
+            <p className="font-display text-xl font-extrabold">Speak to Our Admissions Team</p>
             <p className="mt-2 text-[15px] leading-relaxed text-navy-100">We’ll help you choose the right curriculum, subjects and way of learning for your learner.</p>
             <ul className="mt-5 space-y-3 text-[15px]">
               {["Advice on curriculum and level", "Matched subject teachers", "A weekly timetable that fits"].map((t) => (
@@ -86,7 +86,7 @@ export default function HomePage() {
               ))}
             </ul>
             <Link href="/admissions#enquire" className="btn mt-6 w-full border-white bg-white py-3 font-bold text-navy-900 hover:bg-gold-500 hover:text-navy-950">
-              Book a conversation
+              Book a Conversation
             </Link>
           </aside>
         </div>
@@ -121,10 +121,9 @@ export default function HomePage() {
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid gap-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">
           <div className="lg:sticky lg:top-40 lg:self-start">
-            <SectionHead kicker="Why Crest" title="Why families choose Crest">
+            <SectionHead kicker="Why Crest" title="Why Families Choose Crest">
               <p>
-                Every learner is different, so we don’t teach classes. We build a plan around one learner — their curriculum, their subjects and their
-                goals — and give their family a clear view of progress every week.
+                Every learner is different, so we don’t teach classes. We build a plan around each learner’s curriculum, subjects and goals, and give the family a clear view of progress every week.
               </p>
             </SectionHead>
             <div className="relative mt-10 hidden aspect-[4/3] overflow-hidden lg:block">
@@ -152,11 +151,11 @@ export default function HomePage() {
       <section className="angle-both bg-canvas py-[calc(5vw+64px)]">
         <div className="site-wrap">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <SectionHead kicker="What we offer" title="Programmes for every stage">
+            <SectionHead kicker="What We Offer" title="Programmes for Every Stage">
               <p>From first readers to university applicants, each stage is taught to the learner’s own curriculum and exam board.</p>
             </SectionHead>
             <Link href="/programmes" className="btn-primary self-start px-6 py-3 lg:self-auto">
-              View all programmes
+              View All Programmes
             </Link>
           </div>
           <div className="mt-12">
@@ -173,12 +172,12 @@ export default function HomePage() {
               <Photo k="onlineLesson" sizes="(min-width:1024px) 50vw, 100vw" />
             </div>
             <div className="absolute -bottom-6 left-6 right-[22%] bg-navy-800 p-6 text-white shadow-[0_30px_60px_-30px_rgba(10,29,79,0.8)] sm:left-10">
-              <p className="font-display text-lg font-extrabold">The same standard, wherever they learn</p>
+              <p className="font-display text-lg font-extrabold">The Same Standard, Wherever They Learn</p>
               <p className="mt-1 text-sm text-navy-100">Every lesson is recorded and reported in the same way.</p>
             </div>
           </div>
           <div>
-            <SectionHead kicker="Learn your way" title="At our centre, at home or online">
+            <SectionHead kicker="Learn Your Way" title="At Our Centre, at Home or Online">
               <p>Choose the setting that suits your learner and your week. Talk to us about mixing settings across subjects.</p>
             </SectionHead>
             <ul className="mt-10 space-y-4">
@@ -203,13 +202,13 @@ export default function HomePage() {
         <div className="site-wrap">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <p className="site-kicker text-gold-400">Homeschooling for…</p>
+              <p className="site-kicker text-gold-400">Who We Teach</p>
               <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] tracking-[-0.02em] sm:text-[40px]">
-                No matter the journey, we’re here to help them thrive
+                Whatever Their Path, We Help Them Thrive
               </h2>
             </div>
             <Link href="/homeschooling" className="btn-gold self-start px-6 py-3 font-semibold lg:self-auto">
-              How homeschooling works
+              How Homeschooling Works
             </Link>
           </div>
           <div className="mt-12">
@@ -223,8 +222,8 @@ export default function HomePage() {
         <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-navy-800 lg:block" style={{ clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0 100%)" }} aria-hidden />
         <div className="site-wrap relative grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <div>
-            <SectionHead kicker="For parents" title="Always know how your learner is doing">
-              <p>Every Crest family has a private parent portal. Whatever the teachers record, you can see — for every learner in your family.</p>
+            <SectionHead kicker="For Parents" title="Always Know How Your Learner Is Doing">
+              <p>Every Crest family has a private parent portal, where you can see everything the teachers record for each of your learners.</p>
             </SectionHead>
             <ul className="mt-8 grid gap-4 sm:grid-cols-2">
               {["Attendance for every lesson", "Topics covered and homework", "A written report every week", "Invoices and payments"].map((t) => (
@@ -235,10 +234,10 @@ export default function HomePage() {
             </ul>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/parents" className="btn-primary px-6 py-3">
-                Explore the parent portal
+                Explore the Parent Portal
               </Link>
               <Link href="/portal" className="btn-ghost px-6 py-3">
-                Parent portal login
+                Parent Portal Login
               </Link>
             </div>
           </div>
@@ -251,7 +250,7 @@ export default function HomePage() {
       {/* ---------------------------------------------------------------- curricula */}
       <section className="bg-white pt-20 sm:pt-24">
         <div className="site-wrap">
-          <SectionHead kicker="Curricula" title="Taught to the curriculum your learner follows" center>
+          <SectionHead kicker="Curricula" title="Taught to the Curriculum Your Learner Follows" center>
             <p>Moving between curricula, or not sure which suits? Our admissions team will talk it through with you.</p>
           </SectionHead>
           <div className="mt-12">

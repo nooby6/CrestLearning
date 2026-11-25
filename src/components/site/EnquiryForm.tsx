@@ -6,20 +6,20 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { submitEnquiry, type EnquiryState } from "@/lib/actions/site";
 import { INTERESTS } from "@/lib/enquiry-options";
 
-const LEVELS = ["Primary", "Lower secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma", "Not sure"];
-const CURRICULA = ["Cambridge", "Pearson Edexcel", "CBE", "IB", "Not sure"];
+const LEVELS = ["Primary", "Lower Secondary / Junior School", "IGCSE / GCSE", "A Level / IB Diploma", "Not Sure"];
+const CURRICULA = ["Cambridge", "Pearson Edexcel", "CBE", "IB", "Not Sure"];
 const DELIVERY = [
-  { value: "centre", label: "At the Crest centre" },
-  { value: "home", label: "At home in Nairobi" },
-  { value: "online", label: "Live online" },
-  { value: "unsure", label: "Not sure yet" },
+  { value: "centre", label: "At the Crest Centre" },
+  { value: "home", label: "At Home in Nairobi" },
+  { value: "online", label: "Live Online" },
+  { value: "unsure", label: "Not Sure Yet" },
 ];
 
 function Send() {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} className="btn-primary w-full py-3 text-[15px] sm:w-auto sm:px-8">
-      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send enquiry"}
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Enquiry"}
     </button>
   );
 }
@@ -28,7 +28,7 @@ function Field({ label, name, error, optional, children }: { label: string; name
   return (
     <div>
       <label htmlFor={name} className="label">
-        {label} {optional && <span className="font-normal text-navy-400">optional</span>}
+        {label} {optional && <span className="font-normal text-navy-400">(optional)</span>}
       </label>
       {children}
       {error && (
@@ -55,10 +55,10 @@ export function EnquiryForm() {
     return (
       <div role="status" className="border border-line border-l-4 border-l-emerald-600 bg-white p-6">
         <p className="flex items-center gap-2 font-display text-lg font-semibold text-navy-900">
-          <CheckCircle2 className="h-5 w-5 text-emerald-700" /> Thank you — your enquiry has been sent
+          <CheckCircle2 className="h-5 w-5 text-emerald-700" /> Thank You. Your Enquiry Has Been Sent.
         </p>
         <p className="mt-2 text-[15px] leading-relaxed text-navy-700">
-          The Crest office will get back to you, usually within one working day, to talk about your student and arrange next steps.
+          The Crest office will get back to you, usually within one working day, to talk about your learner and arrange next steps.
         </p>
       </div>
     );
@@ -77,9 +77,9 @@ export function EnquiryForm() {
       </div>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-3 font-display text-base font-semibold text-navy-900">About you</legend>
+        <legend className="mb-3 font-display text-base font-semibold text-navy-900">About You</legend>
         <div className="sm:col-span-2">
-          <Field label="Your name" name="parentName" error={fe.parentName}>
+          <Field label="Your Name" name="parentName" error={fe.parentName}>
             <input id="parentName" name="parentName" className="input" autoComplete="name" required aria-invalid={!!fe.parentName} />
           </Field>
         </div>
@@ -94,9 +94,9 @@ export function EnquiryForm() {
 
       <div className="border-t border-line pt-5">
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-3 font-display text-base font-semibold text-navy-900">About the student</legend>
+        <legend className="mb-3 font-display text-base font-semibold text-navy-900">About the Learner</legend>
         <div className="sm:col-span-2">
-          <Field label="Student’s name" name="studentName" optional>
+          <Field label="Learner’s Name" name="studentName" optional>
             <input id="studentName" name="studentName" className="input" />
           </Field>
         </div>
@@ -129,7 +129,7 @@ export function EnquiryForm() {
         </div>
         <div className="sm:col-span-2">
           <span className="label">
-            STEM Centre <span className="font-normal text-navy-400">optional</span>
+            STEM Centre <span className="font-normal text-navy-400">(optional)</span>
           </span>
           <div className="grid gap-px border border-line bg-line sm:grid-cols-2">
             {INTERESTS.map((i) => (

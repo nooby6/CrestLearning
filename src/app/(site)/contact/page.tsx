@@ -12,16 +12,16 @@ export default async function ContactPage() {
   const c = await getSiteContact();
   const wa = c.whatsapp || c.phone;
   const cards = [
-    c.phone && { icon: Phone, label: "Call us", value: c.phone, href: telLink(c.phone) },
+    c.phone && { icon: Phone, label: "Call Us", value: c.phone, href: telLink(c.phone) },
     wa && { icon: MessageCircle, label: "WhatsApp", value: c.whatsapp || c.phone, href: whatsappLink(wa), external: true },
     c.email && { icon: Mail, label: "Email", value: c.email, href: `mailto:${c.email}` },
-    c.address && { icon: MapPin, label: "Visit our centre", value: c.address, href: c.mapUrl || undefined, external: true },
-    c.hours && { icon: Clock, label: "Office hours", value: c.hours },
+    c.address && { icon: MapPin, label: "Visit Our Centre", value: c.address, href: c.mapUrl || undefined, external: true },
+    c.hours && { icon: Clock, label: "Office Hours", value: c.hours },
   ].filter(Boolean) as { icon: typeof Phone; label: string; value: string; href?: string; external?: boolean }[];
 
   return (
     <>
-      <PageHero photo="westlands" kicker="Contact" title="We’d love to hear from you">
+      <PageHero photo="westlands" kicker="Contact" title="We’d Love to Hear from You">
         <p>Questions about lessons, fees or an existing learner? Our office is here to help.</p>
       </PageHero>
 
@@ -61,7 +61,7 @@ export default async function ContactPage() {
       <section className="bg-white py-20 sm:py-24">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
           <div>
-            <SectionHead kicker="Send a message" title="How can we help?">
+            <SectionHead kicker="Send a Message" title="How Can We Help?">
               <p>Send us a message and our office will reply by phone or email.</p>
             </SectionHead>
             {c.hours && cards.length > 4 && (

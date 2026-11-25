@@ -18,7 +18,7 @@ const FOCUS: Record<string, string[]> = {
 export default function ProgrammesPage() {
   return (
     <>
-      <PageHero photo="roboticsTutor2" kicker="Programmes" title="A programme for every stage, from Primary to A Level">
+      <PageHero photo="roboticsTutor2" kicker="Programmes" title="A Programme for Every Stage, from Primary to A Level">
         <p>Each learner is taught to their own curriculum and exam board, by a specialist teacher for every subject.</p>
       </PageHero>
 
@@ -37,7 +37,7 @@ export default function ProgrammesPage() {
       {PROGRAMMES.map((p, i) => (
         <section key={p.id} id={p.id} className={`scroll-mt-32 py-16 sm:py-20 ${i % 2 ? "bg-canvas" : "bg-white"}`}>
           <div className={`site-wrap grid items-center gap-12 lg:grid-cols-2 lg:gap-20 ${i % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
-            <div className="relative aspect-[4/3]">
+            <div className="Relative Aspect-[4/3]">
               <div className={`absolute inset-0 overflow-hidden bg-navy-100 ${i % 2 ? "" : "cut-right"}`} style={i % 2 ? { clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)" } : undefined}>
                 <Photo k={p.photo} sizes="(min-width:1024px) 50vw, 100vw" />
               </div>
@@ -60,7 +60,7 @@ export default function ProgrammesPage() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="font-display text-base font-extrabold text-navy-900">What we focus on</h3>
+                  <h3 className="font-display text-base font-extrabold text-navy-900">What We Focus On</h3>
                   <ul className="mt-3 space-y-2">
                     {FOCUS[p.id].map((f) => (
                       <li key={f} className="flex items-start gap-2.5 text-[15px] text-navy-800">
@@ -72,7 +72,7 @@ export default function ProgrammesPage() {
                 </div>
               </div>
               <Link href="/admissions#enquire" className="btn-primary mt-9 px-6 py-3">
-                Enquire about {p.title}
+                Enquire About {p.title}
               </Link>
             </div>
           </div>
@@ -83,10 +83,10 @@ export default function ProgrammesPage() {
         <div className="site-wrap">
           <div className="relative isolate grid overflow-hidden bg-navy-950 text-white lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <div className="p-8 sm:p-12">
-              <p className="site-kicker text-gold-400">Add STEM to any programme</p>
-              <h2 className="mt-3 font-display text-[clamp(26px,3.6vw,36px)] font-extrabold leading-[1.1]">Laboratory experiments and coding classes</h2>
+              <p className="site-kicker text-gold-400">Add STEM to Any Programme</p>
+              <h2 className="mt-3 font-display text-[clamp(26px,3.6vw,36px)] font-extrabold leading-[1.1]">Laboratory Experiments and Coding Classes</h2>
               <p className="mt-4 max-w-[52ch] text-[16px] leading-relaxed text-navy-100">
-                At every stage, students can add practical science in the Crest laboratory, or coding lessons from Scratch to IGCSE and A Level Computer
+                At every stage, learners can add practical science in the Crest laboratory, or coding lessons from Scratch to IGCSE and A Level Computer
                 Science.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -94,7 +94,7 @@ export default function ProgrammesPage() {
                   Explore the STEM Centre
                 </Link>
                 <Link href="/stem#pathway" className="btn border-white/50 px-6 py-3 font-semibold text-white hover:border-white hover:bg-white/10">
-                  See the coding pathway
+                  See the Coding Pathway
                 </Link>
               </div>
             </div>
@@ -108,16 +108,16 @@ export default function ProgrammesPage() {
       <section className="angle-top bg-navy-800 pb-20 pt-[calc(5vw+64px)] text-white">
         <div className="site-wrap grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-20">
           <div>
-            <p className="site-kicker text-gold-400">How lessons work</p>
-            <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">The same approach at every stage</h2>
+            <p className="site-kicker text-gold-400">How Lessons Work</p>
+            <h2 className="mt-3 font-display text-[30px] font-extrabold leading-[1.1] sm:text-[40px]">The Same Approach at Every Stage</h2>
             <p className="mt-4 text-[17px] leading-relaxed text-navy-100">Whether lessons are at our centre, in your home or online.</p>
           </div>
           <dl className="grid gap-px bg-white/15 sm:grid-cols-2">
             {[
-              ["One learner, one teacher", "Lessons are one-to-one, so the pace and examples are set by your learner."],
-              ["A specialist for each subject", "A dedicated teacher for every subject, not one tutor stretched across everything."],
-              ["A fixed weekly timetable", "Regular days and times agreed with you. Lessons usually run for about two hours."],
-              ["Records and weekly reports", "Topics and homework recorded after every lesson, and a written report every week."],
+              ["One Learner, One Teacher", "Lessons are one-to-one, so the pace and examples are set by your learner."],
+              ["A Specialist for Each Subject", "A dedicated teacher for every subject, not one tutor stretched across everything."],
+              ["A Fixed Weekly Timetable", "Regular days and times agreed with you. Lessons usually run for about two hours."],
+              ["Records and Weekly Reports", "Topics and homework recorded after every lesson, and a written report every week."],
             ].map(([t, b]) => (
               <div key={t} className="bg-navy-800 p-6">
                 <dt className="font-display text-lg font-extrabold">{t}</dt>
@@ -130,7 +130,7 @@ export default function ProgrammesPage() {
 
       <section className="bg-white pt-20">
         <div className="site-wrap">
-          <SectionHead kicker="Curricula" title="Curricula we teach" center>
+          <SectionHead kicker="Curricula" title="Curricula We Teach" center>
             <p>Tell us which subjects your learner takes and we’ll confirm a specialist teacher for each.</p>
           </SectionHead>
           <div className="mt-12">
